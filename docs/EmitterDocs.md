@@ -5,38 +5,50 @@ Wrapping class to implement <code>emit()</code>, <code>.on()</code> and <code>.s
 
 
 ###Usage###
-####Creation###
+####Creation with Warden.create(cnstr)###
 
-If you want to create your own event-emitting objects use <code>Warden.module</code>
+If you want to create your own event-emitting objects use <code>Warden.create</code>
 
-<pre>
-var className = Warden.module(function(){
-	//constructor
+```js
+var className = Warden.create(function className(){
+	//constructor of class
 });
-</pre>
+```
 
-Now you can do 
-<pre>
+Now you can do:
+```js
 	var classObject = new className();
 
-	classObject.emit({
-		type : "eventType",
-		val : "some text"
-	});
-
-	//callback style
-	classObject.on("eventType", function(e){
-		// context - class object
-		// e - emitted event;
+	// Registers event handler 
+	classObject.on("custom", function(ev){
+		/* 
+			context ('this' variable) is classObject
+			ev is emitted event
+		*/
 	}, {
-		//config
+		// settings
 	});
 
-	//streams
-	var stream = classObject.stream("eventType");
-</pre>
+	// Creating stream of events
+	var customEventStream = classObject.stream("custom");
+
+	// Listening stream
+	customEventStream.listen(function(ev){
+		/* 
+			context ('this' variable) is classObject
+			ev is emitted event
+		*/
+	});
+
+	// Emitting custom event
+	classObject.emit({
+		type: "custom",
+		value: Math.random()
+	});
+```
 
 ###Methods###
+
 ####emit####
 
 
