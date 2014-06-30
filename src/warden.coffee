@@ -44,6 +44,8 @@ class EventStream extends Stream
 
 Warden = {}
 Warden.version = "0.0.0";
+Warden.toString = ->
+	return Warden.stringify(Warden);
 Warden.createStream = (type, name) ->
 	return new EventStream(type, name)
 

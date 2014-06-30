@@ -81,6 +81,10 @@
 
   Warden.version = "0.0.0";
 
+  Warden.toString = function() {
+    return Warden.stringify(Warden);
+  };
+
   Warden.createStream = function(type, name) {
     return new EventStream(type, name);
   };
