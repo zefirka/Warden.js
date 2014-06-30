@@ -4,9 +4,27 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   EventBus = (function() {
-    function EventBus(type) {
+    function EventBus(type, events) {
       this.type = type;
+      this.events = events;
+      this.settings = {
+        taken: 0,
+        filtered: false,
+        mapped: false,
+        process: []
+      };
     }
+
+    EventBus.prototype.setup = function(ft, fn) {
+      var mock;
+      if (typeof ft !== 'string') {
+        return this.settings = ft;
+      } else {
+        mock = {};
+        mock[ft] = fn;
+        return process.push(mock);
+      }
+    };
 
     return EventBus;
 
@@ -16,15 +34,16 @@
     function Stream(type, name) {
       this.type = type;
       this.name = name;
-      this.events = [];
-      this.bus = new EventBus(this.type);
+      this.init && this.init(arguments);
     }
 
     Stream.prototype.evaluate = function(ev, cnt) {
+      debugger;
       if (!this.bus.listening) {
         console.log("" + this.name + " stream is not listening by any Bus");
         return false;
       }
+      return this.callback.apply(cnt, [ev]);
     };
 
     return Stream;
@@ -37,6 +56,22 @@
     function EventStream() {
       return EventStream.__super__.constructor.apply(this, arguments);
     }
+
+    EventStream.prototype.init = function() {
+      return this.bus = new EventBus(this.type, []);
+    };
+
+    EventStream.prototype.map = function(fn) {
+      var stream;
+      stream = new EventStream(this.type, this.name);
+      stream.bus.setup(this.bus.settings);
+      return stream;
+    };
+
+    EventStream.prototype.on = function(fn) {
+      this.bus.listening = true;
+      return this.callback = fn;
+    };
 
     return EventStream;
 

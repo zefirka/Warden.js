@@ -29,4 +29,7 @@ var k = new Presser(input);
 var clicks = c.stream('click', 'Clicks');
 var keyups = k.stream('keyup', 'Keyups');
 
-debugger;
+clicks.on(function(e){
+	debugger;	
+});
+

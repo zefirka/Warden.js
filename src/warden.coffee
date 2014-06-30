@@ -1,18 +1,46 @@
 class EventBus 
-	constructor : (@type) ->
+	constructor : (@type, @events) ->
+		@settings =
+			taken : 0
+			filtered : false
+			mapped : false
+			process : []
 
+	setup : (ft, fn) ->
+		if typeof ft isnt 'string'
+			@settings = ft
+		else
+			mock = {}
+			mock[ft] = fn
+			process.push mock
 
 class Stream 
 	constructor : (@type, @name) ->
-		@events = []
-		@bus = new EventBus(@type)
+		@init and @init(arguments)
+
 	evaluate : (ev, cnt) ->
+		debugger;
 		if not @bus.listening 
 			console.log "#{@name} stream is not listening by any Bus"
 			return false
+		
+
+
+		@callback.apply(cnt, [ev]);
 
 class EventStream extends Stream
-	
+	init : () ->
+		@bus = new EventBus(@type, [])
+
+	map : (fn) ->
+		stream = new EventStream(@type, @name)
+		stream.bus.setup(@bus.settings)
+		return stream
+
+	on : (fn) ->
+		@bus.listening = true;
+		@callback = fn;
+
 
 Warden = {}
 Warden.version = "0.0.0";
