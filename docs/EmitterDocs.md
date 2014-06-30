@@ -5,16 +5,16 @@ Wrapping class to implement <code>emit()</code>, <code>.on()</code> and <code>.s
 
 
 ###Usage###
-####Creation with Warden.create(cnstr)###
-
-If you want to create your own event-emitting objects use <code>Warden.create</code>
+####Creating objects with Warden.create()###
+If you want to create your own event-emitting object use <code>Warden.create()</code>
 
 ```js
 var className = Warden.create(function className(){
 	//constructor of class
+},{
+	//settings
 });
 ```
-
 Now you can do:
 ```js
 	var classObject = new className();

@@ -6,6 +6,9 @@ Warden.toString = ->
 Warden.create = (fn, config) ->
 	streams = {}
 	callbacks = {}
+	settings = {}
+
+	settings.max = (config and config.max) or 128 # max handlers per event
 
 	fn.prototype.emit = (ev) ->
 		self = @
@@ -23,9 +26,18 @@ Warden.create = (fn, config) ->
 		return @
 
 	fn.prototype.on = (ev, callback, config) ->
-		c = callbacks[ev]
+		#this particles should be destroyed at production
+		if typeof ev isnt 'string'
+			throw "Type Error: Wrong argument[1] in .on method. Expected string."
+		if typeof callback isnt 'function'
+			throw "Type Error: Wrong argument[2] in .on method. Expected function."
+
 		if not callbacks[ev]?
 			callbacks[ev] = []
+
+		if callbacks[ev].length >= settings.max 
+			throw "The maximum number (#{settings.max}) of handler for event [#{ev}] exceed."
+		
 		callbacks[ev].push {callback, config}
 		return @
 

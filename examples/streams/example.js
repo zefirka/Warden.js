@@ -15,6 +15,8 @@ var Presser = Warden.create(function Presser(e){
 	this.input.addEventListener("keyup", function(e){
 		self.emit(e);
 	});
+},{
+	max : 2
 });
 
 var left = document.getElementById("left");
@@ -39,5 +41,7 @@ var clicks3 = clicks.filter(function(e){
 	debugger;
 })
 
+
+var keyups = k.on('keyup', function(e){})
 
 

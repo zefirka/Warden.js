@@ -10,9 +10,11 @@
   };
 
   Warden.create = function(fn, config) {
-    var callbacks, streams;
+    var callbacks, settings, streams;
     streams = {};
     callbacks = {};
+    settings = {};
+    settings.max = (config && config.max) || 128;
     fn.prototype.emit = function(ev) {
       var self;
       self = this;
@@ -32,10 +34,17 @@
       return this;
     };
     fn.prototype.on = function(ev, callback, config) {
-      var c;
-      c = callbacks[ev];
+      if (typeof ev !== 'string') {
+        throw "Type Error: Wrong argument[1] in .on method. Expected string.";
+      }
+      if (typeof callback !== 'function') {
+        throw "Type Error: Wrong argument[2] in .on method. Expected function.";
+      }
       if (callbacks[ev] == null) {
         callbacks[ev] = [];
+      }
+      if (callbacks[ev].length >= settings.max) {
+        throw "The maximum number (" + settings.max + ") of handler for event [" + ev + "] exceed.";
       }
       callbacks[ev].push({
         callback: callback,
