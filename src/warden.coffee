@@ -1,13 +1,23 @@
-class Stream 
+class EventBus 
 	constructor : (@type) ->
+
+
+class Stream 
+	constructor : (@type, @name) ->
+		@events = []
+		@bus = new EventBus(@type)
+	evaluate : (ev, cnt) ->
+		if not @bus.listening 
+			console.log "#{@name} stream is not listening by any Bus"
+			return false
 
 class EventStream extends Stream
 	
 
 Warden = {}
-
-Warden.createStream = (type) ->
-	return new EventStream(type)
+Warden.version = "0.0.0";
+Warden.createStream = (type, name) ->
+	return new EventStream(type, name)
 
 Warden.module = (fn) ->
 	class Emitter
@@ -39,36 +49,33 @@ Warden.module = (fn) ->
 			callbacks[ev].push {callback, config}
 			return @
 
-		stream: (type) ->
-			stream = Warden.createStream(type)
-			if streams[type]?
+		stream: (type, name) ->
+			stream = Warden.createStream(type, name)
+			if not streams[type]?
 				streams[type] = []
 			streams[type].push stream
 
 			return stream
-
-@.Warden = Warden
-
-Warden.version = "0.0.0";
 
 Warden.stringify = (json, delim, n) ->
 	res = "{" + if delim then "\n" else " "
 	if not n 
 		n = 0
 
-	if n > 3
+	if n > 2
 		res = "[object]"
+		return res;
+
+	offset = ""
+	i = 0
+	while i++ <= n and delim
+		offset += "\t"
 
 	for key, val of json
-
-		offset = ""
-		i = 0
-		while i++ <= n and delim
-			offset += "\t"
 		res += "#{offset}#{key}:"
 
 		if typeof val is 'object'	
-			res += stringify(val, delim, n+1) + if delim then ",\n" else ", "
+			res += Warden.stringify(val, delim, n+1) + if delim then ",\n" else ", "
 		else
 			if val
 				if(typeof val is 'string')
@@ -84,10 +91,13 @@ Warden.stringify = (json, delim, n) ->
 			else 
 				res += "'undefined'" + if delim then ",\n" else ", "
 	res = res.slice(0, -2)
-	res += if delim then "\n}" else " }";
+	if(n>0)
+		res += " }"
+	else
+		res += if delim then "\n}" else " }";
 	return res;
 	
-
+@.Warden = Warden
 
 ###
 var Workflow = (function(){

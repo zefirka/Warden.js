@@ -41,6 +41,10 @@ module.exports = function(grunt){
     },
 
     watch: {
+      scripts : {
+        files : ['test/specs/*.js'],
+        tasks : ['jasmine']
+      },
       coffee: {
         files: ['src/*.coffee'],
         tasks: ['coffee']

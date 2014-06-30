@@ -1,12 +1,31 @@
 (function() {
-  var EventStream, Stream, Warden,
+  var EventBus, EventStream, Stream, Warden,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  Stream = (function() {
-    function Stream(type) {
+  EventBus = (function() {
+    function EventBus(type) {
       this.type = type;
     }
+
+    return EventBus;
+
+  })();
+
+  Stream = (function() {
+    function Stream(type, name) {
+      this.type = type;
+      this.name = name;
+      this.events = [];
+      this.bus = new EventBus(this.type);
+    }
+
+    Stream.prototype.evaluate = function(ev, cnt) {
+      if (!this.bus.listening) {
+        console.log("" + this.name + " stream is not listening by any Bus");
+        return false;
+      }
+    };
 
     return Stream;
 
@@ -25,8 +44,10 @@
 
   Warden = {};
 
-  Warden.createStream = function(type) {
-    return new EventStream(type);
+  Warden.version = "0.0.0";
+
+  Warden.createStream = function(type, name) {
+    return new EventStream(type, name);
   };
 
   Warden.module = function(fn) {
@@ -74,10 +95,10 @@
         return this;
       };
 
-      Emitter.prototype.stream = function(type) {
+      Emitter.prototype.stream = function(type, name) {
         var stream;
-        stream = Warden.createStream(type);
-        if (streams[type] != null) {
+        stream = Warden.createStream(type, name);
+        if (streams[type] == null) {
           streams[type] = [];
         }
         streams[type].push(stream);
@@ -89,29 +110,26 @@
     })();
   };
 
-  this.Warden = Warden;
-
-  Warden.version = "0.0.0";
-
   Warden.stringify = function(json, delim, n) {
     var i, key, offset, res, val;
     res = "{" + (delim ? "\n" : " ");
     if (!n) {
       n = 0;
     }
-    if (n > 3) {
+    if (n > 2) {
       res = "[object]";
+      return res;
+    }
+    offset = "";
+    i = 0;
+    while (i++ <= n && delim) {
+      offset += "\t";
     }
     for (key in json) {
       val = json[key];
-      offset = "";
-      i = 0;
-      while (i++ <= n && delim) {
-        offset += "\t";
-      }
       res += "" + offset + key + ":";
       if (typeof val === 'object') {
-        res += stringify(val, delim, n + 1) + (delim ? ",\n" : ", ");
+        res += Warden.stringify(val, delim, n + 1) + (delim ? ",\n" : ", ");
       } else {
         if (val) {
           if (typeof val === 'string') {
@@ -133,9 +151,15 @@
       }
     }
     res = res.slice(0, -2);
-    res += delim ? "\n}" : " }";
+    if (n > 0) {
+      res += " }";
+    } else {
+      res += delim ? "\n}" : " }";
+    }
     return res;
   };
+
+  this.Warden = Warden;
 
 
   /*
