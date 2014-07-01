@@ -12,40 +12,36 @@ If you want to create your own event-emitting object use <code>Warden.create()</
 var className = Warden.create(function className(){
 	//constructor of class
 },{
-	//settings
+	//configuration, not required
 });
 ```
-Now you can do:
+Example:
 ```js
-	var classObject = new className();
+var Clicker = Warden.create(function Clicker(name){
+	this.name = name;
+});
 
-	// Registers event handler 
-	classObject.on("custom", function(ev){
-		/* 
-			context ('this' variable) is classObject
-			ev is emitted event
-		*/
-	}, {
-		// settings
-	});
+// some custom event emitting function
+Clicker.prorotype.async = function(){
+	var self = this;
+	setTimeout(function(){
+		self.emit({
+			type: "custom",
+			msg : "Hellow World! My name is " + self.name
+		});
+	}, 3000);
+}
 
-	// Creating stream of events
-	var customEventStream = classObject.stream("custom");
+var clickerObject = new Clicker('Jared');
 
-	// Listening stream
-	customEventStream.listen(function(ev){
-		/* 
-			context ('this' variable) is classObject
-			ev is emitted event
-		*/
-	});
+// Registring handler
+clickerObject.on('custom', function(e){
+	alert(e);
+});
 
-	// Emitting custom event
-	classObject.emit({
-		type: "custom",
-		value: Math.random()
-	});
+clickerObject.async(); 
 ```
+After 3 seconds we see alert with message "Hello world! My name is Jared". 
 
 ###Methods###
 

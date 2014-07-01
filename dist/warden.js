@@ -31,27 +31,32 @@
           return item.callback.apply(context, [ev].concat(adj));
         });
       }
+      if (fn.trigger) {
+        fn.trigger(ev);
+      }
       return this;
     };
-    fn.prototype.on = function(ev, callback, config) {
-      if (typeof ev !== 'string') {
-        throw "Type Error: Wrong argument[1] in .on method. Expected string.";
-      }
-      if (typeof callback !== 'function') {
-        throw "Type Error: Wrong argument[2] in .on method. Expected function.";
-      }
-      if (callbacks[ev] == null) {
-        callbacks[ev] = [];
-      }
-      if (callbacks[ev].length >= settings.max) {
-        throw "The maximum number (" + settings.max + ") of handler for event [" + ev + "] exceed.";
-      }
-      callbacks[ev].push({
-        callback: callback,
-        config: config
-      });
-      return this;
-    };
+    if (fn.on === void 0) {
+      fn.prototype.on = function(ev, callback, config) {
+        if (typeof ev !== 'string') {
+          throw "Type Error: Wrong argument[1] in .on method. Expected string.";
+        }
+        if (typeof callback !== 'function') {
+          throw "Type Error: Wrong argument[2] in .on method. Expected function.";
+        }
+        if (callbacks[ev] == null) {
+          callbacks[ev] = [];
+        }
+        if (callbacks[ev].length >= settings.max) {
+          throw "The maximum number (" + settings.max + ") of handler for event [" + ev + "] exceed.";
+        }
+        callbacks[ev].push({
+          callback: callback,
+          config: config
+        });
+        return this;
+      };
+    }
     fn.prototype.stream = function(type, name) {
       var stream;
       stream = Warden.stream(type, name);
@@ -69,10 +74,11 @@
     Bus = (function() {
       function Bus(process) {
         this.process = process != null ? process : [];
+        this.taken = 0;
       }
 
       Bus.prototype.exec = function(ev, cnt) {
-        var event, process, self, _i, _len, _ref;
+        var event, fn, process, self, _i, _len, _ref;
         self = this;
         event = ev;
         event.timestamp = (new Date()).getTime();
@@ -80,27 +86,36 @@
         _ref = this.process;
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           process = _ref[_i];
+          fn = process.fn;
           switch (process.type) {
             case 'm':
-              if (typeof process.fn === 'function') {
-                event = process.fn(event);
+              if (typeof fn === 'function') {
+                event = fn(event);
+              } else if (typeof fn === 'string') {
+                if (event[fn] !== void 0) {
+                  event = event[fn];
+                }
               } else {
-                event = process.fn;
+                event = fn;
               }
               self.mapped = true;
               break;
             case 'f':
-              if (typeof process.fn === 'function') {
-                if (process.fn(event) === false) {
+              if (typeof fn === 'function') {
+                if (fn(event) === false) {
                   return false;
                 }
               } else {
-                if (Boolean(process.fn) === false) {
+                if (Boolean(fn) === false) {
                   return false;
                 }
               }
           }
         }
+        if (this.limit && (this.taken >= this.limit)) {
+          return false;
+        }
+        this.taken++;
         return this.final.apply(cnt, [event]);
       };
 
@@ -124,6 +139,21 @@
         type: 'f',
         fn: fn
       }));
+    };
+    Bus.prototype.take = function(limit, last) {
+      var newbus;
+      if (typeof limit === 'function') {
+        return this.filter(limit);
+      } else {
+        newbus = new Bus(this.process);
+        if (last != null) {
+          console.log('slice');
+        } else {
+          this.limit = limit;
+          newbus.limit = limit;
+        }
+        return newbus;
+      }
     };
     Bus.prototype.listen = function(fn) {
       this.final = fn;

@@ -27,21 +27,16 @@ var c = new Clicker(left);
 var k = new Presser(input);
 
 var clicks = c.stream('click');
+
 clicks.listen(function(e){
-	console.log("Handler on first bus")	
+	c1.innerHTML += e + "\n";
 });
 
-var clicks2 = clicks.map(20).listen(function(e){
-	debugger;
-});
+var keyups = k.stream("keyup");
 
-var clicks3 = clicks.filter(function(e){
-	return e.y > 200;
-}).listen(function(e){
-	debugger;
+keyups.map('keyCode').listen(function(e){
+	c2.innerHTML += "Keycode is " + e + "\n";
 })
 
-
-var keyups = k.on('keyup', function(e){})
 
 

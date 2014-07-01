@@ -10,6 +10,8 @@ Warden.create = (fn, config) ->
 
 	settings.max = (config and config.max) or 128 # max handlers per event
 
+
+
 	fn.prototype.emit = (ev) ->
 		self = @
 
@@ -23,23 +25,27 @@ Warden.create = (fn, config) ->
 				adj = item.config and item.config.adj
 				item.callback.apply(context, [ev].concat(adj))
 			)
+		if fn.trigger
+			fn.trigger(ev)
+
 		return @
 
-	fn.prototype.on = (ev, callback, config) ->
-		#this particles should be destroyed at production
-		if typeof ev isnt 'string'
-			throw "Type Error: Wrong argument[1] in .on method. Expected string."
-		if typeof callback isnt 'function'
-			throw "Type Error: Wrong argument[2] in .on method. Expected function."
+	if fn.on is undefined		
+		fn.prototype.on = (ev, callback, config) ->
+			#this particles should be destroyed at production
+			if typeof ev isnt 'string'
+				throw "Type Error: Wrong argument[1] in .on method. Expected string."
+			if typeof callback isnt 'function'
+				throw "Type Error: Wrong argument[2] in .on method. Expected function."
 
-		if not callbacks[ev]?
-			callbacks[ev] = []
+			if not callbacks[ev]?
+				callbacks[ev] = []
 
-		if callbacks[ev].length >= settings.max 
-			throw "The maximum number (#{settings.max}) of handler for event [#{ev}] exceed."
-		
-		callbacks[ev].push {callback, config}
-		return @
+			if callbacks[ev].length >= settings.max 
+				throw "The maximum number (#{settings.max}) of handler for event [#{ev}] exceed."
+			
+			callbacks[ev].push {callback, config}
+			return @
 
 	fn.prototype.stream = (type, name) ->
 		stream = Warden.stream(type, name)
@@ -54,6 +60,7 @@ Warden.create = (fn, config) ->
 Warden.stream = (ev, name) ->
 	class Bus
 		constructor: (@process=[]) ->
+			@taken = 0
 
 		exec : (ev, cnt) ->
 			self = this
@@ -61,24 +68,32 @@ Warden.stream = (ev, name) ->
 			event.timestamp = (new Date()).getTime();
 			event.environment = 'Warden 0.0.0';
 			for process in @process
+				fn = process.fn
 				switch process.type
 					when 'm'
-						if typeof process.fn is 'function'
-							event = process.fn(event)
+						if typeof fn is 'function'
+							event = fn(event)
+						else if typeof fn is 'string'
+							if event[fn] isnt undefined
+								event = event[fn]
 						else
-							event = process.fn
+							event = fn
 						self.mapped = true
 					when 'f'
-						if typeof process.fn is 'function' 
-							if process.fn(event) is false
+						if typeof fn is 'function' 
+							if fn(event) is false
 								return false
 						else 
-							if Boolean(process.fn) is false
+							if Boolean(fn) is false
 								return false
 
-
-
+			if(@limit and (@taken >= @limit))
+				return false	
+		
+			@taken++
 			@final.apply(cnt, [event])
+
+
 
 	stream = 
 		type : ev
@@ -97,6 +112,19 @@ Warden.stream = (ev, name) ->
 			type : 'f'
 			fn : fn
 		)
+
+	Bus.prototype.take = (limit, last) ->
+		if(typeof limit == 'function') 
+			return this.filter(limit) 
+		else 
+			newbus = new Bus(this.process)
+			if last?
+				console.log('slice')
+			else
+				this.limit = limit;
+				newbus.limit = limit
+			return newbus
+			
 
 	Bus.prototype.listen = (fn) ->
 		this.final = fn;
