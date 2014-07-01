@@ -1,4 +1,4 @@
-Emitter
+Warden.create
 =========
 
 Wrapping class to implement <code>emit()</code>, <code>.on()</code> and <code>.stream()</code> interface;
@@ -42,6 +42,8 @@ clickerObject.on('custom', function(e){
 clickerObject.async(); 
 ```
 After 3 seconds we see alert with message "Hello world! My name is Jared". 
+
+####Configuration
 
 ###Methods###
 

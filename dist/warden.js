@@ -22,9 +22,10 @@
         callbacks = {},
         settings = {};
     
-    settings.max = (config && config.max) || 128;
+    settings.max = (config && config.max) || 128;     
+    var inheritor = fn.prototype || fn;
     
-    fn.prototype.emit = function(ev) {
+    inheritor.emit = function(ev) {
       var self = this;
       
             if(streams[ev.type] != null){
@@ -32,10 +33,7 @@
           return i.evaluate(ev, self);
         });
       }
-    
-            if(fn.trigger)
-        fn.trigger(ev);      
-
+       
             if(callbacks[ev.type] != null){
         callbacks[ev.type].map(function(item) {
           var context = (item.config && item.config.context) || self,               adj = item.config && item.config.adj;           return item.callback.apply(context, [ev].concat(adj));
@@ -46,7 +44,12 @@
     };
 
         if(fn.on === void 0){ 
-      fn.prototype.on = function(ev, callback, config) {
+      inheritor.on = function(ev, callback, config) {
+        if(fn.addEventListener !== null){
+          this.addEventListener(ev, callback);
+          return this
+        }
+        
         if (typeof ev !== 'string') {
           throw "Type Error: Wrong argument[1] in .on method. Expected string.";
         }
@@ -67,19 +70,28 @@
       };
     }
     
-        fn.prototype.stream = function(type, name) {
-      var stream = Warden.stream(type, name);
+        inheritor.stream = function(type, listenerFunction) {
+      if(inheritor.addEventListener != null){
+        inheritor.addEventListener(type, function(e){
+          inheritor.emit(e);
+        });
+      }else
+      if(inheritor[listenerFunction] != null){
+        inheritor[listenerFunction](type, inheritor.emit);
+      }
+      
+      var stream = Warden.stream(type);
       if(streams[type] == null)
         streams[type] = [];
       
       streams[type].push(stream);
       return stream;
     };
-
+    
     return fn;
   };
 
-  Warden.stream = function(ev, name) {
+  Warden.stream = function(ev) {
     var Bus = (function() {
 
       function Bus(process) {
@@ -156,7 +168,6 @@
     
     var stream = {
       type: ev,
-      name: name,
       config: [],
       activeBus: []
     };
