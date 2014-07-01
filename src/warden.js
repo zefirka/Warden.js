@@ -1,16 +1,21 @@
 ((function (root, factory) {
   if (typeof exports === "object" && exports) {
-    factory(exports);   } else {
-    if(root.Warden == null){       Warden = {};
+    factory(exports); // CommonJS
+  } else {
+    if(root.Warden == null){ //initialize Warden
+      Warden = {};
     }
     factory(Warden);
     if (typeof define === "function" && define.amd) {
-      define(Warden);     } else {
-      root.Warden = Warden;     }
+      define(Warden); // AMD
+    } else {
+      root.Warden = Warden; // <script>
+    }
   }
 })(this, function (Warden) {
 
-  
+  // Write here
+
   Warden.version = "0.0.0";
 
   Warden.toString = function() {
@@ -27,25 +32,31 @@
     fn.prototype.emit = function(ev) {
       var self = this;
       
-            if(streams[ev.type] != null){
+      // Processing streams for event type
+      if(streams[ev.type] != null){
         streams[ev.type].map(function(i) {
           return i.evaluate(ev, self);
         });
       }
 
-            if(fn.trigger)
+      // If jQuery or backbone trigger function is defined then use it
+      if(fn.trigger)
         fn.trigger(ev);      
 
-            if(callbacks[ev.type] != null){
+      // Processing callbacks for event type
+      if(callbacks[ev.type] != null){
         callbacks[ev.type].map(function(item) {
-          var context = (item.config && item.config.context) || self,               adj = item.config && item.config.adj;           return item.callback.apply(context, [ev].concat(adj));
+          var context = (item.config && item.config.context) || self, // context of evaluation
+              adj = item.config && item.config.adj; // additional data 
+          return item.callback.apply(context, [ev].concat(adj));
         });
       }
       
       return this;
     };
 
-        if(fn.on === void 0){ 
+    //if on method is not defined
+    if(fn.on === void 0){ 
       fn.prototype.on = function(ev, callback, config) {
         if (typeof ev !== 'string') {
           throw "Type Error: Wrong argument[1] in .on method. Expected string.";
@@ -67,7 +78,8 @@
       };
     }
 
-        fn.prototype.stream = function(type, name) {
+    // Creating stream
+    fn.prototype.stream = function(type, name) {
       var stream = Warden.stream(type, name);
       if(streams[type] == null)
         streams[type] = [];
@@ -163,7 +175,8 @@
       }else{
         var newbus = new Bus(this.process);
         if(last != null){
-                  }else{
+          // TODO Slice taken
+        }else{
           this.limit = limit;
           newbus.limit = limit;
         }
@@ -186,15 +199,20 @@
     return new Bus();
   };
 
-    Warden.stringify = function(json, delim, n){
+  // object to string function
+  Warden.stringify = function(json, delim, n){
     var i, key, offset, res, val;
     
-    var res = "",         offset = ""; 
+    var res = "", // result
+        offset = ""; //padding
+
     res = "{" + (delim ? "\n" : " ");
     
-        n = !n ? 0 : n;
+    // Setting up recursion depth
+    n = !n ? 0 : n;
     
-        if(n > 2){
+    // If recursion depth more than 2
+    if(n > 2){
       res = "[object]";
       return res;
     }

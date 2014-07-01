@@ -6,9 +6,9 @@ module.exports = function(grunt){
     coffee: {
       glob_to_multiple: {
         expand: true,
-        cwd: 'src/',
+        cwd: 'src/plugins/',
         src: ['*.coffee'],
-        dest: 'dist/',
+        dest: 'dist/plugins/',
         ext: '.js'
       }
     },
@@ -40,29 +40,52 @@ module.exports = function(grunt){
       }
     },
 
-    watch: {
-      scripts : {
-        files : ['test/specs/*.js'],
-        tasks : ['jasmine']
-      },
-      coffee: {
-        files: ['src/*.coffee'],
-        tasks: ['coffee']
+    copy: {
+      main: {
+        expand: true, 
+        cwd: 'src/', 
+        src: ['*.js'], 
+        dest: 'dist/'
       }
     },
-  });
- 
+
+    comments: {
+      js: {
+        options: {
+          singleline: true,
+          multiline: false
+        },
+        src: [ 'dist/warden.js' ]
+      }
+    },
+
+    watch: {
+      scripts : {
+        files : ['test/specs/*.js', "src/*js"],
+        tasks : ['copy', 'comments','jasmine']
+      },
+      coffee: {
+        files: ['src/plugins/*.coffee'],
+        tasks: ['coffee']
+      }
+    }  
+
+  }); 
   
   grunt.loadNpmTasks('grunt-contrib-coffee');
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-watch');   
   grunt.loadNpmTasks('grunt-contrib-connect');
-  grunt.loadNpmTasks('grunt-contrib-jasmine'); 
+  grunt.loadNpmTasks('grunt-contrib-jasmine');
+  grunt.loadNpmTasks('grunt-contrib-copy');
+  grunt.loadNpmTasks('grunt-stripcomments'); 
   grunt.loadNpmTasks('grunt-devtools');
 
   grunt.registerTask('default', [
     "coffee",
     "uglify",
+    "copy",
+    "comments",
     "jasmine",
     "watch"
   ]);

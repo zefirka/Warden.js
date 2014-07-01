@@ -28,7 +28,7 @@ var k = new Presser(input);
 
 var clicks = c.stream('click');
 
-clicks.listen(function(e){
+clicks.map('y').listen(function(e){
 	c1.innerHTML += e + "\n";
 });
 
