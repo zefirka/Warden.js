@@ -38,7 +38,7 @@
           return i.evaluate(ev, self);
         });
       }
-
+    
       // If jQuery or backbone trigger function is defined then use it
       if(fn.trigger)
         fn.trigger(ev);      
@@ -77,7 +77,7 @@
         return this;
       };
     }
-
+    
     // Creating stream
     fn.prototype.stream = function(type, name) {
       var stream = Warden.stream(type, name);
@@ -96,17 +96,27 @@
 
       function Bus(process) {
         this.process = process != null ? process : [];
-        this.taken = 0;
+        
+        this.public = {
+          skipped : 0,
+          taken : 0,
+          limit : 0,
+          length : 0,
+          ignore : 0
+        };
         this.history = [];
+        this.taken = [];
       }
 
       Bus.prototype.exec = function(ev, cnt) {     
         var self = this;
         var event = ev;
-
+        this.public.length++;
+        
         event.timestamp = (new Date()).getTime();
         event.environment = 'Warden 0.0.0';
-
+        
+        this.history.push(event); //need to check length
         
         for (var i = 0, l = this.process.length; i < l; i++) {
           process = this.process[i];
@@ -134,14 +144,24 @@
                   return false;
                 }
               }
+              break;
+            case 'i':
+                if(this.public[process.fn]!=null){
+                  event[process.fn]=this.public[process.fn];
+                }
           }
         }
-        
-        if (this.limit && (this.taken >= this.limit)) {
+                
+        if (this.public.limit && (this.public.taken >= this.public.limit)) {
           return false;
         }
 
-        this.taken++;
+        if(this.public.length <= this.public.ignore){
+          return false;
+        }
+
+        this.public.taken++;
+        this.taken.push(event); //need to check length
         return this.final.apply(cnt, [event]);
       };
 
@@ -168,20 +188,47 @@
         fn: fn
       }));
     };
-
+    
+    Bus.prototype.include = function(prop){
+        return new Bus(this.process.concat({
+          type : 'i',
+          fn : prop
+        }));
+    };
+        
     Bus.prototype.take = function(limit, last){
       if(typeof limit === 'function'){
         return this.filter(limit);
       }else{
         var newbus = new Bus(this.process);
         if(last != null){
-          // TODO Slice taken
+          if(typeof last == 'number'){ //need checj that last > limit
+            return this.skip(limit).take(last-limit);
+          }else{
+            throw "Type Error: take method expect number at second argumner;";
+          }
         }else{
           this.limit = limit;
+          this.public.limit = limit;
+          var pub = this.public;
+          newbus.public = pub;
+          newbus.public.limit = limit;
           newbus.limit = limit;
         }
         return newbus;
       }
+    };
+    
+    Bus.prototype.skip = function(count){
+      if(typeof count !== 'number'){
+        throw "Type Error: skip method expect numbers;";
+      }
+      var newbus = new Bus(this.process);
+      var pub = this.public;
+      newbus.public = pub;
+      newbus.public.ignore = count;
+      this.public.ignore = count;
+      return newbus;      
     };
 
     Bus.prototype.listen = function(fn){

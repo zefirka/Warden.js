@@ -34,9 +34,6 @@ clicks.map('y').listen(function(e){
 
 var keyups = k.stream("keyup");
 
-keyups.map('keyCode').listen(function(e){
-	c2.innerHTML += "Keycode is " + e + "\n";
-})
-
-
-
+keyups.include('length').map('length').take(4,8).listen(function(e){
+	c2.innerHTML += "Taken count: " + e + "\n";
+});
