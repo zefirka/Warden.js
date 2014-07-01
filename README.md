@@ -28,13 +28,15 @@ Now <code>Clicker</code> class has methods <code>.on</code>, <code>.emit</code> 
 
 ####Configuration####
 You can configure next terms:
--  [`max`] - Count of maximal handlers per one event type. Default: 128
+-  `max` - Count of maximal handlers per one event type. Default: 128
 
 ###Methods###
 ####emit####
-Emitting custom event. Event argument required [`type`] property.
-[`.emit(event)`]
+`.emit(event)`
+Emitting custom event. Event argument required `type` property.
 ####on####
-[`.on(type, callback, [config])`]
+`.on(type, callback, [config])`
+Binding callback as a handler for events which type is `type`.
 ####stream####
-[`.stream(type, [listenerFunction])`]
+`.stream(type, [listenerFunction])`
+Creates event stream.
