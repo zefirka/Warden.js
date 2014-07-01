@@ -4,7 +4,9 @@
   else
     if not root.Warden 
       Warden = {}
-
+    else 
+      Warden = root.Warden
+      factory Warden
     if typeof define is 'function' and define.amd
       define Warden
     else

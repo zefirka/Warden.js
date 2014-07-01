@@ -6,6 +6,9 @@
     } else {
       if (!root.Warden) {
         Warden = {};
+      } else {
+        Warden = root.Warden;
+        factory(Warden);
       }
       if (typeof define === 'function' && define.amd) {
         return define(Warden);
