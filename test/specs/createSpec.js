@@ -18,8 +18,9 @@ describe('Warden.create emitting and listening', function () {
 	};
 
 	Class1.prototype.async = function(){
+		var self = this;
 		setTimeout(function(){
-			this.emit({
+			self.emit({
 				type : "async",
 				value : Math.random(),
 				gen : "test"
