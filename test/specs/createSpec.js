@@ -15,12 +15,27 @@ describe('Warden.create emitting and listening', function () {
 			value : Math.random(),
 			gen : "some"
 		})
-	}
+	};
+
+	Class1.prototype.async = function(){
+		setTimeout(function(){
+			this.emit({
+				type : "async",
+				value : Math.random(),
+				gen : "test"
+			});
+		}, 2000);		
+	};
 
 	var mod1 = new Class1()
 	
-	var result = false;
-	var transmitted = null;
+	var result = false,
+		transmitted = null,
+		async = false;
+	
+	mod1.on('async', function(e){
+		async = true;
+	});		
 
 	mod1.on('custom', function(e){
 		result = true;
@@ -28,6 +43,7 @@ describe('Warden.create emitting and listening', function () {
 	});
 
 	mod1.fn();
+	mod1.async();
 
     it('Emitting and catching event', function (done) {      
         expect(result).toBe(true); 
@@ -39,4 +55,8 @@ describe('Warden.create emitting and listening', function () {
         done();
     });  
 
+    it('Catching async event', function (done) {      
+        expect(async).toBe(true); 
+        done();
+    });  
 });  
