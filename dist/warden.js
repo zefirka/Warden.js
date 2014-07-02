@@ -125,10 +125,8 @@
             case 'm':
               if (typeof fn === 'function') {
                 event = fn(event);
-              } else if (typeof fn === 'string') {
-                if (event[fn] !== void 0) {
-                  event = event[fn];
-                }
+              } else if (typeof fn === 'string' && event[fn] !== void 0) {
+                event = event[fn];               
               } else {
                 event = fn;
               }
@@ -188,19 +186,16 @@
         }
 
         this._public.taken++;
-        this.taken.push(event);         return this.final.apply(cnt, [event]);
+        this.taken.push(event);         if(this.connector){
+          this.connector.assign(event);
+        }else{
+           this.finalCallback.apply(cnt, [event]);  
+        }
+
+        return this;        
       };
 
-      return Bus;
-    })();
-    
-    var stream = {
-      type: ev,
-      config: [],
-      activeBus: []
-    };
-
-    Bus.prototype.map = function(fn){
+      Bus.prototype.map = function(fn){
       return new Bus(this.process.concat({
         type: 'm',
         fn: fn
@@ -271,7 +266,7 @@
     };
 
     Bus.prototype.listen = function(fn){
-      this.final = fn;
+      this.finalCallback = fn;
       stream.activeBus.push(this);
       return this;
     };
@@ -282,6 +277,34 @@
       });
     };
 
+    Bus.prototype.connect = function(item, prop) {
+      var connector = new Connector(item, prop, this);
+      this.connector = connector
+      stream.activeBus.push(this);
+      return this.connector
+    };
+
+      return Bus;
+    })();
+    
+    var stream = {
+      type: ev,
+      config: [],
+      activeBus: []
+    };
+
     return new Bus();
   };
+
+  var Connector = (function(){
+    function Connector(item, prop, host){
+      this.item = item;
+      this.prop = prop;
+      this.host = host;
+    }
+    Connector.prototype.assign = function(value) {
+      this.item[this.prop] = value;
+    };
+    return Connector;
+  })()
 }));
