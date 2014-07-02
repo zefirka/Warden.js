@@ -38,6 +38,7 @@
       }else{
         var mapped = arr.map(function(item){
           return Warden.stringify(item, delim, max);
+          debugger;
         });
         return "[" + mapped.join("," + (delim ? "\n" : " ")) + "]";
       }      
@@ -67,12 +68,7 @@
         res += "" + offset + key + ":" + (delim ? " " : "");
 
         if(isArray(val)){
-          if(val.length > MAX_ARR_SHOW_LENGTH){
-            res += "[array]";
-          }else{
-
-            res += "[" + val.join(", ") + "]";
-          }
+          res += toStringArr(val);
           res += (delim ? ",\n" : ", ");
         }else
         if(typeof val === 'object') {
@@ -102,14 +98,25 @@
       if(isArray(arg)){
         return toStringArr(arg, delim);
       }else
+      if(typeof arg === 'function'){
+        return toStringFunction(arg);
+      }else
       if(typeof arg === 'object'){
         if(arg === null){
           return "null"
         }else{
-          return toStringJson(arg, delim, maxdepth, short, n);
+          if(Object.keys(arg).length){
+            return toStringJson(arg, delim, maxdepth, short, n);
+          }else{
+            return "{}";
+          }
         }
       }else{
-        return arg !== undefined ? arg.toString() : (delim ? "- " : " - ");
+        if(typeof arg === 'string'){
+          return "'"+arg+"'";
+        }else{
+          return arg !== undefined ? arg.toString() : (delim ? "- " : " - ");
+        }
       }
     };
   });

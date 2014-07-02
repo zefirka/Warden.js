@@ -1,5 +1,25 @@
 describe("Warden.stringify() method", function() {
 	var mocks = {
+		empty : {},
+		integer : 123,
+		floatn : 123.23213,
+		bool : true,
+		nil : null,
+		undef : undefined,
+		str : 'string',
+		lambda : function(){ somethin(); },
+		lambdaArg : function(args){ something(); },
+		fun : function name(){ something(); },
+		funArg : function name(args){ something(); },
+		earr : [],
+		arroearr :[[],[],[]],
+		arrocom : [undefined, null, NaN],
+		arrostr : ['item1', 'item2'],
+		arroint : [1,2,4,5],
+		arrofun : [function(){d();}, function(a){d();}, function name(){d();}, function name(args){d();}],
+		arroobj : [{x:10}, {y:20, z:30}],
+	
+
 		simple : {
 			mock1 : {
 				x: 10,
@@ -41,14 +61,14 @@ describe("Warden.stringify() method", function() {
 			mock1Ans1 : "{\n\ta: [0, 1, 2],\n\tb: function (){...}\n}",
 
 			mock2 : {
-				a : ['str', 2, 23],
+				a : [6, 2, 23],
 				b : [0,1,2,3,4,5,6,7,8,9,0],
 				c : function (args){
 					alert("test");
 				}
 			},
-			mock2Ans0 : "{ a:[str, 2, 23], b:[array], c:function (args){...} }",
-			mock2Ans1 : "{\n\ta: [str, 2, 23],\n\tb: [array],\n\tc: function (args){...}\n}",
+			mock2Ans0 : "{ a:[6, 2, 23], b:[array], c:function (args){...} }",
+			mock2Ans1 : "{\n\ta: [6, 2, 23],\n\tb: [array],\n\tc: function (args){...}\n}",
 
 			mock3 :{
 				a : function name(){
@@ -66,10 +86,19 @@ describe("Warden.stringify() method", function() {
 			},
 			mock3Ans0 : "{ a:function name(){...}, b:function name(args){...}, c:function name(arg1, arg2){...} }",
 			mock3Ans1 : "{\n\ta: function name(){...},\n\tb: function name(args){...},\n\tc: function name(arg1, arg2){...}\n}",
+
+			mock4 : {
+				a : [null, [0,1,2], undefined],	
+				b : [[],[],[]],
+				c : [{x:10, y:20}, [NaN]],
+				d : ['txt', '.pdf']
+			},
+			mock4Ans0 : "{ a:[null, [0, 1, 2],  - ], b:[[], [], []], c:[{ x:10, y:20 }, [NaN]], d:['txt', '.pdf'] }",
+			mock4Ans1 : "{\n\ta: [null, [0, 1, 2],  - ],\n\tb: [[], [], []],\n\tc: [{ x:10, y:20 }, [NaN]],\n\td: ['txt', '.pdf']\n}",
 		},
 
 		mock3 : {
-			d : [null, [0,1,2], undefined],
+			
 			x: {
 				tampla : '123',
 				fofa : '123'
@@ -107,42 +136,59 @@ describe("Warden.stringify() method", function() {
 			z : null,
 			t : NaN,
 			p : ['text', 0, 'text', undefined, null, NaN],
-		},
-		mock8 : {
-			arr : [
-				function(){ dosome(); }, 
-				function(args){ dosome();}, 
-				function(arg1, arg2) { dosome();},
-				function name(){ dosome(); }, 
-				function name (args){ dosome()},
-				function name(arg1, arg2) { dosome();}
-			]
-		},
-		mock9 : {
-			arrexp : [
-				function(){ 
-					dosome(); 
-				}, 
-				function(args){ 
-					dosome();
-				}, 
-				function(arg1, arg2) { 
-					dosome();
-				},
-				function name(){ 
-					dosome(); 
-				}, 
-				function name (args){ 
-					dosome();
-				},
-				function name(arg1, arg2) { 
-					dosome();
-				}
-			]
 		}
 	};
 
-	describe("First level simple objects", function() {
+
+
+
+
+	describe("Simple types and objects", function() {
+		var t = mocks;
+
+		it("Empty object", function(){
+			expect(Warden.stringify(t.empty)).toBe("{}");
+		});
+
+		it("Integer", function(){
+			expect(Warden.stringify(t.integer)).toBe("123");
+		});
+
+		it("Float", function(){
+			expect(Warden.stringify(t.floatn)).toBe("123.23213");
+		});
+
+		it("Boolean", function(){
+			expect(Warden.stringify(t.bool)).toBe('true');
+		});
+		it("NULL", function(){
+			expect(Warden.stringify(t.nil)).toBe('null');
+		});
+		it("undefined", function(){
+			expect(Warden.stringify(t.undef)).toBe(' - ');
+		});
+		it("String", function(){
+			expect(Warden.stringify(t.str)).toBe("'string'");
+		});
+		it("Functions", function(){
+			expect(Warden.stringify(t.lambda)).toBe("function (){...}");
+			expect(Warden.stringify(t.lambdaArg)).toBe("function (args){...}");
+			expect(Warden.stringify(t.fun)).toBe("function name(){...}");
+			expect(Warden.stringify(t.funArg)).toBe("function name(args){...}");
+		});
+		it("Arrays", function(){
+			expect(Warden.stringify(t.earr)).toBe('[]');
+			expect(Warden.stringify(t.arroearr)).toBe('[[], [], []]');
+			expect(Warden.stringify(t.arrocom)).toBe('[ - , null, NaN]');
+			expect(Warden.stringify(t.arroint)).toBe('[1, 2, 4, 5]');
+			expect(Warden.stringify(t.arrofun)).toBe('[function (){...}, function (a){...}, function name(){...}, function name(args){...}]');
+			expect(Warden.stringify(t.arrostr)).toBe("['item1', 'item2']");
+			expect(Warden.stringify(t.arroobj)).toBe("[{ x:10 }, { y:20, z:30 }]");
+			
+		});
+	});
+
+	describe("First level simple objects (as keys)", function() {
 		var s = mocks.simple;
 
 		it("Only numbers", function(){
@@ -197,7 +243,19 @@ describe("Warden.stringify() method", function() {
 		it("Named functions (delimeter)", function(){
 			expect(Warden.stringify(s.mock3, 1)).toBe(s.mock3Ans1);
 		});
-	});	
+	});
+
+	describe("First level complex objects", function() {
+		var s = mocks.withObjects; 
+		
+		it("Complex objectts and types", function(){
+			expect(Warden.stringify(s.mock4)).toBe(s.mock4Ans0);
+		});
+
+		it("Complex objectts and types (delimeter)", function(){
+			expect(Warden.stringify(s.mock4, 1)).toBe(s.mock4Ans1);
+		});
+	});
 	
 	
 	
