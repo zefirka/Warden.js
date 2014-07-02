@@ -14,7 +14,6 @@ var btn3 = document.getElementById("btn3");
 function dr(from, to, expanded, depth){
 	try{
 		var res = JSON.parse(from.value);
-		debugger;
 		to.innerHTML = Warden.stringify(res, expanded, depth);
 
 	}catch (e){

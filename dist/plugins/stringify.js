@@ -39,7 +39,7 @@
         var mapped = arr.map(function(item){
           return Warden.stringify(item, delim, max);
         });
-        return mapped.join("," + (delim ? "\n" : " "));
+        return "[" + mapped.join("," + (delim ? "\n" : " ")) + "]";
       }      
     }
 
@@ -103,9 +103,13 @@
         return toStringArr(arg, delim);
       }else
       if(typeof arg === 'object'){
-        return toStringJson(arg, delim, maxdepth, short, n);
+        if(arg === null){
+          return "null"
+        }else{
+          return toStringJson(arg, delim, maxdepth, short, n);
+        }
       }else{
-        return arg.toString();
+        return arg !== undefined ? arg.toString() : (delim ? "- " : " - ");
       }
     };
   });

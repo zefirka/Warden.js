@@ -48,16 +48,35 @@ describe("Warden.stringify() method", function() {
 				}
 			},
 			mock2Ans0 : "{ a:[str, 2, 23], b:[array], c:function (args){...} }",
-			mock2Ans1 : "{\n\ta: [str, 2, 23],\n\tb: [array],\n\tc: function (args){...}\n}"
+			mock2Ans1 : "{\n\ta: [str, 2, 23],\n\tb: [array],\n\tc: function (args){...}\n}",
+
+			mock3 :{
+				a : function name(){
+					doSome();
+				},
+				b : function name(args){
+					doSome();
+				},
+				c : function name(arg1, arg2){
+					dosome(); 
+					var x = {
+						//local
+					}
+				}
+			},
+			mock3Ans0 : "{ a:function name(){...}, b:function name(args){...}, c:function name(arg1, arg2){...} }",
+			mock3Ans1 : "{\n\ta: function name(){...},\n\tb: function name(args){...},\n\tc: function name(arg1, arg2){...}\n}",
 		},
 
 		mock3 : {
+			d : [null, [0,1,2], undefined],
 			x: {
 				tampla : '123',
-				fofa : 12
+				fofa : '123'
 			},
 			y: 124
 		},
+
 		mock4 : {
 			a : { b: { c: { d : {f : {g : {h : 20}}}}}}
 		},
@@ -169,6 +188,14 @@ describe("Warden.stringify() method", function() {
 
 		it("Long array and function with 1 argument (delimeter)", function(){
 			expect(Warden.stringify(s.mock2, 1)).toBe(s.mock2Ans1);
+		});
+
+		it("Named functions", function(){
+			expect(Warden.stringify(s.mock3)).toBe(s.mock3Ans0);
+		});
+
+		it("Named functions (delimeter)", function(){
+			expect(Warden.stringify(s.mock3, 1)).toBe(s.mock3Ans1);
 		});
 	});	
 	
