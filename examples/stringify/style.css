@@ -1,0 +1,57 @@
+* {
+  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -o-box-sizing: border-box;
+}
+h1{
+  text-align: center;
+  font-size: 30px;
+}
+body{
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 14px;
+}
+.col{
+  display: inline-block;
+  padding: 0px 15px;
+  width: 30%;
+  float: left;
+  min-height: 500px;
+  margin: 0 10px;
+}
+#left{
+  background: rgba(255, 0, 0, 0.22);
+}
+#right{  
+  background: rgba(0, 0, 255, 0.19);
+}
+#middle{
+  background: rgba(0, 255, 0, 0.22); 
+}
+pre, .bordered{
+  border: solid 1px #666;
+  margin-bottom: 15px;
+  padding: 10px;
+}
+#cid{
+  text-align: center;
+}
+#cid input{
+  width: 100%;
+  margin-bottom: 10px;
+}
+textarea{
+  width: 100%;
+  min-height: 130px;
+  resize: vertical;
+}
+#stackTrace{
+  margin-top: 10px;
+}
+
+p button{
+  float: right;
+  top: -6px;
+  position: relative;
+}

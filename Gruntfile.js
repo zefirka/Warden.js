@@ -23,7 +23,7 @@ module.exports = function(grunt){
 
     // Jasmine test
     jasmine: {
-      src: 'dist/warden.js',
+      src: ['dist/warden.js', "dist/plugins/stringify.js"],
       options: {
         specs: 'test/specs/*Spec.js',
         outfile : "test/_SpecRunner.html",
@@ -46,6 +46,12 @@ module.exports = function(grunt){
         cwd: 'src/', 
         src: ['*.js'], 
         dest: 'dist/'
+      },
+      plugins: {
+        expand: true, 
+        cwd: 'src/plugins', 
+        src: ['*.js'], 
+        dest: 'dist/plugins'
       }
     },
 
@@ -55,7 +61,7 @@ module.exports = function(grunt){
           singleline: true,
           multiline: false
         },
-        src: [ 'dist/warden.js' ]
+        src: [ 'dist/warden.js', "dist/plugins/*.js" ]
       }
     },
 

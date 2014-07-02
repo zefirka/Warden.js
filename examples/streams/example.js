@@ -35,7 +35,7 @@ var o = new Over(box);
 
 var clicks = c.stream('click');
 
-clicks.map('y').listen(function(e){
+clicks.unique('x').map('y').listen(function(e){
 	c1.innerHTML += e + "\n";
 });
 

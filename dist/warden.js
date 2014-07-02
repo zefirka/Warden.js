@@ -14,7 +14,7 @@
   Warden.version = "0.0.0";
 
   Warden.toString = function() {
-    return Warden.stringify(Warden);
+    return "Warden.js";
   };
 
   Warden.create = function(fn, config) {
@@ -117,7 +117,7 @@
         event.timestamp = (new Date()).getTime();
         event.environment = 'Warden 0.0.0';
         
-        this.history.push(event);         
+        
         for (var i = 0, l = this.process.length; i < l; i++) {
           process = this.process[i];
           fn = process.fn;
@@ -155,13 +155,29 @@
               if(this.taken.length>0){
                 prev = this.taken[this.taken.length-1];
               }else{
-                prev = process.start == 'first' ?  this.history[0] : process.start;
+                prev = process.start == 'first' ?  event : process.start;
               }
               event = process.fn(prev, event);
               break;
+            case 'u':
+              if(this.taken.length){
+                var pt = this.taken[this.taken.length-1][process.prop];
+                if(pt){
+                  if(event[process.prop] == pt){
+                    return false;
+                  }  
+                }else{
+                  if(event[process.prop] == this.history[this.history.length-1][process.prop]){
+                    return false;
+                  }
+                }
+                
+              }
+              break;              
           }
         }
-        
+
+        this.history.push(ev);         
                 if (this._public.limit && (this._public.taken >= this._public.limit)) {
           return false;
         }
@@ -247,6 +263,13 @@
       return newbus;      
     };
 
+    Bus.prototype.unique = function(prop) {
+      return new Bus(this.process.concat({
+        type : 'u',
+        prop : prop
+      }));
+    };
+
     Bus.prototype.listen = function(fn){
       this.final = fn;
       stream.activeBus.push(this);
@@ -261,47 +284,4 @@
 
     return new Bus();
   };
-
-    Warden.stringify = function(json, delim, n){
-    var i, key, offset, res, val;
-    
-    var res = "",         offset = ""; 
-    res = "{" + (delim ? "\n" : " ");
-    
-        n = !n ? 0 : n;
-    
-        if(n > 2){
-      res = "[object]";
-      return res;
-    }
-
-    var i = 0;
-    while(i++ <= n && delim){
-      offset += "\t";
-    }
-
-    for (key in json) {
-      val = json[key];
-      res += "" + offset + key + ":";
-
-      if (typeof val === 'object') {
-        res += Warden.stringify(val, delim, n + 1) + (delim ? ",\n" : ", ");
-      }else{
-        if(val != null){
-          if(typeof val === 'string'){
-            res += "'" + (val.toString()) + "'" + (delim ? ",\n" : ", ");
-          } else {
-            res += val.toString() + (delim ? ",\n" : ", ");
-          }
-        } else {
-          res += "'undefined'" + (delim ? ",\n" : ", ");
-        }
-      }
-    }
-    res = res.slice(0, -2);
-    res +=  (n>0) ? " }" : (delim ? "\n}" : " }");    
-
-    return res;
-  };
-
 }));
