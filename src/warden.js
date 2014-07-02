@@ -92,7 +92,7 @@
         inheritor[listenerFunction](type, inheritor.emit);
       }
       
-      var stream = Warden.stream(type);
+      var stream = createStream(type);
       if(streams[type] == null)
         streams[type] = [];
       
@@ -103,13 +103,15 @@
     return fn;
   };
 
-  Warden.stream = function(ev) {
+  function createStream(ev) {
+    
+    // Event bus class
     var Bus = (function() {
 
       function Bus(process) {
         this.process = process != null ? process : [];
         
-        this.public = {
+        this._public = {
           skipped : 0,
           taken : 0,
           limit : 0,
@@ -123,7 +125,7 @@
       Bus.prototype.exec = function(ev, cnt) {     
         var self = this;
         var event = ev;
-        this.public.length++;
+        this._public.length++;
         
         event.timestamp = (new Date()).getTime();
         event.environment = 'Warden 0.0.0';
@@ -158,21 +160,34 @@
               }
               break;
             case 'i':
-                if(this.public[process.fn]!=null){
-                  event[process.fn]=this.public[process.fn];
-                }
+              if(this._public[process.fn]!=null){
+                event[process.fn]=this._public[process.fn];
+              }
+              break;
+            case 'r':
+              var prev;
+              if(this.taken.length>0){
+                prev = this.taken[this.taken.length-1];
+              }else{
+                prev = process.start == 'first' ?  this.history[0] : process.start;
+              }
+              event = process.fn(prev, event);
+              break;
           }
         }
-                
-        if (this.public.limit && (this.public.taken >= this.public.limit)) {
+        
+        // skipin by limit on top
+        if (this._public.limit && (this._public.taken >= this._public.limit)) {
           return false;
         }
 
-        if(this.public.length <= this.public.ignore){
+        // skipin by limit on bottom
+        if(this._public.length <= this._public.ignore){
+          this._public.skipped++;
           return false;
         }
 
-        this.public.taken++;
+        this._public.taken++;
         this.taken.push(event); //need to check length
         return this.final.apply(cnt, [event]);
       };
@@ -206,7 +221,15 @@
           fn : prop
         }));
     };
-        
+    
+    Bus.prototype.reduce = function(start, fn) {
+      return new Bus(this.process.concat({
+        type : 'r',
+        fn : fn,
+        start : start
+      }));
+    };
+
     Bus.prototype.take = function(limit, last){
       if(typeof limit === 'function'){
         return this.filter(limit);
@@ -220,10 +243,10 @@
           }
         }else{
           this.limit = limit;
-          this.public.limit = limit;
-          var pub = this.public;
-          newbus.public = pub;
-          newbus.public.limit = limit;
+          this._public.limit = limit;
+          var pub = this._public;
+          newbus._public = pub;
+          newbus._public.limit = limit;
           newbus.limit = limit;
         }
         return newbus;
@@ -235,10 +258,10 @@
         throw "Type Error: skip method expect numbers;";
       }
       var newbus = new Bus(this.process);
-      var pub = this.public;
-      newbus.public = pub;
-      newbus.public.ignore = count;
-      this.public.ignore = count;
+      var pub = this._public;
+      newbus._public = pub;
+      newbus._public.ignore = count;
+      this._public.ignore = count;
       return newbus;      
     };
 

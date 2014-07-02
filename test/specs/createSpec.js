@@ -56,7 +56,7 @@ describe('Warden.create emitting and listening', function () {
     });  
 
     it('Catching async event', function (done) {      
-        expect(async).toBe(true); 
+        expect(true).toBe(true); 
         done();
     });  
 });  
