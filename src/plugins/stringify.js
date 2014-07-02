@@ -93,7 +93,7 @@
         }
       }
       res = res.slice(0, -2);
-      res +=  (n>0) ? " }" : (delim ? "\n}" : " }");    
+      res +=  (n>0) ? " }" : (delim ? "\n" + "" + "}" : " }");    
 
       return res;
     }

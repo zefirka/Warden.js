@@ -97,49 +97,18 @@ describe("Warden.stringify() method", function() {
 			mock4Ans1 : "{\n\ta: [null, [0, 1, 2],  - ],\n\tb: [[], [], []],\n\tc: [{ x:10, y:20 }, [NaN]],\n\td: ['txt', '.pdf']\n}",
 		},
 
-		mock3 : {
-			
-			x: {
-				tampla : '123',
-				fofa : '123'
+		inserted : {
+			mock1 : {
+				x: {
+					a : '123',
+					b : [1,2,3]
+				},
+				y: 124
 			},
-			y: 124
-		},
-
-		mock4 : {
-			a : { b: { c: { d : {f : {g : {h : 20}}}}}}
-		},
-		mock5 : {
-			a : 12,
-			x : function(prop){
-				console.log(prop)
-			},
-			y : function(){
-				console.log("test")
-			},
-			d : "test"
-		},
-		mock6 : {
-			c : function name(){
-				something();
-			},
-			some : function name(args){
-				something();
-			},
-			someer : function name(arg1, arg2){
-				something();
-			}
-		},
-		mock7 : {
-			x : true,
-			y : undefined,
-			z : null,
-			t : NaN,
-			p : ['text', 0, 'text', undefined, null, NaN],
+			mock1Ans0 : "{ x:{ a:'123', b:[1, 2, 3] }, y:124 }",
+			mock1Ans1 : "{\n\tx : {\n\t\ta: '123',\n\t\tb: [1, 2, 3,]\n\t},\n\ty: 124\n}"
 		}
-	};
-
-
+	}
 
 
 
@@ -257,16 +226,16 @@ describe("Warden.stringify() method", function() {
 		});
 	});
 	
-	
-	
+	describe("Inserted objects", function() { 
+		var s = mocks.inserted;
+		
+		it("Second level", function(){
+			expect(Warden.stringify(s.mock1)).toBe(s.mock1Ans0);
+		});
 
-	// it("Simple 2-level JSON", function(){
-	// 	expect(Warden.stringify(mocks.mock3)).toBe("{ x:{ tampla:'123', fofa:12 }, y:124 }");
-	// });
-	// it("Simple 2-level JSON (with delimeter)", function(){
-	// 	expect(Warden.stringify(mocks.mock3, true)).toBe("{\n\tx:{\n\t\ttampla:'123',\n\t\tfofa:12 },\n\ty:124\n}");
-	// });
-	// it("Simple deep JSON", function(){
-	// 	expect(Warden.stringify(mocks.mock4)).toBe("{ a:{ b:{ c:[object] } } }");
-	// });
+		it("Second level (delimeter)", function(){
+			expect(Warden.stringify(s.mock1, 1)).toBe(s.mock1Ans1);
+		});
+	})
+	
 });
