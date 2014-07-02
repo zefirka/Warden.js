@@ -45,7 +45,7 @@
 
         if(fn.on === void 0){ 
       inheritor.on = function(ev, callback, config) {
-        if(fn.addEventListener !== null){
+        if(fn.addEventListener != void 0){
           this.addEventListener(ev, callback);
           return this
         }
