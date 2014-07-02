@@ -52,18 +52,7 @@ var outs = o.box.stream("mouseleave");
 var total = 0;
 
 overs.map(function(e){
-	return {
-		x: e.x,
-		y: e.y,
-		amount : e.amount || 0
-	};
-}).reduce('first', function(prev, next){
-	var r = Math.sqrt(Math.pow(Math.abs(prev.x - next.x),2) + Math.pow(Math.abs(prev.y - next.y), 2));
-	total += r;
-	return {
-		x: next.x,
-		y: next.y
-	};
-}).listen(function(e){
-	c3.innerHTML = 'Total pixels elpased: \n' + (total >>0 );
-});
+	return "{ x: "+e.x+", y: "+e.y+" }";
+}).connect(c3, "innerHTML");
+
+var connector = outs.map('Mouse Leave Target').connect(c3, "innerHTML");
