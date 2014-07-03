@@ -10,6 +10,13 @@
   }
 })(this, function (Warden) {
 
+  function isArray(x){
+    if( Object.prototype.toString.call(x) === '[object Array]' ) {
+      return true
+    }
+    return false
+  }
+
   
   Warden.version = "0.0.0";
 
@@ -70,7 +77,7 @@
       };
     }
     
-        inheritor.stream = function(type, listenerFunction) {
+        inheritor.stream = function(type, listenerFunction, config) {
       if(inheritor.addEventListener != null){
         inheritor.addEventListener(type, function(e){
           inheritor.emit(e);
@@ -80,7 +87,7 @@
         inheritor[listenerFunction](type, inheritor.emit);
       }
       
-      var stream = createStream(type);
+      var stream = createStream(type, config);
       if(streams[type] == null)
         streams[type] = [];
       
@@ -91,8 +98,11 @@
     return fn;
   };
 
-  function createStream(ev) {
-    
+  function createStream(ev, options) {
+    var config = {
+      maxTakenLength : options.maxTakenLength || 100,
+      maxHistoryLength : options.maxHistoryLength || 100
+    };
         var Bus = (function() {
 
       function Bus(process) {
@@ -127,7 +137,14 @@
                 event = fn(event);
               } else if (typeof fn === 'string' && event[fn] !== void 0) {
                 event = event[fn];               
-              } else {
+              } else 
+              if(isArray(fn)){
+                event = fn.map(function(prop){
+                  if (typeof prop === 'string' && ev[prop] !== void 0) {
+                    return ev[prop];
+                  }
+                });
+              }else{
                 event = fn;
               }
               self.mapped = true;
@@ -175,7 +192,11 @@
           }
         }
 
-        this.history.push(ev);         
+        if(this.history.length >= config.maxHistoryLength){
+          this.history.shift(0);
+        }
+        this.history.push(ev); 
+        
                 if (this._public.limit && (this._public.taken >= this._public.limit)) {
           return false;
         }
@@ -186,7 +207,13 @@
         }
 
         this._public.taken++;
-        this.taken.push(event);         if(this.connector){
+        
+        if(this.taken.length >= config.maxTakenLength){
+          this.taken.shift(0)
+        }
+        this.taken.push(event); 
+
+        if(this.connector){
           this.connector.assign(event);
         }else{
            this.finalCallback.apply(cnt, [event]);  
@@ -289,7 +316,6 @@
     
     var stream = {
       type: ev,
-      config: [],
       activeBus: []
     };
 

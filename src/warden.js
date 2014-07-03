@@ -14,6 +14,13 @@
   }
 })(this, function (Warden) {
 
+  function isArray(x){
+    if( Object.prototype.toString.call(x) === '[object Array]' ) {
+      return true
+    }
+    return false
+  }
+
   // Write here
 
   Warden.version = "0.0.0";
@@ -82,7 +89,7 @@
     }
     
     // Creating stream
-    inheritor.stream = function(type, listenerFunction) {
+    inheritor.stream = function(type, listenerFunction, config) {
       if(inheritor.addEventListener != null){
         inheritor.addEventListener(type, function(e){
           inheritor.emit(e);
@@ -92,7 +99,7 @@
         inheritor[listenerFunction](type, inheritor.emit);
       }
       
-      var stream = createStream(type);
+      var stream = createStream(type, config);
       if(streams[type] == null)
         streams[type] = [];
       
@@ -103,8 +110,11 @@
     return fn;
   };
 
-  function createStream(ev) {
-    
+  function createStream(ev, options) {
+    var config = {
+      maxTakenLength : options.maxTakenLength || 100,
+      maxHistoryLength : options.maxHistoryLength || 100
+    };
     // Event bus class
     var Bus = (function() {
 
@@ -140,7 +150,14 @@
                 event = fn(event);
               } else if (typeof fn === 'string' && event[fn] !== void 0) {
                 event = event[fn];               
-              } else {
+              } else 
+              if(isArray(fn)){
+                event = fn.map(function(prop){
+                  if (typeof prop === 'string' && ev[prop] !== void 0) {
+                    return ev[prop];
+                  }
+                });
+              }else{
                 event = fn;
               }
               self.mapped = true;
@@ -188,7 +205,10 @@
           }
         }
 
-        this.history.push(ev); //need to check length
+        if(this.history.length >= config.maxHistoryLength){
+          this.history.shift(0);
+        }
+        this.history.push(ev); 
         
         // skipin by limit on top
         if (this._public.limit && (this._public.taken >= this._public.limit)) {
@@ -202,7 +222,12 @@
         }
 
         this._public.taken++;
-        this.taken.push(event); //need to check length
+        
+        if(this.taken.length >= config.maxTakenLength){
+          this.taken.shift(0)
+        }
+        this.taken.push(event); 
+
         if(this.connector){
           this.connector.assign(event);
         }else{
@@ -307,7 +332,6 @@
     
     var stream = {
       type: ev,
-      config: [],
       activeBus: []
     };
 
