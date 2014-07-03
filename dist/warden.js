@@ -100,8 +100,8 @@
 
   function createStream(ev, options) {
     var config = {
-      maxTakenLength : options.maxTakenLength || 100,
-      maxHistoryLength : options.maxHistoryLength || 100
+      maxTakenLength : (options && options.maxTakenLength) || 100,
+      maxHistoryLength : (options && options.maxHistoryLength) || 100
     };
         var Bus = (function() {
 
@@ -223,93 +223,93 @@
       };
 
       Bus.prototype.map = function(fn){
-      return new Bus(this.process.concat({
-        type: 'm',
-        fn: fn
-      }));
-    };
-    
-    Bus.prototype.filter = function(fn){
-      return new Bus(this.process.concat({
-        type: 'f',
-        fn: fn
-      }));
-    };
-    
-    Bus.prototype.include = function(prop){
         return new Bus(this.process.concat({
-          type : 'i',
-          fn : prop
+          type: 'm',
+          fn: fn
         }));
-    };
-    
-    Bus.prototype.reduce = function(start, fn) {
-      return new Bus(this.process.concat({
-        type : 'r',
-        fn : fn,
-        start : start
-      }));
-    };
+      };
+      
+      Bus.prototype.filter = function(fn){
+        return new Bus(this.process.concat({
+          type: 'f',
+          fn: fn
+        }));
+      };
+      
+      Bus.prototype.include = function(prop){
+          return new Bus(this.process.concat({
+            type : 'i',
+            fn : prop
+          }));
+      };
+      
+      Bus.prototype.reduce = function(start, fn) {
+        return new Bus(this.process.concat({
+          type : 'r',
+          fn : fn,
+          start : start
+        }));
+      };
 
-    Bus.prototype.take = function(limit, last){
-      if(typeof limit === 'function'){
-        return this.filter(limit);
-      }else{
-        var newbus = new Bus(this.process);
-        if(last != null){
-          if(typeof last == 'number'){             return this.skip(limit).take(last-limit);
-          }else{
-            throw "Type Error: take method expect number at second argumner;";
-          }
+      Bus.prototype.take = function(limit, last){
+        if(typeof limit === 'function'){
+          return this.filter(limit);
         }else{
-          this.limit = limit;
-          this._public.limit = limit;
-          var pub = this._public;
-          newbus._public = pub;
-          newbus._public.limit = limit;
-          newbus.limit = limit;
+          var newbus = new Bus(this.process);
+          if(last != null){
+            if(typeof last == 'number'){               return this.skip(limit).take(last-limit);
+            }else{
+              throw "Type Error: take method expect number at second argumner;";
+            }
+          }else{
+            this.limit = limit;
+            this._public.limit = limit;
+            var pub = this._public;
+            newbus._public = pub;
+            newbus._public.limit = limit;
+            newbus.limit = limit;
+          }
+          return newbus;
         }
-        return newbus;
-      }
-    };
-    
-    Bus.prototype.skip = function(count){
-      if(typeof count !== 'number'){
-        throw "Type Error: skip method expect numbers;";
-      }
-      var newbus = new Bus(this.process);
-      var pub = this._public;
-      newbus._public = pub;
-      newbus._public.ignore = count;
-      this._public.ignore = count;
-      return newbus;      
-    };
+      };
+      
+      Bus.prototype.skip = function(count){
+        if(typeof count !== 'number'){
+          throw "Type Error: skip method expect numbers;";
+        }
+        var newbus = new Bus(this.process);
+        var pub = this._public;
+        newbus._public = pub;
+        newbus._public.ignore = count;
+        this._public.ignore = count;
+        return newbus;      
+      };
 
-    Bus.prototype.unique = function(prop) {
-      return new Bus(this.process.concat({
-        type : 'u',
-        prop : prop
-      }));
-    };
+      Bus.prototype.unique = function(prop) {
+        return new Bus(this.process.concat({
+          type : 'u',
+          prop : prop
+        }));
+      };
 
-    Bus.prototype.listen = function(fn){
-      this.finalCallback = fn;
-      stream.activeBus.push(this);
-      return this;
-    };
+      Bus.prototype.listen = function(fn){
+        this.finalCallback = fn;
+        stream.activeBus.push(this);
+        return this;
+      };
 
-    Bus.prototype.evaluate = function(ev, cnt){
-      return stream.activeBus.map(function(bus){
-        return bus.exec(ev, cnt);
-      });
-    };
+      Bus.prototype.evaluate = function(ev, cnt){
+        return stream.activeBus.map(function(bus){
+          return bus.exec(ev, cnt);
+        });
+      };
 
-    Bus.prototype.connect = function(item, prop) {
-      var connector = new Connector(item, prop, this);
-      this.connector = connector
-      stream.activeBus.push(this);
-      return this.connector
-    };
+      Bus.prototype.connect = function(item, prop) {
+        var connector = new Connector(item, prop, this);
+        this.connector = connector
+        stream.activeBus.push(this);
+        return this.connector
+      };
 
       return Bus;
     })();
