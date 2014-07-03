@@ -15,7 +15,7 @@
 })(this, function (Warden) {
 
   function isArray(x){
-    if( Object.prototype.toString.call(x) === '[object Array]' ) {
+    if(Object.prototype.toString.call(x) === '[object Array]'){
       return true
     }
     return false
@@ -229,7 +229,11 @@
         this.taken.push(event); 
 
         if(this.connector){
-          this.connector.assign(event);
+          if(!this.connector.locked){
+            this.connector.assign(event);
+          }else{
+            console.log('locked');
+          }
         }else{
            this.finalCallback.apply(cnt, [event]);  
         }
@@ -309,7 +313,13 @@
       };
 
       Bus.prototype.listen = function(fn){
-        this.finalCallback = fn;
+        if(fn === 'log'){
+          this.finalCallback = function(e){
+            console.log(e);
+          }
+        }else{
+          this.finalCallback = fn;  
+        }        
         stream.activeBus.push(this);
         return this;
       };
@@ -343,9 +353,16 @@
       this.item = item;
       this.prop = prop;
       this.host = host;
+      this.locked = false;
     }
     Connector.prototype.assign = function(value) {
       this.item[this.prop] = value;
+    };
+    Connector.prototype.lock = function() {
+      this.locked = true;
+    };
+    Connector.prototype.unlock = function() {
+      this.locked = false;
     };
     return Connector;
   })()
