@@ -9,27 +9,25 @@
       root.Warden = Warden;     }
   }
 })(this, function (Warden) {
-
-  function isArray(x){
-    if(Object.prototype.toString.call(x) === '[object Array]'){
-      return true
-    }
-    return false
-  }
-
   
-  Warden.version = "0.0.0";
+    function isArray(x){
+    return Object.prototype.toString.call(x) === '[object Array]';
+  }  
 
+    Warden.version = "0.0.0"; 
   Warden.toString = function() {
     return "Warden.js";
   };
 
   Warden.create = function(fn, config) {
-    var streams = {},
+        var streams = {},
         callbacks = {},
-        settings = {};
-    
-    settings.max = (config && config.max) || 128;     
+        settings = {
+          max : (config && config.max) || 128,
+          nativeListener : (config && config.nativeListener) || ( typeof jQuery === 'undefined' ? "addEventListener" : 'on'),
+          nativeEmitter : (config && config.nativeEmitter) || (typeof jQuery === 'undefined' ? null : 'trigger'),
+          context : (config && config.context) || 'this'         };   
+        
     var inheritor = fn.prototype || fn;
     
     inheritor.emit = function(ev) {
@@ -77,14 +75,16 @@
       };
     }
     
-        inheritor.stream = function(type, listenerFunction, config) {
-      if(inheritor.addEventListener != null){
-        inheritor.addEventListener(type, function(e){
-          inheritor.emit(e);
-        });
-      }else
-      if(inheritor[listenerFunction] != null){
-        inheritor[listenerFunction](type, inheritor.emit);
+        inheritor.stream = function(type, config) {
+      var l = inheritor[settings.nativeListener];       
+      if(l){
+        if(settings.context == 'this'){
+          inheritor[settings.nativeListener](type, function(e){
+            inheritor.emit(e);
+          });
+        }else{
+          l(type, inheritor.emit);
+        }
       }
       
       var stream = createStream(type, config);
@@ -95,16 +95,38 @@
       return stream;
     };
     
+    if(fn.prototype != void 0){
+      inheritor.streamOf = function(obj, type, config) {
+        var l = obj[settings.nativeListener];       
+        if(l){
+          if(settings.context == 'this'){
+            l(type, function(e){
+              inheritor.emit(e)
+            });
+          }else{
+            l(type, inheritor.emit);
+          }
+        }
+
+        var stream = createStream(type, config);
+        if(streams[type] == null)
+          streams[type] = [];
+
+        streams[type].push(stream);
+        return stream;      
+      };
+    }
+
     return fn;
   };
-
-  function createStream(ev, options) {
+  
+    function createStream(ev, options) {
     var config = {
       maxTakenLength : (options && options.maxTakenLength) || 100,
       maxHistoryLength : (options && options.maxHistoryLength) || 100
     };
+    
         var Bus = (function() {
-
       function Bus(process) {
         this.process = process != null ? process : [];
         
@@ -120,9 +142,13 @@
       }
 
       Bus.prototype.exec = function(ev, cnt) {     
+        if(this.locked){
+          return false;
+        }
         var self = this;
         var event = ev;
         this._public.length++;
+        
         
         event.timestamp = (new Date()).getTime();
         event.environment = 'Warden 0.0.0';
@@ -140,8 +166,8 @@
               } else 
               if(isArray(fn)){
                 event = fn.map(function(prop){
-                  if (typeof prop === 'string' && ev[prop] !== void 0) {
-                    return ev[prop];
+                  if (typeof prop === 'string' && event[prop] !== void 0) {
+                    return event[prop];
                   }
                 });
               }else{
@@ -196,7 +222,7 @@
           this.history.shift(0);
         }
         this.history.push(ev); 
-        
+         
                 if (this._public.limit && (this._public.taken >= this._public.limit)) {
           return false;
         }
@@ -225,34 +251,46 @@
 
         return this;        
       };
+      
+      Bus.prototype.toString = function(){
+        return Warden.stringify(this.process);
+      };
 
       Bus.prototype.map = function(fn){
-        return new Bus(this.process.concat({
+        var newbus = new Bus(this.process.concat({
           type: 'm',
           fn: fn
         }));
+        newbus._public = this._public;
+        return newbus;
       };
       
       Bus.prototype.filter = function(fn){
-        return new Bus(this.process.concat({
+        var newbus =  new Bus(this.process.concat({
           type: 'f',
           fn: fn
         }));
+        newbus._public = this._public;
+        return newbus;
       };
       
       Bus.prototype.include = function(prop){
-          return new Bus(this.process.concat({
+          var newbus = new Bus(this.process.concat({
             type : 'i',
             fn : prop
           }));
+        newbus._public = this._public;
+        return newbus;
       };
       
       Bus.prototype.reduce = function(start, fn) {
-        return new Bus(this.process.concat({
+        var newbus = new Bus(this.process.concat({
           type : 'r',
           fn : fn,
           start : start
         }));
+        newbus._public = this._public;
+        return newbus;
       };
 
       Bus.prototype.take = function(limit, last){
@@ -261,7 +299,8 @@
         }else{
           var newbus = new Bus(this.process);
           if(last != null){
-            if(typeof last == 'number'){               return this.skip(limit).take(last-limit);
+            if(typeof last == 'number'){               debugger;
+              return newbus.skip(limit).take(last-limit);
             }else{
               throw "Type Error: take method expect number at second argumner;";
             }
@@ -290,10 +329,20 @@
       };
 
       Bus.prototype.unique = function(prop) {
-        return new Bus(this.process.concat({
+        var newbus = new Bus(this.process.concat({
           type : 'u',
           prop : prop
         }));
+        newbus._public = this._public;
+        return newbus;
+      };
+      
+      Bus.prototype.lock = function(){
+        this.locked = true;
+      };
+      
+      Bus.prototype.unlock = function(){
+        this.locked = false;
       };
 
       Bus.prototype.listen = function(fn){
@@ -308,6 +357,12 @@
         return this;
       };
 
+      Bus.prototype.log = function(){
+        return this.listen(function(e){
+          console.log(e);
+        });
+      };
+      
       Bus.prototype.evaluate = function(ev, cnt){
         return stream.activeBus.map(function(bus){
           return bus.exec(ev, cnt);
@@ -342,10 +397,10 @@
     Connector.prototype.assign = function(value) {
       this.item[this.prop] = value;
     };
-    Connector.prototype.lock = function() {
+    Connector.prototype.unbind = function() {
       this.locked = true;
     };
-    Connector.prototype.unlock = function() {
+    Connector.prototype.bind = function() {
       this.locked = false;
     };
     return Connector;
