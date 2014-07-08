@@ -30,7 +30,7 @@ clicks.map('x')
 
 var keyups = k.streamOf(k.input, "keyup");
 
-keyups.take(4,8).include('taken').map('taken').listen(function(e){
+keyups.take(4,8).include(['taken']).map('taken').listen(function(e){
 	c2.innerHTML += "Taken count: " + e + "\n";
 });
 
@@ -38,8 +38,9 @@ Warden.create(o.box);
 var overs = o.box.stream("mousemove");
 var outs = o.box.stream("mouseleave");
 
-overs.map(function(e){
+var coords = overs.map(function(e){
 	return "{ x: "+e.x+", y: "+e.y+" }";
 }).log();
+
 
 var connector = outs.map('Mouse Leave Target').connect(c3, "innerHTML");

@@ -18,12 +18,34 @@
   function isArray(x){
     return Object.prototype.toString.call(x) === '[object Array]';
   }  
-
+  
   // Write here
   Warden.version = "0.0.0"; 
   Warden.toString = function() {
     return "Warden.js";
   };
+    
+  //triggering custom event
+  Warden.trigger = function(element, ev){
+    if (document.createEvent) {
+      event = document.createEvent("HTMLEvents");
+      event.initEvent(ev.type, true, true);
+    } else {
+      event = document.createEventObject();
+      event.eventType = ev.type
+    }
+
+    event.eventName = ev.type;
+    for(var i in ev){
+      event[i] = ev[i];
+    }
+
+    if (document.createEvent) {
+      element.dispatchEvent(event);
+    } else {
+      element.fireEvent("on" + event.eventType, event);
+    }
+  }
 
   Warden.create = function(fn, config) {
     //collections
@@ -138,8 +160,8 @@
   // Private functions  
   function createStream(ev, options) {
     var config = {
-      maxTakenLength : (options && options.maxTakenLength) || 100,
-      maxHistoryLength : (options && options.maxHistoryLength) || 100
+      maxTakenLength : (options && options.maxTakenLength) || 64,
+      maxHistoryLength : (options && options.maxHistoryLength) || 64
     };
     
     // Event bus class
@@ -205,7 +227,18 @@
               break;
             case 'i':
               if(this._public[process.fn]!=null){
-                event[process.fn]=this._public[process.fn];
+                if(isArray(process.fn)){
+                  process.fn.map(function(item){
+                    if(typeof item=='string'){
+                      event[item]=self._public[item];
+                    }else{
+                      throw "Unexpected "+ typeof item + " at inclide";
+                    }
+                  });
+                }else{
+                  event[process.fn]=self._public[process.fn];
+                }
+                
               }
               break;
             case 'r':
@@ -319,7 +352,6 @@
           var newbus = new Bus(this.process);
           if(last != null){
             if(typeof last == 'number'){ //need checj that last > limit
-              debugger;
               return newbus.skip(limit).take(last-limit);
             }else{
               throw "Type Error: take method expect number at second argumner;";
@@ -364,7 +396,7 @@
       Bus.prototype.unlock = function(){
         this.locked = false;
       };
-
+          
       Bus.prototype.listen = function(fn){
         if(fn === 'log'){
           this.finalCallback = function(e){

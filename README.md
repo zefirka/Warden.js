@@ -1,9 +1,9 @@
 Warden.js
 =========
 
-Small declarative library for event-driven development
+Small declarative library for event-driven development.
 
-Warden.js library provides a functionality for the development of event-driven web-applications without any dependencies. You can emit custom events with [`.emit()`](#emit) method and listen them with [`.on()`](#on) method, you can also listen native DOM events. But the greatest is you can create and maintain event-streams with [`.stream()`](#stream) and programming event-bus. 
+Warden.js provides a functionality for the development of event-driven web-applications without any dependencies. You can emit custom events with [`.emit()`](#emit) method and listen them with [`.on()`](#on) method, you can also listen native DOM events or extend EventEmitter class of Node. But the greatest is you can create and maintain streams of events with [`.stream()`](#stream) and [`.streamOf()`](#streamOf).
 
 ##Warden.create##
 
@@ -44,7 +44,6 @@ object.prototype.async = function(timeout){
 		self.emit({
 			type : "async",
 			msg : "timeout is ended",
-			timeout : timeout
 		});
 	})	
 };
@@ -54,8 +53,9 @@ object.prototype.async = function(timeout){
 Binding callback as a handler for events which type is `type`.
 ####stream####
 `.stream(type, [config])`
-Creates event stream returns event Bus class item. You can use second argument to say, that you'r not binding on Warden.emitter's .on method and want to listen only your framework's listener's function. So, if your object is not, a class but a #HTML object for example, you can you `htmlObj.stream('click', 'addEventListener')`. But prefered way to configure listeners is say in `Warden.create` config param that you use nativeListener
+Creates event stream and returns event Bus class object. 
 ####streamOf####
-
+`.streamOf(object, type, [config])`
+Creates an event stream from `item[object]` 
 ##Streams##
 Stream is representing Bus class object.
