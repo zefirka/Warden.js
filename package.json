@@ -33,6 +33,7 @@
     "grunt-devtools": "~0.2.1",
     "grunt-contrib-clean": "~0.5.0",
     "grunt-stripcomments": "~0.3.0",
-    "grunt-contrib-copy": "~0.5.0"
+    "grunt-contrib-copy": "~0.5.0",
+    "grunt-includes": "~0.4.5"
   }
 }

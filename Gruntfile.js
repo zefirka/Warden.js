@@ -20,10 +20,23 @@ module.exports = function(grunt){
         }
       }
     },
+    
+    includes: {
+      build: {
+        cwd: './src',
+        src: './warden.js',
+        dest: './src/build/',
+        options: {
+          duplicates: false,
+          debug: true,
+          includePath: './src/modules'
+        }        
+      },
+    },
 
     // Jasmine test
     jasmine: {
-      src: ['dist/warden.js', "dist/plugins/stringify.js"],
+      src: ['dist/warden.min.js', "dist/plugins/stringify.js"],
       options: {
         specs: 'test/specs/*Spec.js',
         outfile : "test/_SpecRunner.html",
@@ -43,7 +56,7 @@ module.exports = function(grunt){
     copy: {
       main: {
         expand: true, 
-        cwd: 'src/', 
+        cwd: 'src/build/', 
         src: ['*.js'], 
         dest: 'dist/'
       },
@@ -59,7 +72,7 @@ module.exports = function(grunt){
       js: {
         options: {
           singleline: true,
-          multiline: false
+          multiline: true
         },
         src: [ 'dist/warden.js', "dist/plugins/*.js" ]
       }
@@ -68,7 +81,7 @@ module.exports = function(grunt){
     watch: {
       scripts : {
         files : ['test/specs/*.js', "src/*js"],
-        tasks : ['copy', 'comments','jasmine']
+        tasks : ['includes', 'copy', 'comments','jasmine']
       },
       coffee: {
         files: ['src/plugins/*.coffee'],
@@ -85,15 +98,21 @@ module.exports = function(grunt){
   grunt.loadNpmTasks('grunt-contrib-jasmine');
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-stripcomments'); 
+  grunt.loadNpmTasks('grunt-includes');
   grunt.loadNpmTasks('grunt-devtools');
 
-  grunt.registerTask('default', [
+  grunt.registerTask('build', [
     "coffee",
-    "uglify",
+    "includes",
     "copy",
     "comments",
+    "uglify",
     "jasmine",
     "watch"
   ]);
-  
+  grunt.registerTask('default', [
+    "coffee",
+    "includes",
+    "watch"
+  ]);  
 };

@@ -8,17 +8,41 @@
       define(Warden);     } else {
       root.Warden = Warden;     }
   }
-})(this, function (Warden) {
+})(this, function(Warden){
   
-    var isArray = Array.isArray ? function(x){ return Array.isArray(x)} : function(x){ Object.prototype.toString.call(x) === '[object Array]'};
-  var forEach = Array.prototype.forEach ? function(arr, fn){ return arr ? arr.forEach(fn) : undefined } : function(arr, fn){ for(var i=0, l=arr.length; i<l;i++){ fn(arr[i], i) }}
+    
+  var isArray = (function(){
+    if(Array.isArray){
+      return function(x){ 
+        return Array.isArray(x); 
+      }
+    }else{
+      return function(x){ 
+        Object.prototype.toString.call(x) === '[object Array]';
+      }
+    }
+  }());
 
+  var forEach = (function(){
+    if(Array.prototype.forEach){
+      return function(arr, fn){ 
+        return arr ? arr.forEach(fn) : undefined;
+      }
+    }else{
+      return function(arr, fn){ 
+        for(var i=0, l=arr.length; i<l;i++){ 
+          fn(arr[i], i) 
+        }
+      }
+    }
+  }());
     Warden.version = "0.0.1"; 
   Warden.toString = function() {
     return "Warden.js";
   };
     
-    Warden.trigger = function(element, ev){
+    
+  Warden.trigger = function(element, ev){
     if(document.createEvent){
       event = document.createEvent("HTMLEvents");
       event.initEvent(ev.type, true, true);
@@ -37,14 +61,9 @@
     }else{
       element.fireEvent("on" + event.eventType, event);
     }
-  }
-
-  Warden.create = function(fn, config) {
-    /* Choose object to extend,
-        if fn is constructor function, then that's prototype, else
-        use actual object element 
-    */
-    var inheritor = fn.prototype || fn,
+  };  
+    Warden.create = function(fn, config) {
+        var inheritor = fn.prototype || fn,
         isConstructor = fn.prototype != void 0;
 
         var streams = {},
@@ -60,9 +79,7 @@
       settings.nativeListener = (config && config.nativeListener) || (typeof jQuery === 'undefined' ? "addEventListener" : 'on');
     }
   
-
-    /* Emitter function */
-    inheritor.emit = function(ev) {
+        inheritor.emit = function(ev) {
       var self = this;
       
             forEach(streams[ev.type], function(i) {
@@ -104,7 +121,6 @@
     }
     
         inheritor.stream = function(type, config) {
-      
       var l = inheritor[settings.nativeListener];       
       if(l){
         if(settings.context == 'this'){
@@ -155,7 +171,8 @@
       maxHistoryLength : (options && options.maxHistoryLength) || 64,
       context : (options && options.context) || null
     };
-    
+        
+        
         var Bus = (function() {
       function Bus(process) {
         this.process = process != null ? process : [];
@@ -169,94 +186,27 @@
         this.history = [];
         this.taken = [];
       }
-
+          
+      
       Bus.prototype.exec = function(ev, cnt) {     
         if(this.locked){
           return false;
-        }
+        }        
         var self = this;
-        var event = ev;
+        var event = ev;        
         this._public.length++;
         
-        
         event.timestamp = (new Date()).getTime();
-        event.environment = 'Warden 0.0.0';
         
-        
-        for (var i = 0, l = this.process.length; i < l; i++) {
-          process = this.process[i];
-          fn = process.fn;
-          switch (process.type) {
-            case 'm':
-              if (typeof fn === 'function') {
-                event = fn(event);
-              } else if (typeof fn === 'string' && event[fn] !== void 0) {
-                event = event[fn];               
-              } else 
-              if(isArray(fn)){
-                event = fn.map(function(prop){
-                  if (typeof prop === 'string' && event[prop] !== void 0) {
-                    return event[prop];
-                  }
-                });
-              }else{
-                event = fn;
-              }
-              self.mapped = true;
-              break;
-            case 'f':
-              if (typeof fn === 'function') {
-                if (fn.apply(config.context, [event]) === false) {
-                  return false;
-                }
-              } else {
-                if (Boolean(fn) === false) {
-                  return false;
-                }
-              }
-              break;
-            case 'i':
-              if(this._public[process.fn]!=null){
-                if(isArray(process.fn)){
-                  process.fn.map(function(item){
-                    if(typeof item=='string'){
-                      event[item]=self._public[item];
-                    }else{
-                      throw "Unexpected "+ typeof item + " at inclide";
-                    }
-                  });
-                }else{
-                  event[process.fn]=self._public[process.fn];
-                }
-                
-              }
-              break;
-            case 'r':
-              var prev;
-              if(this.taken.length>0){
-                prev = this.taken[this.taken.length-1];
-              }else{
-                prev = process.start == 'first' ?  event : process.start;
-              }
-              event = process.fn(prev, event);
-              break;
-            case 'u':
-              if(this.taken.length){
-                var pt = this.taken[this.taken.length-1][process.prop];
-                if(pt){
-                  if(event[process.prop] == pt){
-                    return false;
-                  }  
-                }else{
-                  if(event[process.prop] == this.history[this.history.length-1][process.prop]){
-                    return false;
-                  }
-                }
-                
-              }
-              break;              
+        for(var i=0, l=this.process.length; i<l; i++){
+          var process = this.process[i];
+          var res = Processor[process.type].apply(this, [process, event]);
+          if(res.busIsDeprecated){
+            return false;
+          }else{
+            event = res;
           }
-        }
+        };        
 
         if(this.history.length >= config.maxHistoryLength){
           this.history.shift(0);
@@ -425,7 +375,8 @@
 
     return new Bus();
   };
-
+  
+    
   var Connector = (function(){
     function Connector(item, prop, host){
       this.item = item;
@@ -434,7 +385,7 @@
       }else{
         this.prop = prop;  
       }
-      
+
       this.host = host;
       this.locked = false;
     }
@@ -452,5 +403,4 @@
       this.locked = false;
     };
     return Connector;
-  })()
-}));
+  })();}));
