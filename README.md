@@ -7,7 +7,7 @@ Warden.js provides a functionality for the development of event-driven web-appli
 
 ##Warden.create##
 
-<img src="http://ps.cms-service.ru/warden/assets/img/warden.png" align="right" width="301px" style='z-index: 32323; position: relative;'/>
+<img src="https://raw.githubusercontent.com/zefirka/Warden.js/master/src/warden.png" align="right" width="301px" style='z-index: 32323; position: relative;'/>
 
 There is no dependencies with DOM, jQuery events or another event emitting system in the Warden library. If you want to your object can emit, listen and creating streams of events you should use <code>Warden.create</code> method.
 
