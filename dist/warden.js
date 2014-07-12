@@ -10,51 +10,79 @@
   }
 })(this, function (Warden) {
   
-    function isArray(x){
-    return Object.prototype.toString.call(x) === '[object Array]';
-  }  
+    var isArray = Array.isArray ? function(x){ return Array.isArray(x)} : function(x){ Object.prototype.toString.call(x) === '[object Array]'};
+  var forEach = Array.prototype.forEach ? function(arr, fn){ return arr ? arr.forEach(fn) : undefined } : function(arr, fn){ for(var i=0, l=arr.length; i<l;i++){ fn(arr[i], i) }}
 
-    Warden.version = "0.0.0"; 
+    Warden.version = "0.0.1"; 
   Warden.toString = function() {
     return "Warden.js";
   };
+    
+    Warden.trigger = function(element, ev){
+    if(document.createEvent){
+      event = document.createEvent("HTMLEvents");
+      event.initEvent(ev.type, true, true);
+    }else{
+      event = document.createEventObject();
+      event.eventType = ev.type
+    }
+
+    event.eventName = ev.type;
+    for(var i in ev){
+      event[i] = ev[i];
+    }
+
+    if(document.createEvent){
+      element.dispatchEvent(event);
+    }else{
+      element.fireEvent("on" + event.eventType, event);
+    }
+  }
 
   Warden.create = function(fn, config) {
+    /* Choose object to extend,
+        if fn is constructor function, then that's prototype, else
+        use actual object element 
+    */
+    var inheritor = fn.prototype || fn,
+        isConstructor = fn.prototype != void 0;
+
         var streams = {},
         callbacks = {},
         settings = {
-          max : (config && config.max) || 128,
-          nativeListener : (config && config.nativeListener) || ( typeof jQuery === 'undefined' ? "addEventListener" : 'on'),
-          nativeEmitter : (config && config.nativeEmitter) || (typeof jQuery === 'undefined' ? null : 'trigger'),
-          context : (config && config.context) || 'this'         };   
-        
-    var inheritor = fn.prototype || fn;
+          max : (config && config.max) || 128,           context : (config && config.context) || 'this'         };   
     
+    if(isConstructor){
+      settings.nativeEmitter = null;
+      settings.nativeListener = null;
+    }else{
+      settings.nativeEmitter = (config && config.nativeEmitter) || (typeof jQuery === 'undefined' ? null : 'trigger');
+      settings.nativeListener = (config && config.nativeListener) || (typeof jQuery === 'undefined' ? "addEventListener" : 'on');
+    }
+  
+
+    /* Emitter function */
     inheritor.emit = function(ev) {
       var self = this;
       
-            if(streams[ev.type] != null){
-        streams[ev.type].map(function(i) {
-          return i.evaluate(ev, self);
-        });
-      }
-       
-            if(callbacks[ev.type] != null){
-        callbacks[ev.type].map(function(item) {
-          var context = (item.config && item.config.context) || self,               adj = item.config && item.config.adj;           return item.callback.apply(context, [ev].concat(adj));
-        });
-      }
+            forEach(streams[ev.type], function(i) {
+        return i.evaluate(ev, self);
+      });
+      
+            forEach(callbacks[ev.type], function(item){
+        var context = (item.config && item.config.context) || self,             adj = item.config && item.config.adj;         return item.callback.apply(context, [ev].concat(adj));
+      });
       
       return this;
     };
 
         if(fn.on === void 0){ 
-      inheritor.on = function(ev, callback, config) {
+      
+      inheritor.on = function(ev, callback, config){
         if(fn.addEventListener != void 0){
           this.addEventListener(ev, callback);
           return this
         }
-        
         if (typeof ev !== 'string') {
           throw "Type Error: Wrong argument[1] in .on method. Expected string.";
         }
@@ -76,6 +104,7 @@
     }
     
         inheritor.stream = function(type, config) {
+      
       var l = inheritor[settings.nativeListener];       
       if(l){
         if(settings.context == 'this'){
@@ -95,7 +124,7 @@
       return stream;
     };
     
-    if(fn.prototype != void 0){
+    if(isConstructor){
       inheritor.streamOf = function(obj, type, config) {
         var l = obj[settings.nativeListener];       
         if(l){
@@ -122,14 +151,14 @@
   
     function createStream(ev, options) {
     var config = {
-      maxTakenLength : (options && options.maxTakenLength) || 100,
-      maxHistoryLength : (options && options.maxHistoryLength) || 100
+      maxTakenLength : (options && options.maxTakenLength) || 64,
+      maxHistoryLength : (options && options.maxHistoryLength) || 64,
+      context : (options && options.context) || null
     };
     
         var Bus = (function() {
       function Bus(process) {
         this.process = process != null ? process : [];
-        
         this._public = {
           skipped : 0,
           taken : 0,
@@ -177,7 +206,7 @@
               break;
             case 'f':
               if (typeof fn === 'function') {
-                if (fn(event) === false) {
+                if (fn.apply(config.context, [event]) === false) {
                   return false;
                 }
               } else {
@@ -188,7 +217,18 @@
               break;
             case 'i':
               if(this._public[process.fn]!=null){
-                event[process.fn]=this._public[process.fn];
+                if(isArray(process.fn)){
+                  process.fn.map(function(item){
+                    if(typeof item=='string'){
+                      event[item]=self._public[item];
+                    }else{
+                      throw "Unexpected "+ typeof item + " at inclide";
+                    }
+                  });
+                }else{
+                  event[process.fn]=self._public[process.fn];
+                }
+                
               }
               break;
             case 'r':
@@ -246,7 +286,7 @@
             console.log('locked');
           }
         }else{
-           this.finalCallback.apply(cnt, [event]);  
+           this.finalCallback.apply(config.context || cnt, [event]);  
         }
 
         return this;        
@@ -299,8 +339,7 @@
         }else{
           var newbus = new Bus(this.process);
           if(last != null){
-            if(typeof last == 'number'){               debugger;
-              return newbus.skip(limit).take(last-limit);
+            if(typeof last == 'number'){               return newbus.skip(limit).take(last-limit);
             }else{
               throw "Type Error: take method expect number at second argumner;";
             }
@@ -344,7 +383,7 @@
       Bus.prototype.unlock = function(){
         this.locked = false;
       };
-
+          
       Bus.prototype.listen = function(fn){
         if(fn === 'log'){
           this.finalCallback = function(e){
@@ -369,8 +408,8 @@
         });
       };
 
-      Bus.prototype.connect = function(item, prop) {
-        var connector = new Connector(item, prop, this);
+      Bus.prototype.connect = function(item, propOrMethod) {
+        var connector = new Connector(item, propOrMethod, this);
         this.connector = connector
         stream.activeBus.push(this);
         return this.connector
@@ -390,12 +429,21 @@
   var Connector = (function(){
     function Connector(item, prop, host){
       this.item = item;
-      this.prop = prop;
+      if(typeof prop === 'function'){
+        this.method = prop;
+      }else{
+        this.prop = prop;  
+      }
+      
       this.host = host;
       this.locked = false;
     }
     Connector.prototype.assign = function(value) {
-      this.item[this.prop] = value;
+      if(this.method){
+        this.item[this.method](value);
+      }else{
+        this.item[this.prop] = value;
+      }
     };
     Connector.prototype.unbind = function() {
       this.locked = true;

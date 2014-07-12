@@ -21,7 +21,7 @@ var k = new Presser(input);
 var o = new Over(box);
 var clicks = left.stream('click');
 
-clicks.map('x')
+clicks.map('y')
 .reduce(0, function(prev, cur){
   return prev + cur;
 }).include('taken').listen(function(e){
