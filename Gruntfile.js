@@ -72,7 +72,7 @@ module.exports = function(grunt){
       js: {
         options: {
           singleline: true,
-          multiline: true
+          multiline: false
         },
         src: [ 'dist/warden.js', "dist/plugins/*.js" ]
       }

@@ -10,7 +10,9 @@
   }
 })(this, function(Warden){
   
-    
+  /* Begin: src/modules/helpers.js */
+  /* Helpers module */
+
   var isArray = (function(){
     if(Array.isArray){
       return function(x){ 
@@ -35,13 +37,16 @@
         }
       }
     }
-  }());
+  }());/* End: src/modules/helpers.js */
+
     Warden.version = "0.0.1"; 
   Warden.toString = function() {
     return "Warden.js";
   };
     
-    
+  /* Begin: src/modules/trigger.js */
+  /* Triggering function */
+
   Warden.trigger = function(element, ev){
     if(document.createEvent){
       event = document.createEvent("HTMLEvents");
@@ -61,9 +66,15 @@
     }else{
       element.fireEvent("on" + event.eventType, event);
     }
-  };  
-    Warden.create = function(fn, config) {
-        var inheritor = fn.prototype || fn,
+  };/* End: src/modules/trigger.js */
+  
+  /* Extending fn with warden methods */
+  Warden.create = function(fn, config) {
+    /* Choose object to extend,
+        if fn is constructor function, then that's prototype, else
+        use actual object element 
+    */
+    var inheritor = fn.prototype || fn,
         isConstructor = fn.prototype != void 0;
 
         var streams = {},
@@ -79,7 +90,8 @@
       settings.nativeListener = (config && config.nativeListener) || (typeof jQuery === 'undefined' ? "addEventListener" : 'on');
     }
   
-        inheritor.emit = function(ev) {
+    /* Emitter function */
+    inheritor.emit = function(ev) {
       var self = this;
       
             forEach(streams[ev.type], function(i) {
@@ -172,7 +184,117 @@
       context : (options && options.context) || null
     };
         
+/* Begin: src/modules/Processor.js */
+    /*
+      Processor module:
+      In all processing functions: this variable is EventBus object;
+    */ 
+
+    var Processor = (function(){  
+      function deprecate(fn){
+        return {
+          busIsDeprecated : true,
+          deprecationFn : fn
+        }
+      }
+      
+      var processor = {};
         
+            
+      processor['m'] = function map(process, event){
+        var fn = process.fn;
+                if (typeof fn === 'function') {
+          event = fn.apply(config.context, [event]);
+        }else 
+        if(typeof fn === 'string' && event[fn] != undefined) {
+          event = event[fn];               
+        }else 
+        if(isArray(fn)){
+          event = forEach(fn, function(prop){
+            if (typeof prop === 'string' && event[prop] !== undefined) {
+              return event[prop];
+            }
+          });
+        }else 
+        if(typeof fn === 'object'){
+          var result = {};
+          for(var key in fn){
+            var val = fn[key];
+            result[key] = event[fn[key]];
+          }
+          event = result;
+        }else{
+          event = fn;
+        }
+        this.mapped = true;
+        return event;
+      };
+      
+      processor['f'] = function filter(process, event){
+        var fn = process.fn;
+        if(typeof fn === 'function') {
+          if (fn.apply(config.context, [event]) === false) {
+            return deprecate('filter');
+          }
+        }else{
+          if(Boolean(fn) === false) {
+            return derprecate('filter');
+          }
+        }
+        return event;
+      };
+      
+      processor['i'] = function include(process, event){
+        var fn = process.fn;
+        if(isArray(fn)){
+          var self = this;
+          forEach(fn, function(item){
+            if(typeof item=='string'){
+              if(this._public[item]!=null){
+                event[item]=self._public[item];
+              }
+            }else{
+              throw "Unexpected "+ typeof item + " at inclide";
+            }
+          });
+        }else{
+          if(this._public[fn]!=null){
+            event[fn] = self._public[fn];
+          }
+        }
+        return event;
+      };
+      
+      processor['r'] = function reduce(process, event){
+        var fn = process.fn, prev;
+        if(this.taken.length>0){
+          prev = this.taken[this.taken.length-1];
+        }else{
+          prev = process.start == 'first' ?  event : process.start;
+        }
+        event = fn.apply(config.context, [prev, event]);
+        return event;
+      };
+      
+      processor['u'] = function unique(process, event){
+        if(this.taken.length){
+          var pt = this.taken[this.taken.length-1][process.prop];
+          if(pt){
+            if(event[process.prop] == pt){
+              return deprecate('unique');
+            }  
+          }else{
+            if(event[process.prop] == this.history[this.history.length-1][process.prop]){
+              return deprecate('unique');
+            }
+          }        
+        }
+        return event;
+      };
+      
+      return processor;
+    })();/* End: src/modules/Processor.js */
+    
         var Bus = (function() {
       function Bus(process) {
         this.process = process != null ? process : [];
@@ -376,7 +498,8 @@
     return new Bus();
   };
   
-    
+  /* Begin: src/modules/Connector.js */
+  
   var Connector = (function(){
     function Connector(item, prop, host){
       this.item = item;
@@ -403,4 +526,5 @@
       this.locked = false;
     };
     return Connector;
-  })();}));
+  })();/* End: src/modules/Connector.js */
+}));
