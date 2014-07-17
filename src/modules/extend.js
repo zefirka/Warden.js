@@ -1,5 +1,3 @@
-Warden.extented = 0;
-
 Warden.extend = function(child, config) {
   /* Choose object to extend,
      if fn is constructor function, then that's prototype, else
@@ -87,7 +85,7 @@ Warden.extend = function(child, config) {
   inheritor.stream = function(type, config) {
     var l = inheritor[settings.nativeListener]; // invocation retranslator
 
-    if(exists(l)){
+    if(l){
       if(settings.context == 'this'){
         inheritor[settings.nativeListener](type, function(e){
           inheritor.emit(e);

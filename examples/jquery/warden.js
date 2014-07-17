@@ -13,11 +13,7 @@
   /* Begin: src/modules/helpers.js */
   /* Helpers module */
 
-      var exists = function(i){
-    return typeof f !== 'undefined';
-  }
-
-      var isArray = (function(){
+  var isArray = (function(){
     if(Array.isArray){
       return function(x){ 
         return Array.isArray(x); 
@@ -29,52 +25,57 @@
     }
   }());
 
-      var forEach = (function(){
+  var forEach = (function(){
     if(Array.prototype.forEach){
       return function(arr, fn){ 
-        return arr ? arr.forEach(fn) : null;
+        return arr ? arr.forEach(fn) : undefined;
       }
     }else{
       return function(arr, fn){ 
         for(var i=0, l=arr.length; i<l;i++){ 
-          if(fn(arr[i], i) === false) break;
+          fn(arr[i], i) 
         }
       }
     }
-  }());
-
-      var filter = (function(){
-    if(Array.prototype.filter){
-      return function(arr, fn){
-        return arr ? arr.filter(fn) : null;
-      }
-    }else{
-      return function(arr, fn){
-        var filtered = [];
-        for(var i=0, l=arr.length; i<l; i++){
-          var res = fn(arr[i]);
-          if(res === true){
-            filtered.push(res);
-          }
-        }
-        return filtered;
-      }
-    }
-  })();/* End: src/modules/helpers.js */
+  }());/* End: src/modules/helpers.js */
 
     Warden.version = "0.0.1"; 
   Warden.toString = function() {
     return "Warden.js";
   };
-      
+    
+  /* Begin: src/modules/trigger.js */
+  /* Triggering function */
+
+  Warden.trigger = function(element, ev){
+    if(document.createEvent){
+      event = document.createEvent("HTMLEvents");
+      event.initEvent(ev.type, true, true);
+    }else{
+      event = document.createEventObject();
+      event.eventType = ev.type
+    }
+
+    event.eventName = ev.type;
+    for(var i in ev){
+      event[i] = ev[i];
+    }
+
+    if(document.createEvent){
+      element.dispatchEvent(event);
+    }else{
+      element.fireEvent("on" + event.eventType, event);
+    }
+  };/* End: src/modules/trigger.js */
 /* Begin: src/modules/extend.js */
   Warden.extend = function(child, config) {
-    /* Choose object to extend,
-       if fn is constructor function, then that's prototype, else
-       use actual object element 
-    */
+      /* Choose object to extend,
+          if fn is constructor function, then that's prototype, else
+          use actual object element 
+      */
     var ctype = typeof child,         inheritor = child,         isConstructor = true; 
-      
+        
+    
     switch(ctype){
       case 'function': 
         inheritor = child.prototype;
@@ -102,7 +103,6 @@
       settings.nativeListener = (config && config.nativeListener) || (typeof jQuery === 'undefined' ? "addEventListener" : 'on');
     }
     
-        
     /* Emitter function */
     inheritor.emit = inheritor.emit || function(ev) {
       var self = this;
@@ -141,6 +141,7 @@
     };
       
         inheritor.stream = function(type, config) {
+          
       var l = inheritor[settings.nativeListener]; 
       if(l){
         if(settings.context == 'this'){
@@ -163,7 +164,8 @@
     return child;
   };/* End: src/modules/extend.js */
   /* Extending fn with warden methods */
-    
+  
+  
     function createStream(ev, options) {
     var config = {
       maxTakenLength : (options && options.maxTakenLength) || 64,
@@ -188,18 +190,15 @@
       var processor = {};
         
             
-            processor['m'] = function map(process, event){
+      processor['m'] = function map(process, event){
         var fn = process.fn;
-                
-        if (typeof fn === 'function') {
+                if (typeof fn === 'function') {
           event = fn.apply(config.context, [event]);
         }else 
-        
-                if(typeof fn === 'string' && event[fn] != undefined) {
+        if(typeof fn === 'string' && event[fn] != undefined) {
           event = event[fn];               
         }else 
-          
-                if(isArray(fn)){
+        if(isArray(fn)){
           event = forEach(fn, function(prop){
             if (typeof prop === 'string' && event[prop] !== undefined) {
               return event[prop];
@@ -231,7 +230,6 @@
             return derprecate('filter');
           }
         }
-        this.filtered = true;
         return event;
       };
       

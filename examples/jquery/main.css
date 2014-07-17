@@ -1,0 +1,39 @@
+#game{
+	display: inline-block;
+	background: #eee;
+	border-radius: 3px;
+	padding: 5px;
+}
+
+#game .row{
+	height: 16px;
+	margin-bottom: 2px;
+}
+#game .row:last-child{
+	margin-bottom: 0px;
+}
+
+.cell{
+	display: inline-block;
+	height: 16px;
+	width: 16px;
+	border-radius: 3px;
+	margin-right: 2px;
+	background: #fff;
+}
+
+.box{
+	background: url(img/gbox.jpg);
+}
+
+.player{
+	background-color: green;
+}
+
+.enemy{
+	background-color: red;
+}
+
+#game .row .cell:last-child{
+	margin-right: 0px;
+}

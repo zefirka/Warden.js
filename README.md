@@ -13,13 +13,13 @@ There is no dependencies with DOM, jQuery events or another event emitting syste
 
 [`Warden.extend(item, [config])`](https://github.com/zefirka/Warden.js/blob/master/docs/EmitterDocs.md)
 ```js
-var Clicker = Warden.create(function Clicker(btn){
+var Clicker = Warden.extend(function Clicker(btn){
 	this.btn = btn;
 });
 ```
 or
 ```js
-var module = Warden.create({
+var module = Warden.extend({
   fire: function(){
     this.emit({
       type: "custom"
