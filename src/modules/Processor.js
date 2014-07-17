@@ -15,15 +15,21 @@ var Processor = (function(){
     
   // Processing functions:
   
+  // mapping function
   processor['m'] = function map(process, event){
     var fn = process.fn;
-    //fn is function then apply function
+    // fn is function then apply function
+    
     if (typeof fn === 'function') {
       event = fn.apply(config.context, [event]);
     }else 
+    
+    // fn is property of event
     if(typeof fn === 'string' && event[fn] != undefined) {
       event = event[fn];               
     }else 
+      
+    // fn is array
     if(isArray(fn)){
       event = forEach(fn, function(prop){
         if (typeof prop === 'string' && event[prop] !== undefined) {
@@ -56,13 +62,14 @@ var Processor = (function(){
         return derprecate('filter');
       }
     }
+    this.filtered = true;
     return event;
   };
   
   processor['i'] = function include(process, event){
     var fn = process.fn;
+    var self = this;
     if(isArray(fn)){
-      var self = this;
       forEach(fn, function(item){
         if(typeof item=='string'){
           if(this._public[item]!=null){

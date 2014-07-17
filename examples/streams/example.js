@@ -2,7 +2,7 @@ var c1 = document.getElementById("console1");
 var c2 = document.getElementById("console2");
 var c3 = document.getElementById("console3");
 
-var Presser = Warden.create(function Presser(e){ 
+var Presser = Warden.extend(function Presser(e){ 
 	var self = this;
 	this.input = e; 
 });
@@ -12,7 +12,7 @@ function Over(e){
 	this.box = e;
 };
 
-var left = Warden.create(document.getElementById("left")); //creating warden from object
+var left = Warden.extend(document.getElementById("left")); //creating warden from object
 
 var input = document.getElementById("input");
 var box = document.getElementById("middle");
@@ -34,7 +34,7 @@ keyups.take(4,8).include(['taken']).map('taken').listen(function(e){
 	c2.innerHTML += "Taken count: " + e + "\n";
 });
 
-Warden.create(o.box);
+Warden.extend(o.box);
 var overs = o.box.stream("mousemove");
 var outs = o.box.stream("mouseleave");
 

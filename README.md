@@ -3,15 +3,15 @@ Warden.js
 
 Small declarative library for event-driven development.
 
-Warden.js provides a functionality for the development of event-driven web-applications without any dependencies. You can emit custom events with [`.emit()`](#emit) method and listen them with [`.on()`](#on) method, you can also listen native DOM events or extend EventEmitter class of Node. But the greatest is you can create and maintain streams of events with [`.stream()`](#stream) and [`.streamOf()`](#streamOf).
+Warden.js provides a functionality for the development of event-driven web-applications without any dependencies. You can emit custom events with [`.emit()`](#emit) method and listen them with [`.listen()`](#listen) method, you can also listen native DOM events or extend EventEmitter class of Node. But the greatest is you can create and maintain streams of events with [`.stream()`](#stream).
 
-##Warden.create##
+##Warden.extend##
 
 <img src="https://raw.githubusercontent.com/zefirka/Warden.js/master/src/warden.png" align="right" width="301px" style='z-index: 32323; position: relative;'/>
 
-There is no dependencies with DOM, jQuery events or another event emitting system in the Warden library. If you want to your object can emit, listen and creating streams of events you should use <code>Warden.create</code> method.
+There is no dependencies with DOM, jQuery events or another event emitting system in the Warden library. If you want to your object can emit, listen and creating streams of events you should use <code>Warden.extend</code> method.
 
-[`Warden.create(constructor, [config])`](https://github.com/zefirka/Warden.js/blob/master/docs/EmitterDocs.md)
+[`Warden.extend(item, [config])`](https://github.com/zefirka/Warden.js/blob/master/docs/EmitterDocs.md)
 ```js
 var Clicker = Warden.create(function Clicker(btn){
 	this.btn = btn;
@@ -19,12 +19,15 @@ var Clicker = Warden.create(function Clicker(btn){
 ```
 or
 ```js
-function Clicker(btn){
-	this.btn = btn;
-}
-Warden.create(Clicker);
+var module = Warden.create({
+  fire: function(){
+    this.emit({
+      type: "custom"
+    });
+  }
+});
 ```
-Now <code>Clicker</code> class has methods <code>.on</code>, <code>.emit</code>, <code>.stream</code> and `streamOf`. 
+Now objects made by <code>Clicker</code> and object `module` has methods <code>.listen</code>, <code>.emit</code> and <code>.stream</code>.
 
 ####Configuration####
 You can configure next terms:
@@ -48,14 +51,11 @@ object.prototype.async = function(timeout){
 	})	
 };
 ```
-####on####
-`.on(type, callback, [config])`
+####listen####
+`.listen(type, callback, [config])`
 Binding callback as a handler for events which type is `type`.
 ####stream####
 `.stream(type, [config])`
 Creates event stream and returns event Bus class object. 
-####streamOf####
-`.streamOf(object, type, [config])`
-Creates an event stream from `item[object]` 
 ##Streams##
 Stream is representing Bus class object.

@@ -1,4 +1,4 @@
-var Clicker = Warden.module(function(e){ 
+var Clicker = Warden.extend(function(e){ 
 	var self = this;
 	this.btn = e; 
 	this.btn.addEventListener("click", function(e){
@@ -6,7 +6,7 @@ var Clicker = Warden.module(function(e){
 	});
 });
 
-var Presser = Warden.module(function(e){ 
+var Presser = Warden.extend(function(e){ 
 	var self = this;
 	this.input = e; 
 	this.input.addEventListener("keyup", function(e){

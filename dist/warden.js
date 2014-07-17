@@ -13,7 +13,11 @@
   /* Begin: src/modules/helpers.js */
   /* Helpers module */
 
-  var isArray = (function(){
+      var exists = function(i){
+    return typeof f !== 'undefined';
+  }
+
+      var isArray = (function(){
     if(Array.isArray){
       return function(x){ 
         return Array.isArray(x); 
@@ -25,58 +29,68 @@
     }
   }());
 
-  var forEach = (function(){
+      var forEach = (function(){
     if(Array.prototype.forEach){
       return function(arr, fn){ 
-        return arr ? arr.forEach(fn) : undefined;
+        return arr ? arr.forEach(fn) : null;
       }
     }else{
       return function(arr, fn){ 
         for(var i=0, l=arr.length; i<l;i++){ 
-          fn(arr[i], i) 
+          if(fn(arr[i], i) === false) break;
         }
       }
     }
-  }());/* End: src/modules/helpers.js */
+  }());
+
+      var filter = (function(){
+    if(Array.prototype.filter){
+      return function(arr, fn){
+        return arr ? arr.filter(fn) : null;
+      }
+    }else{
+      return function(arr, fn){
+        var filtered = [];
+        for(var i=0, l=arr.length; i<l; i++){
+          var res = fn(arr[i]);
+          if(res === true){
+            filtered.push(res);
+          }
+        }
+        return filtered;
+      }
+    }
+  })();/* End: src/modules/helpers.js */
 
     Warden.version = "0.0.1"; 
   Warden.toString = function() {
     return "Warden.js";
   };
-    
-  /* Begin: src/modules/trigger.js */
-  /* Triggering function */
+      
+/* Begin: src/modules/extend.js */
+  Warden.extented = 0;
 
-  Warden.trigger = function(element, ev){
-    if(document.createEvent){
-      event = document.createEvent("HTMLEvents");
-      event.initEvent(ev.type, true, true);
-    }else{
-      event = document.createEventObject();
-      event.eventType = ev.type
-    }
-
-    event.eventName = ev.type;
-    for(var i in ev){
-      event[i] = ev[i];
-    }
-
-    if(document.createEvent){
-      element.dispatchEvent(event);
-    }else{
-      element.fireEvent("on" + event.eventType, event);
-    }
-  };/* End: src/modules/trigger.js */
-  
-  /* Extending fn with warden methods */
-  Warden.create = function(fn, config) {
+  Warden.extend = function(child, config) {
     /* Choose object to extend,
-        if fn is constructor function, then that's prototype, else
-        use actual object element 
+       if fn is constructor function, then that's prototype, else
+       use actual object element 
     */
-    var inheritor = fn.prototype || fn,
-        isConstructor = fn.prototype != void 0;
-
+    var ctype = typeof child,         inheritor = child,         isConstructor = true; 
+      
+    switch(ctype){
+      case 'function': 
+        inheritor = child.prototype;
+        isConstructor = true;
+      break;
+      case 'object':
+        isConstructor = false;
+        if(isArray(child)) throw "Type Error";
+      break;
+      default:
+        throw "Type Error";
+      break;
+    }
+    
         var streams = {},
         callbacks = {},
         settings = {
@@ -89,52 +103,48 @@
       settings.nativeEmitter = (config && config.nativeEmitter) || (typeof jQuery === 'undefined' ? null : 'trigger');
       settings.nativeListener = (config && config.nativeListener) || (typeof jQuery === 'undefined' ? "addEventListener" : 'on');
     }
-  
+    
+        
     /* Emitter function */
-    inheritor.emit = function(ev) {
+    inheritor.emit = inheritor.emit || function(ev) {
       var self = this;
-      
+        
             forEach(streams[ev.type], function(i) {
         return i.evaluate(ev, self);
       });
-      
+        
             forEach(callbacks[ev.type], function(item){
         var context = (item.config && item.config.context) || self,             adj = item.config && item.config.adj;         return item.callback.apply(context, [ev].concat(adj));
       });
-      
+        
       return this;
     };
 
-        if(fn.on === void 0){ 
-      
-      inheritor.on = function(ev, callback, config){
-        if(fn.addEventListener != void 0){
-          this.addEventListener(ev, callback);
-          return this
-        }
-        if (typeof ev !== 'string') {
-          throw "Type Error: Wrong argument[1] in .on method. Expected string.";
-        }
-        if (typeof callback !== 'function') {
-          throw "Type Error: Wrong argument[2] in .on method. Expected function.";
-        }
-        if (callbacks[ev] == null) {
-          callbacks[ev] = [];
-        }
-        if (callbacks[ev].length >= settings.max) {
-          throw "The maximum number (" + settings.max + ") of handler for event [" + ev + "] exceed.";
-        }
-        callbacks[ev].push({
-          callback: callback,
-          config: config
-        });
-        return this;
-      };
-    }
     
+    inheritor.listen = inheritor.listen || function(ev, callback, config){
+      if (typeof ev !== 'string') {
+        throw "Type Error: Wrong argument[1] in .on method. Expected string.";
+      }
+      if (typeof callback !== 'function') {
+        throw "Type Error: Wrong argument[2] in .on method. Expected function.";
+      }
+      
+            callbacks[ev] = callbacks[ev] || [];
+      
+      if (callbacks[ev].length >= settings.max) {
+        throw "The maximum number (" + settings.max + ") of handler for event [" + ev + "] exceed.";
+      }
+      
+      callbacks[ev].push({
+        callback: callback,
+        config: config
+      });
+      return this;
+    };
+      
         inheritor.stream = function(type, config) {
-      var l = inheritor[settings.nativeListener];       
-      if(l){
+      var l = inheritor[settings.nativeListener]; 
+      if(exists(l)){
         if(settings.context == 'this'){
           inheritor[settings.nativeListener](type, function(e){
             inheritor.emit(e);
@@ -143,40 +153,19 @@
           l(type, inheritor.emit);
         }
       }
-      
+
       var stream = createStream(type, config);
       if(streams[type] == null)
         streams[type] = [];
-      
+
       streams[type].push(stream);
       return stream;
     };
+
+    return child;
+  };/* End: src/modules/extend.js */
+  /* Extending fn with warden methods */
     
-    if(isConstructor){
-      inheritor.streamOf = function(obj, type, config) {
-        var l = obj[settings.nativeListener];       
-        if(l){
-          if(settings.context == 'this'){
-            l(type, function(e){
-              inheritor.emit(e)
-            });
-          }else{
-            l(type, inheritor.emit);
-          }
-        }
-
-        var stream = createStream(type, config);
-        if(streams[type] == null)
-          streams[type] = [];
-
-        streams[type].push(stream);
-        return stream;      
-      };
-    }
-
-    return fn;
-  };
-  
     function createStream(ev, options) {
     var config = {
       maxTakenLength : (options && options.maxTakenLength) || 64,
@@ -201,15 +190,18 @@
       var processor = {};
         
             
-      processor['m'] = function map(process, event){
+            processor['m'] = function map(process, event){
         var fn = process.fn;
-                if (typeof fn === 'function') {
+                
+        if (typeof fn === 'function') {
           event = fn.apply(config.context, [event]);
         }else 
-        if(typeof fn === 'string' && event[fn] != undefined) {
+        
+                if(typeof fn === 'string' && event[fn] != undefined) {
           event = event[fn];               
         }else 
-        if(isArray(fn)){
+          
+                if(isArray(fn)){
           event = forEach(fn, function(prop){
             if (typeof prop === 'string' && event[prop] !== undefined) {
               return event[prop];
@@ -241,13 +233,14 @@
             return derprecate('filter');
           }
         }
+        this.filtered = true;
         return event;
       };
       
       processor['i'] = function include(process, event){
         var fn = process.fn;
+        var self = this;
         if(isArray(fn)){
-          var self = this;
           forEach(fn, function(item){
             if(typeof item=='string'){
               if(this._public[item]!=null){
