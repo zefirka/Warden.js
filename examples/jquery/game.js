@@ -6,7 +6,8 @@ var LEVELS = [
     enemy: {x:10, y:10},
     elephants : [
       {x: 1, y:3},
-      {x:12, y:8}
+      {x:10, y:8},
+      {x:0, y:12}
     ],
     boxes:[
       {x: 3, y:5},
@@ -33,6 +34,10 @@ var BlockFactory = (function(){
     this.x = x;
     this.y = y;
   });
+  
+  Block.prototype.remove = function(type){
+    this.getCell().removeClass(type);
+  }
 
   Block.prototype.isTypeOf = function(type){
     return function(pos){
@@ -179,14 +184,16 @@ var BlockFactory = (function(){
       elephant: function(object){
         object.start = function(){
           var interval = setInterval(function(){
+            var xAxis = (Math.random()*3 >> 0) - 1;
             var dir = {
-              y: (Math.random()*3 >> 0) - 1,
-              x: (Math.random()*3 >> 0) - 1
+              y: xAxis,
+              x: xAxis ? 0 : (Math.random()*3 >> 0) - 1
             }
             object.emit({
               type : "moved",
               x : object.x + dir.x,
-              y : object.y + dir.y
+              y : object.y + dir.y,
+              dir: dir
             });
 
           },500)
@@ -197,6 +204,13 @@ var BlockFactory = (function(){
         
           return object;
         }       
+        
+        object.destroy = function(){
+          this.clear();
+          this.remove('elephant');
+          delete this.x;
+          delete this.y;
+        };          
               
         return object;
       }
@@ -231,6 +245,27 @@ $(function(){
       }
     }
   }
+              
+  function pushBox(pos){
+    var filtered = boxes.filter(function(box){
+      return box.x == pos.x && box.y == pos.y;
+    });
+    var gbox = filtered[0];
+    gbox.emit({
+      type: "moved",
+      x: gbox.x + pos.dir.x,
+      y: gbox.y + pos.dir.y,
+      dir: pos.dir 
+    });
+  }
+          
+  function killElephant(pos){
+    console.log("Elepahnt killed");
+    elephants.filter(function(box){
+      return box.x == pos.x && box.y == pos.y;
+    })[0].destroy()
+  };
+              
   var lvl = LEVELS[0];
   draw(lvl);
   
@@ -255,8 +290,15 @@ $(function(){
     var elMoves = el.stream("moved");
     elMoves
       .filter(isNotBorder)
-      .filter(el.isNotTypeOf(['box', 'player', 'enemy']))
+      .filter(el.isNotTypeOf(['player', 'enemy']))
       .listen(el.redraw);                
+    
+    var pushes = elMoves
+      .filter(el.isTypeOf('box'))
+      .filter(el.isNotNext('box'))
+      .listen(pushBox);
+    
+    
     el.start();
     return el;
   });
@@ -271,24 +313,17 @@ $(function(){
     .filter(player.isNotNext(['box','enemy','elephant']))
     .filter(isNotNextBorder)
     .listen(player.redraw);
-
+  
+  enemyMoves
+    .filter(enemy.isTypeOf('elephant'))
+    .listen(killElephant);
+          
   enemyMoves
     .filter(isNotBorder)
     .filter(enemy.isNotTypeOf('box'))
     .listen(enemy.redraw);
 
-  var pushes = playerMoves.filter(player.isTypeOf('box')).listen(function(pos){
-    var filtered = boxes.filter(function(box){
-      return box.x == pos.x && box.y == pos.y;
-    });
-    var gbox = filtered[0];
-    gbox.emit({
-      type: "moved",
-      x: gbox.x + pos.dir.x,
-      y: gbox.y + pos.dir.y,
-      dir: pos.dir 
-    });
-  })
+  var pushes = playerMoves.filter(player.isTypeOf('box')).listen(pushBox);
 
   playerMoves.filter(player.isTypeOf('enemy')).listen(function(){
     alert("You loose!");
@@ -305,8 +340,3 @@ $(function(){
   });
 
 });
-
-          
-function reinit(a,b,c){
-  
-}

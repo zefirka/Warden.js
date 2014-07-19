@@ -55,9 +55,6 @@ Warden.extend = function(child, config) {
     return []; 
   };
   
-
-  
-  //inheritor.wardenid = Warden.extented++;
   
   /* Emitter function */
   inheritor.emit = inheritor.emit || function(ev) {
@@ -92,7 +89,7 @@ Warden.extend = function(child, config) {
     
     var col = collections.isIn(this);
     if(!col.length){
-      collections.create(this);
+      col = collections.create(this);
     }
     
     // creating callbacks i
