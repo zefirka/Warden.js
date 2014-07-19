@@ -217,12 +217,10 @@ var BlockFactory = (function(){
     }
   }
 })();
-
-$(document).ready(function(e){
-  debugger;
-});              
+   
               
 $(function(){
+  var h1 = $("h1");
   var board = $("#game")
 
   function isNotBorder(pos){
@@ -324,14 +322,23 @@ $(function(){
     .listen(enemy.redraw);
 
   var pushes = playerMoves.filter(player.isTypeOf('box')).listen(pushBox);
+  
+  var cs = enemyMoves.map("Enemy on X:{{x}}, Y:{{y}}").connect(h1, 'text');
 
-  playerMoves.filter(player.isTypeOf('enemy')).listen(function(){
-    alert("You loose!");
+  var c = playerMoves.filter(player.isTypeOf('enemy')).map("You loose at position x:{{x}}, y:{{y}}!").listen(function(msg){
+    cs.unbind();
+    cs.assign(msg);
+    playerMoves.lock();
+    enemy.clear();
   });
+          
 
-  enemyMoves.filter(enemy.isTypeOf('player')).listen(function(){
-    alert("You loose!");
-    this.clear();
+
+  enemyMoves.filter(enemy.isTypeOf('player')).map('You loose  at position x:{{x}}, y:{{y}}!').listen(function(msg){
+    cs.unbind();
+    cs.assign(msg)
+    playerMoves.lock();
+    enemy.clear();
   });
 
   playerMoves.filter(enemy.isLockedBy('box')).listen(function(){

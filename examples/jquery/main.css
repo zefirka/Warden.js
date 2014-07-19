@@ -38,6 +38,10 @@
     background-color: orange;
 }
 
+.path{
+    background-color: blue;
+}
+
 #game .row .cell:last-child{
 	margin-right: 0px;
 }

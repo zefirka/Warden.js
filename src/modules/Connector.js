@@ -3,7 +3,7 @@
 var Connector = (function(){
   function Connector(item, prop, host){
     this.item = item;
-    if(typeof prop === 'function'){
+    if(typeof item.prop === 'function'){
       this.method = prop;
     }else{
       this.prop = prop;  

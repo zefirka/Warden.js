@@ -116,9 +116,7 @@
       return []; 
     };
     
-
     
-        
     /* Emitter function */
     inheritor.emit = inheritor.emit || function(ev) {
       var self = this,
@@ -142,7 +140,7 @@
                   
       var col = collections.isIn(this);
       if(!col.length){
-        collections.create(this);
+        col = collections.create(this);
       }
       
             handlers = col.handlers
@@ -243,7 +241,20 @@
           }
           event = result;
         }else{
-          event = fn;
+          if(typeof fn === 'string'){
+            var props = fn.match(/{{\s*[\w\.]+\s*}}/g).map(function(x) { return x.match(/[\w\.]+/)[0]; });
+            if(props.length){
+              var res = fn;
+              props.forEach(function(p){
+                res = res.replace("\{\{"+p+"\}\}", event[p]);
+              });
+              event = res;
+            }else{
+              event = fn;
+            }
+          }else{
+            event = fn;
+          }
         }
         this.mapped = true;
         return event;
@@ -523,7 +534,7 @@
   var Connector = (function(){
     function Connector(item, prop, host){
       this.item = item;
-      if(typeof prop === 'function'){
+      if(typeof item.prop === 'function'){
         this.method = prop;
       }else{
         this.prop = prop;  
