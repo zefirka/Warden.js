@@ -74,6 +74,7 @@
        use actual object element 
     */
     var ctype = typeof child,         inheritor = child,         isConstructor = true; 
+    
       
     switch(ctype){
       case 'function': 
@@ -82,18 +83,12 @@
       break;
       case 'object':
         isConstructor = false;
-        if(isArray(child)) throw "Type Error";
-      break;
-      default:
-        throw "Type Error";
-      break;
-    }
+        break;
+          }
     
-        var streams = {},
-        callbacks = {},
-        settings = {
+    var settings = {
           max : (config && config.max) || 128,           context : (config && config.context) || 'this'         };   
-    
+
     if(isConstructor){
       settings.nativeEmitter = null;
       settings.nativeListener = null;
@@ -101,17 +96,41 @@
       settings.nativeEmitter = (config && config.nativeEmitter) || (typeof jQuery === 'undefined' ? null : 'trigger');
       settings.nativeListener = (config && config.nativeListener) || (typeof jQuery === 'undefined' ? "addEventListener" : 'on');
     }
+
+    var collections = [];
+    collections.items = [];
+    collections.create = function(item){
+      this.push(item);
+      this.items.push({
+        handlers: {},
+        streams: {},
+      });
+      return this.items[this.length -1];
+    }
+    collections.isIn = function(item){
+      for(var i=this.length-1; i>=0; i--){ 
+        if(this[i]===item){
+          return this.items[i];
+        } 
+      }
+      return []; 
+    };
+    
+
     
         
     /* Emitter function */
     inheritor.emit = inheritor.emit || function(ev) {
-      var self = this;
-        
+      var self = this,
+          col = collections.isIn(this),
+          streams = col.streams,
+          handlers = col.handlers;
+      
             forEach(streams[ev.type], function(i) {
         return i.evaluate(ev, self);
       });
         
-            forEach(callbacks[ev.type], function(item){
+            forEach(handlers[ev.type], function(item){
         var context = (item.config && item.config.context) || self,             adj = item.config && item.config.adj;         return item.callback.apply(context, [ev].concat(adj));
       });
         
@@ -120,20 +139,20 @@
 
     
     inheritor.listen = inheritor.listen || function(ev, callback, config){
-      if (typeof ev !== 'string') {
-        throw "Type Error: Wrong argument[1] in .on method. Expected string.";
-      }
-      if (typeof callback !== 'function') {
-        throw "Type Error: Wrong argument[2] in .on method. Expected function.";
-      }
-      
-            callbacks[ev] = callbacks[ev] || [];
-      
-      if (callbacks[ev].length >= settings.max) {
-        throw "The maximum number (" + settings.max + ") of handler for event [" + ev + "] exceed.";
+                  
+      var col = collections.isIn(this);
+      if(!col.length){
+        collections.create(this);
       }
       
-      callbacks[ev].push({
+            handlers = col.handlers
+      handlers[ev] = handlers[ev] || [];
+      
+      if (handlers[ev].length >= settings.max) {
+        throw("The maximum number (" + settings.max + ") of handler for event [" + ev + "] exceed.");
+      }
+      
+      handlers[ev].push({
         callback: callback,
         config: config
       });
@@ -151,9 +170,19 @@
           l(type, inheritor.emit);
         }
       }
-
-      var stream = createStream(type, config);
-      if(streams[type] == null)
+      
+      var streams = null,
+          stream = createStream(type, config);
+      
+      var col = collections.isIn(this);
+      if(!col.length){
+        col = collections.create(this);
+        streams = col.streams;
+      }else{
+        streams = col.streams;
+      }  
+      
+      if(streams && streams[type] == null)
         streams[type] = [];
 
       streams[type].push(stream);

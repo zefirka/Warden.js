@@ -4,6 +4,10 @@ var LEVELS = [
     height: 16,
     player: {x:1, y:1},
     enemy: {x:10, y:10},
+    elephants : [
+      {x: 1, y:3},
+      {x:12, y:8}
+    ],
     boxes:[
       {x: 3, y:5},
       {x: 3, y:6},
@@ -35,18 +39,28 @@ var BlockFactory = (function(){
       return $($('.cell', $($(".row")[pos.y]))[pos.x]).hasClass(type);
     }
   };
-
-
   
-  Block.prototype.isNotNext = function(type){
+  Block.prototype.isNotNext = function(type){    
     return function(pos){
-      return !($($('.cell', $($(".row")[pos.y+pos.dir.y]))[pos.x+pos.dir.x]).hasClass(type));
+      if(typeof type === 'string'){
+        return !($($('.cell', $($(".row")[pos.y+pos.dir.y]))[pos.x+pos.dir.x]).hasClass(type));
+      }else{
+        return type.every(function(t){
+            return !($($('.cell', $($(".row")[pos.y+pos.dir.y]))[pos.x+pos.dir.x]).hasClass(t));
+        });
+      }
     }
   };
 
   Block.prototype.isNotTypeOf = function(type) {
     return function(pos){
-      return !($($('.cell', $($(".row")[pos.y]))[pos.x]).hasClass(type))
+      if(typeof type === 'string'){
+        return !($($('.cell', $($(".row")[pos.y]))[pos.x]).hasClass(type));
+      }else{
+        return type.every(function(t){
+            return !($($('.cell', $($(".row")[pos.y]))[pos.x]).hasClass(t));
+        });
+      }
     }
   };
 
@@ -72,7 +86,7 @@ var BlockFactory = (function(){
       object.type = type;
       object.id = id++;
       object.getCell().addClass(type);
-      this.config[type](object);
+      this.config[type] && this.config[type](object);
       return object;
     },
     config : {
@@ -91,7 +105,7 @@ var BlockFactory = (function(){
         var playerKeydowns = doc.stream("keydown", {context: object});
         playerKeydowns.map('keyCode').filter(arrows).map(direction).listen(function(dir){
           object.emit({
-            type: 'playerMoves',
+            type: 'moved',
             x: object.x + dir.x,
             y: object.y + dir.y,
             dir: dir
@@ -113,7 +127,7 @@ var BlockFactory = (function(){
               x: divx > 0 ? 1 : (divx < 0 ? -1 : 0)
             }
             object.emit({
-              type : "enemyMoves",
+              type : "moved",
               x : object.x + dir.x,
               y : object.y + dir.y
             });
@@ -162,13 +176,38 @@ var BlockFactory = (function(){
 
         return object;
       },
-      box: function(object){
+      elephant: function(object){
+        object.start = function(){
+          var interval = setInterval(function(){
+            var dir = {
+              y: (Math.random()*3 >> 0) - 1,
+              x: (Math.random()*3 >> 0) - 1
+            }
+            object.emit({
+              type : "moved",
+              x : object.x + dir.x,
+              y : object.y + dir.y
+            });
+
+          },500)
+
+          object.clear = function(){
+            clearInterval(interval);
+          }
+        
+          return object;
+        }       
+              
         return object;
       }
     }
   }
 })();
 
+$(document).ready(function(e){
+  debugger;
+});              
+              
 $(function(){
   var board = $("#game")
 
@@ -198,19 +237,45 @@ $(function(){
   var player = BlockFactory.create(lvl.player.x, lvl.player.y, 'player');
   var enemy =  BlockFactory.create(lvl.enemy.x, lvl.enemy.y, 'enemy').conjuncte(player).start();
 
-  var playerMoves = player.stream('playerMoves');
-  var enemyMoves = enemy.stream("enemyMoves");
+  var playerMoves = player.stream('moved');
+  var enemyMoves = enemy.stream("moved");
   
   var boxes = lvl.boxes.map(function(box){
     var box = BlockFactory.create(box.x, box.y, 'box');
-    var boxMoves = box.stream("boxMoves" + box.id).filter(isNotBorder).filter(box.isNotTypeOf('box')).filter(box.isNotTypeOf('enemy')).listen(box.redraw);
+    var boxMoves = box.stream("moved")
+    boxMoves
+      .filter(isNotBorder)
+      .filter(box.isNotTypeOf(['box','enemy','elephant']))
+      .listen(box.redraw);
     return box;
   });
+  
+  var elephants = lvl.elephants.map(function(el){
+    var el = BlockFactory.create(el.x, el.y, 'elephant');
+    var elMoves = el.stream("moved");
+    elMoves
+      .filter(isNotBorder)
+      .filter(el.isNotTypeOf(['box', 'player', 'enemy']))
+      .listen(el.redraw);                
+    el.start();
+    return el;
+  });
+            
+  playerMoves
+    .filter(isNotBorder)
+    .filter(player.isNotTypeOf(['box','elephant']))
+    .listen(player.redraw);    
 
-  playerMoves.filter(isNotBorder).filter(player.isNotTypeOf('box')).listen(player.redraw);
-  playerMoves.filter(player.isTypeOf('box')).filter(player.isNotNext('box')).filter(player.isNotNext('enemy')).filter(isNotNextBorder).listen(player.redraw);
+  playerMoves
+    .filter(player.isTypeOf('box'))
+    .filter(player.isNotNext(['box','enemy','elephant']))
+    .filter(isNotNextBorder)
+    .listen(player.redraw);
 
-  enemyMoves.filter(isNotBorder).filter(enemy.isNotTypeOf('box')).listen(enemy.redraw);
+  enemyMoves
+    .filter(isNotBorder)
+    .filter(enemy.isNotTypeOf('box'))
+    .listen(enemy.redraw);
 
   var pushes = playerMoves.filter(player.isTypeOf('box')).listen(function(pos){
     var filtered = boxes.filter(function(box){
@@ -218,7 +283,7 @@ $(function(){
     });
     var gbox = filtered[0];
     gbox.emit({
-      type: "boxMoves" + gbox.id,
+      type: "moved",
       x: gbox.x + pos.dir.x,
       y: gbox.y + pos.dir.y,
       dir: pos.dir 
@@ -239,13 +304,9 @@ $(function(){
     enemy.clear();
   });
 
-  // var playerLoses = playerMoves.filter(isTypeOf('enemy'));
-  // var enemyWins = enemyMoves.filter(isTypeOf('player'));
-  // var loses = playerLoses.and(enemyWins);
-  // loses.listen(function(){
-  //   alert("You loose!");
-  // })
-  
-
-
 });
+
+          
+function reinit(a,b,c){
+  
+}
