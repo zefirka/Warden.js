@@ -23,15 +23,8 @@
     return "Warden.js";
   };
       
-  include "extend.js"
-  /* Extending fn with warden methods */
-  
-  include "Processor.js"
-  include "Streams.js"
-  
-  // Private functions  
-  
-  
-  // Conncector class
-  include "Connector.js"
+  include "extend.js" // extend method  
+  include "Processor.js" // processor 
+  include "Streams.js" //stream generator
+  include "Connector.js" // stream connector
 }));
