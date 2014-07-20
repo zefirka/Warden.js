@@ -46,10 +46,10 @@ var Processor = (function(){
       event = result;
     }else{
       if(typeof fn === 'string'){
-        var props = fn.match(/{{\s*[\w\.]+\s*}}/g).map(function(x) { return x.match(/[\w\.]+/)[0]; });
-        if(props.length){
+        var props = fn.match(/{{\s*[\w\.]+\s*}}/g);
+        if(props){
           var res = fn;
-          props.forEach(function(p){
+          props.map(function(x) { return x.match(/[\w\.]+/)[0]; }).forEach(function(p){
             res = res.replace("\{\{"+p+"\}\}", event[p]);
           });
           event = res;

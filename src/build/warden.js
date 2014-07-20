@@ -226,354 +226,360 @@
     return child;
   };/* End: src/modules/extend.js */
   /* Extending fn with warden methods */
-    
-  // Private functions  
-  function createStream(ev, options) {
-    var config = {
-      maxTakenLength : (options && options.maxTakenLength) || 64,
-      maxHistoryLength : (options && options.maxHistoryLength) || 64,
-      context : (options && options.context) || null
-    };
-        
+  
 /* Begin: src/modules/Processor.js */
-    /*
-      Processor module:
-      In all processing functions: this variable is EventBus object;
-    */ 
+  /*
+    Processor module:
+    In all processing functions: this variable is EventBus object;
+  */
 
-    var Processor = (function(){  
-      function deprecate(fn){
-        return {
-          busIsDeprecated : true,
-          deprecationFn : fn
-        }
+  var Processor = (function(){  
+    function deprecate(fn){
+      return {
+        busIsDeprecated : true,
+        deprecationFn : fn
       }
+    }
+    
+    var processor = {};
       
-      var processor = {};
-        
-      // Processing functions:
+    // Processing functions:
+    
+    // mapping function
+    processor['m'] = function map(process, event){
+      var fn = process.fn;
+      // fn is function then apply function
       
-      // mapping function
-      processor['m'] = function map(process, event){
-        var fn = process.fn;
-        // fn is function then apply function
+      if (typeof fn === 'function') {
+        event = fn.apply(config.context, [event]);
+      }else 
+      
+      // fn is property of event
+      if(typeof fn === 'string' && event[fn] != undefined) {
+        event = event[fn];               
+      }else 
         
-        if (typeof fn === 'function') {
-          event = fn.apply(config.context, [event]);
-        }else 
-        
-        // fn is property of event
-        if(typeof fn === 'string' && event[fn] != undefined) {
-          event = event[fn];               
-        }else 
-          
-        // fn is array
-        if(isArray(fn)){
-          event = forEach(fn, function(prop){
-            if (typeof prop === 'string' && event[prop] !== undefined) {
-              return event[prop];
-            }
-          });
-        }else 
-        if(typeof fn === 'object'){
-          var result = {};
-          for(var key in fn){
-            var val = fn[key];
-            result[key] = event[fn[key]];
+      // fn is array
+      if(isArray(fn)){
+        event = forEach(fn, function(prop){
+          if (typeof prop === 'string' && event[prop] !== undefined) {
+            return event[prop];
           }
-          event = result;
-        }else{
-          if(typeof fn === 'string'){
-            var props = fn.match(/{{\s*[\w\.]+\s*}}/g).map(function(x) { return x.match(/[\w\.]+/)[0]; });
-            if(props.length){
-              var res = fn;
-              props.forEach(function(p){
-                res = res.replace("\{\{"+p+"\}\}", event[p]);
-              });
-              event = res;
-            }else{
-              event = fn;
-            }
+        });
+      }else 
+      if(typeof fn === 'object'){
+        var result = {};
+        for(var key in fn){
+          var val = fn[key];
+          result[key] = event[fn[key]];
+        }
+        event = result;
+      }else{
+        if(typeof fn === 'string'){
+          var props = fn.match(/{{\s*[\w\.]+\s*}}/g);
+          if(props){
+            var res = fn;
+            props.map(function(x) { return x.match(/[\w\.]+/)[0]; }).forEach(function(p){
+              res = res.replace("\{\{"+p+"\}\}", event[p]);
+            });
+            event = res;
           }else{
             event = fn;
           }
-        }
-        this.mapped = true;
-        return event;
-      };
-      
-      processor['f'] = function filter(process, event){
-        var fn = process.fn;
-        if(typeof fn === 'function') {
-          if (fn.apply(config.context, [event]) === false) {
-            return deprecate('filter');
-          }
         }else{
-          if(Boolean(fn) === false) {
-            return derprecate('filter');
-          }
+          event = fn;
         }
-        this.filtered = true;
-        return event;
+      }
+      this.mapped = true;
+      return event;
+    };
+    
+    processor['f'] = function filter(process, event){
+      var fn = process.fn;
+      if(typeof fn === 'function') {
+        if (fn.apply(config.context, [event]) === false) {
+          return deprecate('filter');
+        }
+      }else{
+        if(Boolean(fn) === false) {
+          return derprecate('filter');
+        }
+      }
+      this.filtered = true;
+      return event;
+    };
+    
+    processor['i'] = function include(process, event){
+      var fn = process.fn;
+      var self = this;
+      if(isArray(fn)){
+        forEach(fn, function(item){
+          if(typeof item=='string'){
+            if(this._public[item]!=null){
+              event[item]=self._public[item];
+            }
+          }else{
+            throw "Unexpected "+ typeof item + " at inclide";
+          }
+        });
+      }else{
+        if(this._public[fn]!=null){
+          event[fn] = self._public[fn];
+        }
+      }
+      return event;
+    };
+    
+    processor['r'] = function reduce(process, event){
+      var fn = process.fn, prev;
+      if(this.taken.length>0){
+        prev = this.taken[this.taken.length-1];
+      }else{
+        prev = process.start == 'first' ?  event : process.start;
+      }
+      event = fn.apply(config.context, [prev, event]);
+      return event;
+    };
+    
+    processor['u'] = function unique(process, event){
+      if(this.taken.length){
+        var pt = this.taken[this.taken.length-1][process.prop];
+        if(pt){
+          if(event[process.prop] == pt){
+            return deprecate('unique');
+          }  
+        }else{
+          if(event[process.prop] == this.history[this.history.length-1][process.prop]){
+            return deprecate('unique');
+          }
+        }        
+      }
+      return event;
+    };
+    
+    return processor;
+  })();/* End: src/modules/Processor.js */
+/* Begin: src/modules/Streams.js */
+  function createStream(ev, options) {
+      var config = {
+        maxTakenLength : (options && options.maxTakenLength) || 64,
+        maxHistoryLength : (options && options.maxHistoryLength) || 64,
+        context : (options && options.context) || null
       };
       
-      processor['i'] = function include(process, event){
-        var fn = process.fn;
-        var self = this;
-        if(isArray(fn)){
-          forEach(fn, function(item){
-            if(typeof item=='string'){
-              if(this._public[item]!=null){
-                event[item]=self._public[item];
+      // Event bus class
+      var Bus = (function() {
+        function Bus(process) {
+          this.process = process != null ? process : [];
+          this._public = {
+            skipped : 0,
+            taken : 0,
+            limit : 0,
+            length : 0,
+            ignore : 0
+          };
+          this.history = [];
+          this.taken = [];
+        }
+            
+        
+        Bus.prototype.exec = function(ev, cnt) {     
+          if(this.locked){
+            return false;
+          }        
+          var self = this;
+          var event = ev;        
+          this._public.length++;
+          
+          event.timestamp = (new Date()).getTime();
+          
+          for(var i=0, l=this.process.length; i<l; i++){
+            var process = this.process[i];
+            var res = Processor[process.type].apply(this, [process, event]);
+            if(res.busIsDeprecated){
+              return false;
+            }else{
+              event = res;
+            }
+          };        
+
+          if(this.history.length >= config.maxHistoryLength){
+            this.history.shift(0);
+          }
+          this.history.push(ev); 
+           
+          // skipin by limit on top
+          if (this._public.limit && (this._public.taken >= this._public.limit)) {
+            return false;
+          }
+
+          // skipin by limit on bottom
+          if(this._public.length <= this._public.ignore){
+            this._public.skipped++;
+            return false;
+          }
+
+          this._public.taken++;
+          
+          if(this.taken.length >= config.maxTakenLength){
+            this.taken.shift(0)
+          }
+          this.taken.push(event); 
+
+          if(this.connector){
+            if(!this.connector.locked){
+              this.connector.assign(event);
+            }else{
+              console.log('locked');
+            }
+          }else{
+             this.finalCallback.apply(config.context || cnt, [event]);  
+          }
+
+          return this;        
+        };
+        
+        Bus.prototype.toString = function(){
+          return Warden.stringify(this.process);
+        };
+
+        Bus.prototype.map = function(fn){
+          var newbus = new Bus(this.process.concat({
+            type: 'm',
+            fn: fn
+          }));
+          newbus._public = this._public;
+          return newbus;
+        };
+        
+        Bus.prototype.filter = function(fn){
+          var newbus =  new Bus(this.process.concat({
+            type: 'f',
+            fn: fn
+          }));
+          newbus._public = this._public;
+          return newbus;
+        };
+        
+        Bus.prototype.include = function(prop){
+            var newbus = new Bus(this.process.concat({
+              type : 'i',
+              fn : prop
+            }));
+          newbus._public = this._public;
+          return newbus;
+        };
+        
+        Bus.prototype.reduce = function(start, fn) {
+          var newbus = new Bus(this.process.concat({
+            type : 'r',
+            fn : fn,
+            start : start
+          }));
+          newbus._public = this._public;
+          return newbus;
+        };
+
+        Bus.prototype.take = function(limit, last){
+          if(typeof limit === 'function'){
+            return this.filter(limit);
+          }else{
+            var newbus = new Bus(this.process);
+            if(last != null){
+              if(typeof last == 'number'){ //need checj that last > limit
+                return newbus.skip(limit).take(last-limit);
+              }else{
+                throw "Type Error: take method expect number at second argumner;";
               }
             }else{
-              throw "Unexpected "+ typeof item + " at inclide";
+              this.limit = limit;
+              this._public.limit = limit;
+              var pub = this._public;
+              newbus._public = pub;
+              newbus._public.limit = limit;
+              newbus.limit = limit;
             }
-          });
-        }else{
-          if(this._public[fn]!=null){
-            event[fn] = self._public[fn];
+            return newbus;
           }
-        }
-        return event;
-      };
-      
-      processor['r'] = function reduce(process, event){
-        var fn = process.fn, prev;
-        if(this.taken.length>0){
-          prev = this.taken[this.taken.length-1];
-        }else{
-          prev = process.start == 'first' ?  event : process.start;
-        }
-        event = fn.apply(config.context, [prev, event]);
-        return event;
-      };
-      
-      processor['u'] = function unique(process, event){
-        if(this.taken.length){
-          var pt = this.taken[this.taken.length-1][process.prop];
-          if(pt){
-            if(event[process.prop] == pt){
-              return deprecate('unique');
-            }  
-          }else{
-            if(event[process.prop] == this.history[this.history.length-1][process.prop]){
-              return deprecate('unique');
-            }
-          }        
-        }
-        return event;
-      };
-      
-      return processor;
-    })();/* End: src/modules/Processor.js */
-    
-    // Event bus class
-    var Bus = (function() {
-      function Bus(process) {
-        this.process = process != null ? process : [];
-        this._public = {
-          skipped : 0,
-          taken : 0,
-          limit : 0,
-          length : 0,
-          ignore : 0
         };
-        this.history = [];
-        this.taken = [];
-      }
-          
-      
-      Bus.prototype.exec = function(ev, cnt) {     
-        if(this.locked){
-          return false;
-        }        
-        var self = this;
-        var event = ev;        
-        this._public.length++;
         
-        event.timestamp = (new Date()).getTime();
-        
-        for(var i=0, l=this.process.length; i<l; i++){
-          var process = this.process[i];
-          var res = Processor[process.type].apply(this, [process, event]);
-          if(res.busIsDeprecated){
-            return false;
-          }else{
-            event = res;
+        Bus.prototype.skip = function(count){
+          if(typeof count !== 'number'){
+            throw "Type Error: skip method expect numbers;";
           }
-        };        
-
-        if(this.history.length >= config.maxHistoryLength){
-          this.history.shift(0);
-        }
-        this.history.push(ev); 
-         
-        // skipin by limit on top
-        if (this._public.limit && (this._public.taken >= this._public.limit)) {
-          return false;
-        }
-
-        // skipin by limit on bottom
-        if(this._public.length <= this._public.ignore){
-          this._public.skipped++;
-          return false;
-        }
-
-        this._public.taken++;
-        
-        if(this.taken.length >= config.maxTakenLength){
-          this.taken.shift(0)
-        }
-        this.taken.push(event); 
-
-        if(this.connector){
-          if(!this.connector.locked){
-            this.connector.assign(event);
-          }else{
-            console.log('locked');
-          }
-        }else{
-           this.finalCallback.apply(config.context || cnt, [event]);  
-        }
-
-        return this;        
-      };
-      
-      Bus.prototype.toString = function(){
-        return Warden.stringify(this.process);
-      };
-
-      Bus.prototype.map = function(fn){
-        var newbus = new Bus(this.process.concat({
-          type: 'm',
-          fn: fn
-        }));
-        newbus._public = this._public;
-        return newbus;
-      };
-      
-      Bus.prototype.filter = function(fn){
-        var newbus =  new Bus(this.process.concat({
-          type: 'f',
-          fn: fn
-        }));
-        newbus._public = this._public;
-        return newbus;
-      };
-      
-      Bus.prototype.include = function(prop){
-          var newbus = new Bus(this.process.concat({
-            type : 'i',
-            fn : prop
-          }));
-        newbus._public = this._public;
-        return newbus;
-      };
-      
-      Bus.prototype.reduce = function(start, fn) {
-        var newbus = new Bus(this.process.concat({
-          type : 'r',
-          fn : fn,
-          start : start
-        }));
-        newbus._public = this._public;
-        return newbus;
-      };
-
-      Bus.prototype.take = function(limit, last){
-        if(typeof limit === 'function'){
-          return this.filter(limit);
-        }else{
           var newbus = new Bus(this.process);
-          if(last != null){
-            if(typeof last == 'number'){ //need checj that last > limit
-              return newbus.skip(limit).take(last-limit);
-            }else{
-              throw "Type Error: take method expect number at second argumner;";
+          var pub = this._public;
+          newbus._public = pub;
+          newbus._public.ignore = count;
+          this._public.ignore = count;
+          return newbus;      
+        };
+
+        Bus.prototype.unique = function(prop) {
+          var newbus = new Bus(this.process.concat({
+            type : 'u',
+            prop : prop
+          }));
+          newbus._public = this._public;
+          return newbus;
+        };
+        
+        Bus.prototype.lock = function(){
+          this.locked = true;
+        };
+        
+        Bus.prototype.unlock = function(){
+          this.locked = false;
+        };
+            
+        Bus.prototype.listen = function(fn){
+          if(fn === 'log'){
+            this.finalCallback = function(e){
+              console.log(e);
             }
           }else{
-            this.limit = limit;
-            this._public.limit = limit;
-            var pub = this._public;
-            newbus._public = pub;
-            newbus._public.limit = limit;
-            newbus.limit = limit;
-          }
-          return newbus;
-        }
-      };
-      
-      Bus.prototype.skip = function(count){
-        if(typeof count !== 'number'){
-          throw "Type Error: skip method expect numbers;";
-        }
-        var newbus = new Bus(this.process);
-        var pub = this._public;
-        newbus._public = pub;
-        newbus._public.ignore = count;
-        this._public.ignore = count;
-        return newbus;      
-      };
+            this.finalCallback = fn;  
+          }        
+          stream.activeBus.push(this);
+          return this;
+        };
 
-      Bus.prototype.unique = function(prop) {
-        var newbus = new Bus(this.process.concat({
-          type : 'u',
-          prop : prop
-        }));
-        newbus._public = this._public;
-        return newbus;
-      };
-      
-      Bus.prototype.lock = function(){
-        this.locked = true;
-      };
-      
-      Bus.prototype.unlock = function(){
-        this.locked = false;
-      };
-          
-      Bus.prototype.listen = function(fn){
-        if(fn === 'log'){
-          this.finalCallback = function(e){
+        Bus.prototype.log = function(){
+          return this.listen(function(e){
             console.log(e);
-          }
-        }else{
-          this.finalCallback = fn;  
-        }        
-        stream.activeBus.push(this);
-        return this;
-      };
+          });
+        };
+        
+        Bus.prototype.evaluate = function(ev, cnt){
+          return stream.activeBus.map(function(bus){
+            return bus.exec(ev, cnt);
+          });
+        };
+        
+        Bus.prototype.merge = function(bus){
 
-      Bus.prototype.log = function(){
-        return this.listen(function(e){
-          console.log(e);
-        });
-      };
+        }
+
+        Bus.prototype.connect = function(item, propOrMethod) {
+          var connector = new Connector(item, propOrMethod, this);
+          this.connector = connector
+          stream.activeBus.push(this);
+          return this.connector
+        };
+
+        return Bus;
+      })();
       
-      Bus.prototype.evaluate = function(ev, cnt){
-        return stream.activeBus.map(function(bus){
-          return bus.exec(ev, cnt);
-        });
+      var stream = {
+        type: ev,
+        activeBus: []
       };
 
-      Bus.prototype.connect = function(item, propOrMethod) {
-        var connector = new Connector(item, propOrMethod, this);
-        this.connector = connector
-        stream.activeBus.push(this);
-        return this.connector
-      };
-
-      return Bus;
-    })();
-    
-    var stream = {
-      type: ev,
-      activeBus: []
-    };
-
-    return new Bus();
-  };
+      return new Bus();
+    };/* End: src/modules/Streams.js */
+  
+  // Private functions  
+  
   
   // Conncector class
 /* Begin: src/modules/Connector.js */

@@ -422,21 +422,26 @@ $(function(){
   
   var cs = enemyMoves.map("Enemy on X:{{x}}, Y:{{y}}").connect(h1, 'text');
 
-  var c = playerMoves.filter(player.isTypeOf('enemy')).map("You loose at position x:{{x}}, y:{{y}}!").listen(function(msg){
-    cs.unbind();
-    cs.assign(msg);
-    playerMoves.lock();
-    enemy.clear();
-  });
-          
+  var playerLoses =  playerMoves.filter(player.isTypeOf('enemy'));
+  var enemyWins = enemyMoves.filter(enemy.isTypeOf('player'));
+  var loses = playerLoses.merge(enemyWins);
+  debugger
+  loses.map("You loose").log();
+  
+//  .map("You loose at position x:{{x}}, y:{{y}}!").listen(function(msg){
+//    cs.unbind();
+//    cs.assign(msg);
+//    playerMoves.lock();
+//    enemy.clear();
+//  });         
 
 
-  enemyMoves.filter(enemy.isTypeOf('player')).map('You loose  at position x:{{x}}, y:{{y}}!').listen(function(msg){
-    cs.unbind();
-    cs.assign(msg)
-    playerMoves.lock();
-    enemy.clear();
-  });
+//  enemyMoves.filter(enemy.isTypeOf('player')).map('You loose  at position x:{{x}}, y:{{y}}!').listen(function(msg){
+//    cs.unbind();
+//    cs.assign(msg)
+//    playerMoves.lock();
+//    enemy.clear();
+//  });
 
   playerMoves.filter(enemy.isLockedBy('box')).listen(function(){
     alert("You win! Hooray!")
