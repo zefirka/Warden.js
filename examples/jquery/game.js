@@ -125,16 +125,17 @@ var BlockFactory = (function(){
             var p = object.conjuncted;
             var pPos = {x: p.x, y: p.y},
                 ePos = {x: object.x, y: object.y};
+            var dir_new = object.getSurroundingCells();
             var divx = pPos.x - ePos.x;
             var divy = pPos.y - ePos.y;
             var dir = {
-              y: divy > 0 ? 1 : (divy < 0 ? -1 : 0),
-              x: divx > 0 ? 1 : (divx < 0 ? -1 : 0)
+              x : dir_new.x,
+              y : dir_new.y
             }
             object.emit({
               type : "moved",
-              x : object.x + dir.x,
-              y : object.y + dir.y
+                x : dir_new.x,
+                y : dir_new.y
             });
 
           },500)
@@ -145,7 +146,103 @@ var BlockFactory = (function(){
         
           return object;
         }       
+         object.checkedCells = [];
+        object.cell = function(x,y){
+              return $($('.cell', $($(".row")[y]))[x]);
+        };
+        object.foundYou = 0;
+        object.needSteps = 0;
+        object.getSurroundingCells = function(obj,cellsToCheck) {
+            var start = 0;
+            if(!cellsToCheck) {
+               object.checkedCells = [];
+               var cellsToCheck = [];
+               cellsToCheck.push({x: object.x, y: object.y});
+               var c_temp = $($('.cell', $($(".row"))));
+               c_temp.removeClass('path');
+               object.foundYou = 0;
+               object.needSteps = 0;
+            }
+            if(object.foundYou == 1) return;
+            object.needSteps++;
+            for(var i = 0; i < object.checkedCells.length; i++)
+            {
+                if(object.cell(object.checkedCells[i].x, object.checkedCells[i].y).hasClass('player'))    
+                {
+                    return object.drawPaths(object.checkedCells[i]);
+                    object.foundYou = 1;
+                    return;
+                }
+            }
+              var toCheck = [];
+            for(var i = 0; i < cellsToCheck.length; i++)
+            {
+            var pos = {
+              x: cellsToCheck[i].x,
+              y: cellsToCheck[i].y
+            };
+           // debugger;
+               var cells = [
+                   {cell : object.cell(pos.x+1, pos.y), position: {x: pos.x+1, y: pos.y}},
+                   {cell : object.cell(pos.x+1, pos.y+1), position: {x: pos.x+1, y: pos.y+1}},
+                   {cell : object.cell(pos.x, pos.y+1), position: {x: pos.x, y: pos.y+1}},
+                   {cell : object.cell(pos.x-1, pos.y), position: {x: pos.x-1, y: pos.y}},
+                   {cell : object.cell(pos.x-1, pos.y-1), position: {x: pos.x-1, y: pos.y-1}},
+                   {cell : object.cell(pos.x, pos.y-1), position: {x: pos.x, y: pos.y-1}},
+                   {cell : object.cell(pos.x+1, pos.y-1), position: {x: pos.x+1, y: pos.y-1}},
+                   {cell : object.cell(pos.x-1, pos.y+1), position: {x: pos.x-1, y: pos.y+1}},
+            ];
+            cells = cells.filter(function(arg) {
+                   if(arg.cell.length == 0 || arg.cell.hasClass('box') || arg.cell.hasClass('enemy') ) return false;
+                   for(var m = 0; m < object.checkedCells.length; m++)
+                   {
+                    if(object.checkedCells[m].x == arg.position.x && object.checkedCells[m].y == arg.position.y)
+                    {
+                        return false;
+                    }
+                   }
+                   return true;
+                   });
+          
+            for(var k in cells)
+                   {
+                      toCheck.push({x: 
+                                    cells[k].position.x, 
+                                    y: cells[k].position.y, 
+                                    parentCell: 
+                                     cellsToCheck[i]
+                                        });
+                      object.checkedCells.push({x: cells[k].position.x, 
+                                                y:  cells[k].position.y,
+                                                parentCell: 
+                                                    cellsToCheck[i]
+                                                    });
+                   }
+            // object.checkedCells.push({x: cellsToCheck[i].x, y: cellsToCheck[i].y});
+            }
+            return object.getSurroundingCells(this,toCheck);
+                
+                  
+     
 
+        }
+        object.drawPaths = function(endPoint) {
+            var cells = []
+            var nextCell;
+            while(endPoint.parentCell)
+            {
+                    if(endPoint.parentCell.x == object.x && endPoint.parentCell.y == object.y)
+                    {
+                        return({x: endPoint.x, y: endPoint.y});
+                    }
+                   cells.push(object.cell(endPoint.x,endPoint.y));
+                    endPoint = endPoint.parentCell;
+            }
+                
+            cells.forEach(function(i)  {
+                   i.addClass('path');
+            });
+        }
         object.isLockedBy = function(type) {
           return function(){
             var pos = {
@@ -157,14 +254,14 @@ var BlockFactory = (function(){
               return $($('.cell', $($(".row")[y]))[x]);
             }
             var cells = [
-              cell(pos.x+1, pos.y),
-              cell(pos.x+1, pos.y+1),
-              cell(pos.x, pos.y+1),
-              cell(pos.x-1, pos.y),
-              cell(pos.x-1, pos.y-1),
-              cell(pos.x, pos.y-1),
-              cell(pos.x+1, pos.y-1),
-              cell(pos.x-1, pos.y+1),
+              object.cell(pos.x+1, pos.y),
+              object.cell(pos.x+1, pos.y+1),
+              object.cell(pos.x, pos.y+1),
+              object.cell(pos.x-1, pos.y),
+              object.cell(pos.x-1, pos.y-1),
+              object.cell(pos.x, pos.y-1),
+              object.cell(pos.x+1, pos.y-1),
+              object.cell(pos.x-1, pos.y+1),
             ];
             var res = true;
             cells.forEach(function(i){ 
