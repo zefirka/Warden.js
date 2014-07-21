@@ -1,36 +1,27 @@
-var Clicker = Warden.extend(function(e){ 
-	var self = this;
-	this.btn = e; 
-	this.btn.addEventListener("click", function(e){
-		self.emit(e);
-	});
-});
 
-var Presser = Warden.extend(function(e){ 
-	var self = this;
-	this.input = e; 
-	this.input.addEventListener("keyup", function(e){
-		self.emit(e);
-	});
-});
+var left = document.getElementById("left"),
+    leftClickedOn = Warden.extend(left),
+    input = document.getElementById("input"),
+    rightKeyOn = Warden.extend(input);
 
-var left = document.getElementById("left");
-var c = new Clicker(left);
-
+left.onclick = function(e) {
+    this.emit({
+        type: 'leftClicked',
+        x: e.x,
+        y: e.y});
+}
+input.onkeyup = function(e) {
+    this.emit({
+        type: 'rightKey',
+        char: String.fromCharCode(e.keyCode)});
+}
 var c1 = document.getElementById("console1");
 var c2 = document.getElementById("console2");
-
-c
-.on("click", function(e, adj) {
-	c1.innerHTML += "ADJ: " + adj + " | Coord = [x:" + e.x + ",y:" + e.y + "]\n";
-},{
-	adj : ['additional']
-})
-
-var input = document.getElementById("input");
-var k = new Presser(input);
-
-k.
-on("keyup", function(e){
-	c2.innerHTML += "Keycode: " + e.which + "\n"
-})
+leftClickedOn = left.stream('leftClicked');
+rightKeyOn = input.stream('rightKey');
+leftClickedOn.listen(function(pos) {
+                        c1.innerHTML+= ('x: ' + pos.x + " y: " + pos.y + '\n');
+                     });
+rightKeyOn.listen(function (element) {
+                        c2.innerHTML += ('You Pressed: ' + element.char + '\n');      
+                      });
