@@ -1,143 +1,116 @@
-Warden.extend = function(child, config) {
+Warden.extend = function(obj, conf) {
+  /* Default configuration */
+  var config = conf || {
+    max : 128,
+    context : 'this',
+    nativeEmitter : null,
+    nativeListener : null
+  };
+  
   /* Choose object to extend,
      if fn is constructor function, then that's prototype, else
      use actual object element 
   */
-  var ctype = typeof child, // type of object to extend
-      inheritor = child, // final object to expand
+  
+  var ctype = typeof obj, // type of object to extend
+      inheritor = obj, // final object to expand
       isConstructor = true; 
-  
-//  var invalid  = 'Expected only functions and objects';
-  
+    
   switch(ctype){
     case 'function': 
-      inheritor = child.prototype;
+      inheritor = obj.prototype;
       isConstructor = true;
     break;
     case 'object':
       isConstructor = false;
-//      if(isArray(child)) throw new TypeError(invalid);
     break;
-//    default:
-//      throw new TypeError(invalid);
-//    break;
   }
-  
-  var settings = {
-        max : (config && config.max) || 128, //count of max listeners
-        context : (config && config.context) || 'this' // apply global context 
-      };   
-
-  if(isConstructor){
-    settings.nativeEmitter = null;
-    settings.nativeListener = null;
-  }else{
-    settings.nativeEmitter = (config && config.nativeEmitter) || (typeof jQuery === 'undefined' ? null : 'trigger');
-    settings.nativeListener = (config && config.nativeListener) || (typeof jQuery === 'undefined' ? "addEventListener" : 'on');
+    
+  if(typeof jQuery !== 'undefined'){
+    config.nativeEmitter = config.nativeEmitter || 'trigger';
+    config.nativeListener = config.nativeListener || 'on';    
+  }else
+  if(typeof inheritor.addEventListener === 'function') {
+    config.nativeListener = config.nativeListener || "addEventListener";
   }
-
-  var collections = [];
-  collections.items = [];
-  collections.create = function(item){
-    this.push(item);
-    this.items.push({
-      handlers: {},
-      streams: {},
-    });
-    return this.items[this.length -1];
-  }
-  collections.isIn = function(item){
-    for(var i=this.length-1; i>=0; i--){ 
-      if(this[i]===item){
-        return this.items[i];
-      } 
+    
+  /* Collections of private handlers */
+  var handlers = [];
+  handlers.setNewHandler = function(object, type, fn){
+    var handlers = this.getHandlers(object, type);
+    if(handlers){
+      handlers.push(fn);
+    }else{
+      var collection = this.getCollection(object);
+      if(collection){
+        collection.handlers[type] = collection.handlers[type] || [];
+        collection.handlers[type].push(fn);
+      }else{ 
+        collection = {};
+        collection.object = object;
+        collection.handlers = {};
+        collection.handlers[type] = [fn];
+        this.push(collection);
+      }
     }
-    return []; 
   };
   
+  handlers.getCollection = function(object){
+    for(var i=this.length-1; i>=0; i--){
+      if(this[i].object === object){
+        return this[i]
+      }
+    }
+    return false;
+  };
+
+  handlers.getHandlers = function(object, type){
+    for(var i=this.length-1; i>=0; i--){
+      if(this[i].object === object){
+        return this[i].handlers[type];
+      }
+    }
+    return null;
+  };  
   
   /* Emitter function */
   inheritor.emit = inheritor.emit || function(ev) {
+    console.log("Emitted " + ev.type);
     var self = this,
-        col = collections.isIn(this),
-        streams = col.streams,
-        handlers = col.handlers;
-    
-    // Processing streams for event type
-    forEach(streams[ev.type], function(i) {
-      return i.evaluate(ev, self);
-    });
+        callbacks = handlers.getHandlers(this, ev.type);
       
-    // Processing callbacks for event type
-    forEach(handlers[ev.type], function(item){
-      var context = (item.config && item.config.context) || self, // context of evaluation
-          adj = item.config && item.config.adj; // additional data 
-      return item.callback.apply(context, [ev].concat(adj));
+    forEach(callbacks, function(callback){
+      callback.call(self, ev);
     });
       
     return this;
   };
 
-  
-  inheritor.listen = inheritor.listen || function(ev, callback, config){
-//    if (typeof ev !== 'string') {
-//      throw "Type Error: Wrong argument[1] in .on method. Expected string.";
-//    }
-//    if (typeof callback !== 'function') {
-//      throw "Type Error: Wrong argument[2] in .on method. Expected function.";
-//    }
-    
-    var col = collections.isIn(this);
-    if(!col.length){
-      col = collections.create(this);
+  /* Listener function */
+  inheritor.listen = function(ev, callback, settings){    
+    var self = this;
+    handlers.setNewHandler(this, ev, callback);    
+    if(this[config.nativeListener]){
+      this[config.nativeListener].apply(this, [ev, function(event){ self.emit(event)}]);
     }
-    
-    // creating callbacks i
-    handlers = col.handlers
-    handlers[ev] = handlers[ev] || [];
-    
-    if (handlers[ev].length >= settings.max) {
-      throw("The maximum number (" + settings.max + ") of handler for event [" + ev + "] exceed.");
-    }
-    
-    handlers[ev].push({
-      callback: callback,
-      config: config
-    });
     return this;
   };
     
-  // Creating stream
-  inheritor.stream = function(type, config) {
-    var l = inheritor[settings.nativeListener]; // invocation retranslator
-
-    if(l){
-      if(settings.context == 'this'){
-        inheritor[settings.nativeListener](type, function(e){
-          inheritor.emit(e);
-        });
-      }else{
-        l(type, inheritor.emit);
-      }
+  /* Creates stream */
+  inheritor.stream = function(type, cnt) {
+    var self = this,
+        stream = Warden.makeStream(type, cnt || this);
+    
+    handlers.setNewHandler(this, type, function(event){
+      stream.eval(event);
+    });
+    
+    if(this[config.nativeListener]){
+      this[config.nativeListener].apply(this, [type, function(event){ stream.eval(event);}]);
     }
     
-    var streams = null,
-        stream = createStream(type, config);
-    
-    var col = collections.isIn(this);
-    if(!col.length){
-      col = collections.create(this);
-      streams = col.streams;
-    }else{
-      streams = col.streams;
-    }  
-    
-    if(streams && streams[type] == null)
-      streams[type] = [];
-
-    streams[type].push(stream);
-    return stream;
+    return stream.get();
   };
 
-  return child;
+  return obj;
 };

@@ -10,11 +10,17 @@
   }
 })(this, function(Warden){
   
-  /* Begin: src/modules/helpers.js */
+    Warden.version = "0.0.1"; 
+  Warden.toString = function() {
+    return "Warden.js";
+  };
+
+
+/* Begin: src/modules/helpers.js */
   /* Helpers module */
 
-      var exists = function(i){
-    return typeof f !== 'undefined';
+      var exists = function(x){
+    return x != void 0 && x !== null;
   }
 
       var isArray = (function(){
@@ -28,6 +34,16 @@
       }
     }
   }());
+
+
+  var forWhile = function(arr, fn, preventVal, preventRet){
+    for(var i=0, l=arr.length; i<l; i++){
+      if(fn(arr[i], i) === preventVal){
+        return preventRet; 
+        break;
+      }
+    }
+  };
 
       var forEach = (function(){
     if(Array.prototype.forEach){
@@ -61,481 +77,307 @@
       }
     }
   })();/* End: src/modules/helpers.js */
-
-    Warden.version = "0.0.1"; 
-  Warden.toString = function() {
-    return "Warden.js";
-  };
-      
 /* Begin: src/modules/extend.js */
-  Warden.extend = function(child, config) {
+  Warden.extend = function(obj, conf) {
+    /* Default configuration */
+    var config = conf || {
+      max : 128,
+      context : 'this',
+      nativeEmitter : null,
+      nativeListener : null
+    };
+    
     /* Choose object to extend,
        if fn is constructor function, then that's prototype, else
        use actual object element 
     */
-    var ctype = typeof child,         inheritor = child,         isConstructor = true; 
     
+    var ctype = typeof obj,         inheritor = obj,         isConstructor = true; 
       
     switch(ctype){
       case 'function': 
-        inheritor = child.prototype;
+        inheritor = obj.prototype;
         isConstructor = true;
       break;
       case 'object':
         isConstructor = false;
-        break;
-          }
+      break;
+    }
     
-    var settings = {
-          max : (config && config.max) || 128,           context : (config && config.context) || 'this'         };   
-
-    if(isConstructor){
-      settings.nativeEmitter = null;
-      settings.nativeListener = null;
-    }else{
-      settings.nativeEmitter = (config && config.nativeEmitter) || (typeof jQuery === 'undefined' ? null : 'trigger');
-      settings.nativeListener = (config && config.nativeListener) || (typeof jQuery === 'undefined' ? "addEventListener" : 'on');
+    
+    if(typeof jQuery !== 'undefined'){
+      config.nativeEmitter = config.nativeEmitter || 'trigger';
+      config.nativeListener = config.nativeListener || 'on';    
+    }else
+    if(typeof inheritor.addEventListener === 'function') {
+      config.nativeListener = config.nativeListener || "addEventListener";
     }
-
-    var collections = [];
-    collections.items = [];
-    collections.create = function(item){
-      this.push(item);
-      this.items.push({
-        handlers: {},
-        streams: {},
-      });
-      return this.items[this.length -1];
-    }
-    collections.isIn = function(item){
-      for(var i=this.length-1; i>=0; i--){ 
-        if(this[i]===item){
-          return this.items[i];
-        } 
+      
+    /* Collections of private handlers */
+    var handlers = [];
+    handlers.setNewHandler = function(object, type, fn){
+      var handlers = this.getHandlers(object, type);
+      if(handlers){
+        handlers.push(fn);
+      }else{
+        var collection = this.getCollection(object);
+        if(collection){
+          collection.handlers[type] = collection.handlers[type] || [];
+          collection.handlers[type].push(fn);
+        }else{ 
+          collection = {};
+          collection.object = object;
+          collection.handlers = {};
+          collection.handlers[type] = [fn];
+          this.push(collection);
+        }
       }
-      return []; 
     };
     
+    handlers.getCollection = function(object){
+      for(var i=this.length-1; i>=0; i--){
+        if(this[i].object === object){
+          return this[i]
+        }
+      }
+      return false;
+    };
+
+    handlers.getHandlers = function(object, type){
+      for(var i=this.length-1; i>=0; i--){
+        if(this[i].object === object){
+          return this[i].handlers[type];
+        }
+      }
+      return null;
+    };  
     
     /* Emitter function */
     inheritor.emit = inheritor.emit || function(ev) {
+      console.log("Emitted " + ev.type);
       var self = this,
-          col = collections.isIn(this),
-          streams = col.streams,
-          handlers = col.handlers;
-      
-            forEach(streams[ev.type], function(i) {
-        return i.evaluate(ev, self);
-      });
+          callbacks = handlers.getHandlers(this, ev.type);
         
-            forEach(handlers[ev.type], function(item){
-        var context = (item.config && item.config.context) || self,             adj = item.config && item.config.adj;         return item.callback.apply(context, [ev].concat(adj));
+      forEach(callbacks, function(callback){
+        callback.call(self, ev);
       });
         
       return this;
     };
 
-    
-    inheritor.listen = inheritor.listen || function(ev, callback, config){
-                  
-      var col = collections.isIn(this);
-      if(!col.length){
-        col = collections.create(this);
+    /* Listener function */
+    inheritor.listen = function(ev, callback, settings){    
+      var self = this;
+      handlers.setNewHandler(this, ev, callback);    
+      if(this[config.nativeListener]){
+        this[config.nativeListener].apply(this, [ev, function(event){ self.emit(event)}]);
       }
-      
-            handlers = col.handlers
-      handlers[ev] = handlers[ev] || [];
-      
-      if (handlers[ev].length >= settings.max) {
-        throw("The maximum number (" + settings.max + ") of handler for event [" + ev + "] exceed.");
-      }
-      
-      handlers[ev].push({
-        callback: callback,
-        config: config
-      });
       return this;
     };
       
-        inheritor.stream = function(type, config) {
-      var l = inheritor[settings.nativeListener]; 
-      if(l){
-        if(settings.context == 'this'){
-          inheritor[settings.nativeListener](type, function(e){
-            inheritor.emit(e);
-          });
-        }else{
-          l(type, inheritor.emit);
-        }
+    /* Creates stream */
+    inheritor.stream = function(type, cnt) {
+      var self = this,
+          stream = Warden.makeStream(type, cnt || this);
+      
+      handlers.setNewHandler(this, type, function(event){
+        stream.eval(event);
+      });
+      
+      if(this[config.nativeListener]){
+        this[config.nativeListener].apply(this, [type, function(event){ stream.eval(event);}]);
       }
       
-      var streams = null,
-          stream = createStream(type, config);
-      
-      var col = collections.isIn(this);
-      if(!col.length){
-        col = collections.create(this);
-        streams = col.streams;
-      }else{
-        streams = col.streams;
-      }  
-      
-      if(streams && streams[type] == null)
-        streams[type] = [];
-
-      streams[type].push(stream);
-      return stream;
+      return stream.get();
     };
 
-    return child;
+    return obj;
   };/* End: src/modules/extend.js */
-  /* Extending fn with warden methods */
-  
 /* Begin: src/modules/Processor.js */
   /*
     Processor module:
     In all processing functions: this variable is EventBus object;
   */
 
-  var Processor = (function(){  
-    function deprecate(fn){
-      return {
-        busIsDeprecated : true,
-        deprecationFn : fn
+  function Processor(){
+    var processes = [], i = 0;
+    this.result = null;
+
+    this.tick = function(event, context, preventValue) {
+      if(i>=processes.length){
+        return false;
+      }
+      
+      var res = processes[i].apply(context, [event]);    
+      
+      if(preventValue !== undefined && res === preventValue){
+        res = false;
+      }
+      i++;
+      this.result = res;
+      return res;
+    };
+
+    this.push = function(process){
+      processes.push(process)
+    }
+
+    this.getLength = function(){
+      return processes.length;
+    };
+    
+    this.flush = function(){
+      i = 0;
+    };
+
+  }
+/* End: src/modules/Processor.js */
+/* Begin: src/modules/Streams.js */
+  Warden.makeStream = function(x, context){
+      var stream;
+      if(typeof x === 'function'){
+        var type = [0,0,0,0,0].map(function(item, i){ return (((Math.random() * Math.pow(10, i+2))  >> 0 ) >> (Math.abs(i-1)))}).join("-"),
+            stream = new Stream(type, context);
+          debugger;
+        x(function(expectedData){
+          stream.eval(expectedData);
+        });
+
+      }else
+      if(typeof x === 'string'){
+        stream = new Stream(x, context);
+      }else{
+        throw "Unexpected data type at stream\n";
+      }
+
+      return stream;
+    }
+
+
+
+  function Stream(dataType, context, toolkit){
+    var listeningBuses = [];
+    this.drive = []; 
+    this.id = Math.random() * 10000 >> 0;
+
+    var bus = new DataBus();
+    bus.setHost(this);
+
+    this.eval = function(data){
+      listeningBuses.forEach(function(bus){
+        bus.fire(data, context);
+      });
+    };
+
+    this.push = function(bus){
+      listeningBuses.push(bus);
+    }
+
+    this.get = function(){
+      return bus;
+    }
+
+    return this;
+  }
+
+  function DataBus(proc){
+
+        var processor = proc || new Processor(),
+        host = 0;
+
+    this._publicData = {
+      taken : 0,
+      filtered : 0,
+      skipped : 0,
+      fired : 0
+    };
+
+    this.setHost = function(nhost){
+      host = nhost;
+    };
+
+    this.getHost = function(nhost){
+      return host;
+    };
+
+    this.getProcessor = function(){
+      return processor;
+    }
+
+    this.addProcess = function(process){
+      processor.push(process);
+    }
+
+    this.fire = function(event, context){
+      var self = this;
+
+      debugger;
+      if(processor.getLength()){
+        while(processor.tick(event, context, false)){
+          event = processor.result;
+        }
+      }
+      
+      processor.flush();
+
+      return this.callback.apply(context, [event]);;
+    }
+  }
+
+  DataBus.prototype.listen = function(x){
+    var nb = this.clone();
+    
+    if(typeof x === 'function'){
+      nb.callback = x;
+    } else {
+      nb.callback = function(){
+        console.log(x);
       }
     }
     
-    var processor = {};
-      
-        
-        processor['m'] = function map(process, event){
-      var fn = process.fn;
-            
-      if (typeof fn === 'function') {
-        event = fn.apply(config.context, [event]);
-      }else 
-      
-            if(typeof fn === 'string' && event[fn] != undefined) {
-        event = event[fn];               
-      }else 
-        
-            if(isArray(fn)){
-        event = forEach(fn, function(prop){
-          if (typeof prop === 'string' && event[prop] !== undefined) {
-            return event[prop];
-          }
-        });
-      }else 
-      if(typeof fn === 'object'){
-        var result = {};
-        for(var key in fn){
-          var val = fn[key];
-          result[key] = event[fn[key]];
-        }
-        event = result;
-      }else{
-        if(typeof fn === 'string'){
-          var props = fn.match(/{{\s*[\w\.]+\s*}}/g);
-          if(props){
-            var res = fn;
-            props.map(function(x) { return x.match(/[\w\.]+/)[0]; }).forEach(function(p){
-              res = res.replace("\{\{"+p+"\}\}", event[p]);
-            });
-            event = res;
-          }else{
-            event = fn;
-          }
+    this.getHost().push(nb);
+    return nb;
+  };
+    
+  DataBus.prototype.log = function(){
+    return this.listen(function(data){
+      console.log(data);
+    });
+  }
+
+  DataBus.prototype.clone = function() {
+    var nbus = new DataBus(this.getProcessor());
+    nbus.setHost(this.getHost());
+    return nbus;
+  }
+
+  DataBus.prototype.map = function(x) {
+    var fn;
+
+    if(typeof x === 'string'){
+      fn = function(event, context){
+        if(exists(event[x])){
+          return event[x]
         }else{
-          event = fn;
+          return x
         }
       }
-      this.mapped = true;
-      return event;
-    };
-    
-    processor['f'] = function filter(process, event){
-      var fn = process.fn;
-      if(typeof fn === 'function') {
-        if (fn.apply(config.context, [event]) === false) {
-          return deprecate('filter');
-        }
-      }else{
-        if(Boolean(fn) === false) {
-          return derprecate('filter');
-        }
+    }else{
+      fn = function(event, context){
+        event = x.apply(context, [event]);
+        return event;
       }
-      this.filtered = true;
-      return event;
-    };
-    
-    processor['i'] = function include(process, event){
-      var fn = process.fn;
-      var self = this;
-      if(isArray(fn)){
-        forEach(fn, function(item){
-          if(typeof item=='string'){
-            if(this._public[item]!=null){
-              event[item]=self._public[item];
-            }
-          }else{
-            throw "Unexpected "+ typeof item + " at inclide";
-          }
-        });
-      }else{
-        if(this._public[fn]!=null){
-          event[fn] = self._public[fn];
-        }
-      }
-      return event;
-    };
-    
-    processor['r'] = function reduce(process, event){
-      var fn = process.fn, prev;
-      if(this.taken.length>0){
-        prev = this.taken[this.taken.length-1];
-      }else{
-        prev = process.start == 'first' ?  event : process.start;
-      }
-      event = fn.apply(config.context, [prev, event]);
-      return event;
-    };
-    
-    processor['u'] = function unique(process, event){
-      if(this.taken.length){
-        var pt = this.taken[this.taken.length-1][process.prop];
-        if(pt){
-          if(event[process.prop] == pt){
-            return deprecate('unique');
-          }  
-        }else{
-          if(event[process.prop] == this.history[this.history.length-1][process.prop]){
-            return deprecate('unique');
-          }
-        }        
-      }
-      return event;
-    };
-    
-    return processor;
-  })();/* End: src/modules/Processor.js */
-/* Begin: src/modules/Streams.js */
-  function createStream(ev, options) {
-      var config = {
-        maxTakenLength : (options && options.maxTakenLength) || 64,
-        maxHistoryLength : (options && options.maxHistoryLength) || 64,
-        context : (options && options.context) || null
-      };
-      
-            var Bus = (function() {
-        function Bus(process) {
-          this.process = process != null ? process : [];
-          this._public = {
-            skipped : 0,
-            taken : 0,
-            limit : 0,
-            length : 0,
-            ignore : 0
-          };
-          this.history = [];
-          this.taken = [];
-        }
-            
-        
-        Bus.prototype.exec = function(ev, cnt) {     
-          if(this.locked){
-            return false;
-          }        
-          var self = this;
-          var event = ev;        
-          this._public.length++;
-          
-          event.timestamp = (new Date()).getTime();
-          
-          for(var i=0, l=this.process.length; i<l; i++){
-            var process = this.process[i];
-            var res = Processor[process.type].apply(this, [process, event]);
-            if(res.busIsDeprecated){
-              return false;
-            }else{
-              event = res;
-            }
-          };        
+    }
 
-          if(this.history.length >= config.maxHistoryLength){
-            this.history.shift(0);
-          }
-          this.history.push(ev); 
-           
-                    if (this._public.limit && (this._public.taken >= this._public.limit)) {
-            return false;
-          }
+    var nbus = this.clone();
+    nbus.addProcess(fn);
+    return nbus;
+  };
 
-                    if(this._public.length <= this._public.ignore){
-            this._public.skipped++;
-            return false;
-          }
 
-          this._public.taken++;
-          
-          if(this.taken.length >= config.maxTakenLength){
-            this.taken.shift(0)
-          }
-          this.taken.push(event); 
 
-          if(this.connector){
-            if(!this.connector.locked){
-              this.connector.assign(event);
-            }else{
-              console.log('locked');
-            }
-          }else{
-             this.finalCallback.apply(config.context || cnt, [event]);  
-          }
-
-          return this;        
-        };
-        
-        Bus.prototype.toString = function(){
-          return Warden.stringify(this.process);
-        };
-
-        Bus.prototype.map = function(fn){
-          var newbus = new Bus(this.process.concat({
-            type: 'm',
-            fn: fn
-          }));
-          newbus._public = this._public;
-          return newbus;
-        };
-        
-        Bus.prototype.filter = function(fn){
-          var newbus =  new Bus(this.process.concat({
-            type: 'f',
-            fn: fn
-          }));
-          newbus._public = this._public;
-          return newbus;
-        };
-        
-        Bus.prototype.include = function(prop){
-            var newbus = new Bus(this.process.concat({
-              type : 'i',
-              fn : prop
-            }));
-          newbus._public = this._public;
-          return newbus;
-        };
-        
-        Bus.prototype.reduce = function(start, fn) {
-          var newbus = new Bus(this.process.concat({
-            type : 'r',
-            fn : fn,
-            start : start
-          }));
-          newbus._public = this._public;
-          return newbus;
-        };
-
-        Bus.prototype.take = function(limit, last){
-          if(typeof limit === 'function'){
-            return this.filter(limit);
-          }else{
-            var newbus = new Bus(this.process);
-            if(last != null){
-              if(typeof last == 'number'){                 return newbus.skip(limit).take(last-limit);
-              }else{
-                throw "Type Error: take method expect number at second argumner;";
-              }
-            }else{
-              this.limit = limit;
-              this._public.limit = limit;
-              var pub = this._public;
-              newbus._public = pub;
-              newbus._public.limit = limit;
-              newbus.limit = limit;
-            }
-            return newbus;
-          }
-        };
-        
-        Bus.prototype.skip = function(count){
-          if(typeof count !== 'number'){
-            throw "Type Error: skip method expect numbers;";
-          }
-          var newbus = new Bus(this.process);
-          var pub = this._public;
-          newbus._public = pub;
-          newbus._public.ignore = count;
-          this._public.ignore = count;
-          return newbus;      
-        };
-
-        Bus.prototype.unique = function(prop) {
-          var newbus = new Bus(this.process.concat({
-            type : 'u',
-            prop : prop
-          }));
-          newbus._public = this._public;
-          return newbus;
-        };
-        
-        Bus.prototype.lock = function(){
-          this.locked = true;
-        };
-        
-        Bus.prototype.unlock = function(){
-          this.locked = false;
-        };
-            
-        Bus.prototype.listen = function(fn){
-          if(fn === 'log'){
-            this.finalCallback = function(e){
-              console.log(e);
-            }
-          }else{
-            this.finalCallback = fn;  
-          }        
-          stream.activeBus.push(this);
-          return this;
-        };
-
-        Bus.prototype.log = function(){
-          return this.listen(function(e){
-            console.log(e);
-          });
-        };
-        
-        Bus.prototype.evaluate = function(ev, cnt){
-          return stream.activeBus.map(function(bus){
-            return bus.exec(ev, cnt);
-          });
-        };
-        
-        Bus.prototype.merge = function(bus){
-
-        }
-
-        Bus.prototype.connect = function(item, propOrMethod) {
-          var connector = new Connector(item, propOrMethod, this);
-          this.connector = connector
-          stream.activeBus.push(this);
-          return this.connector
-        };
-
-        return Bus;
-      })();
-      
-      var stream = {
-        type: ev,
-        activeBus: []
-      };
-
-      return new Bus();
-    };/* End: src/modules/Streams.js */
-  
-    
-  
-  /* Begin: src/modules/Connector.js */
+/* End: src/modules/Streams.js */
+/* Begin: src/modules/Connector.js */
   
   var Connector = (function(){
     function Connector(item, prop, host){

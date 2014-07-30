@@ -1,19 +1,27 @@
-var c1 = document.getElementById("console1");
-var c2 = document.getElementById("console2");
-var c3 = document.getElementById("console3");
+var left = Warden.extend(document.getElementById("left"));
 
-var Presser = Warden.extend(function Presser(e){ 
-	var self = this;
-	this.input = e; 
+var str = left.stream("click");
+var str2 = left.stream('click');
+
+str.listen("Stream 1 bus");
+
+str2.map('test').log();
+str2.listen("Stream 2 bus 2");
+
+var doc = Warden.extend(document);
+
+//doc.listen('click', function(e){ 
+//    console.log(e, this); 
+//});
+
+var kd = doc.stream('keydown', {x:10});
+
+kd.listen(function(e){
+  console.log(e.keyCode);
 });
 
-function Over(e){ 
-	var self = this;
-	this.box = e;
-};
 
-var left = Warden.extend(document.getElementById("left")); //creating warden from object
-
+/*
 var input = document.getElementById("input");
 var box = document.getElementById("middle");
 
@@ -44,3 +52,4 @@ var coords = overs.map(function(e){
 
 
 var connector = outs.map('Mouse Leave Target').connect(c3, "innerHTML");
+*/

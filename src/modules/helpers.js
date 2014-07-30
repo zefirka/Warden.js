@@ -1,9 +1,9 @@
 /* Helpers module */
 
-// function exists(i)
-// returns true is i exists;
-var exists = function(i){
-  return typeof f !== 'undefined';
+// function exists(x)
+// returns true is x exists;
+var exists = function(x){
+  return x != void 0 && x !== null;
 }
 
 // function isArray(x)
@@ -19,6 +19,16 @@ var isArray = (function(){
     }
   }
 }());
+
+
+var forWhile = function(arr, fn, preventVal, preventRet){
+  for(var i=0, l=arr.length; i<l; i++){
+    if(fn(arr[i], i) === preventVal){
+      return preventRet; 
+      break;
+    }
+  }
+};
 
 // function forEach(@array arr, @function fn)
 // applies @fn for each item from array @arrm usage: forEach([1,2], function(item){...});

@@ -14,17 +14,16 @@
   }
 })(this, function(Warden){
   
-  // Helpers
-  include "helpers.js"
-
   // Warden properties and methods
   Warden.version = "0.0.1"; 
   Warden.toString = function() {
     return "Warden.js";
   };
-      
-  include "extend.js" // extend method  
-  include "Processor.js" // processor 
-  include "Streams.js" //stream generator
-  include "Connector.js" // stream connector
+
+
+  include "helpers.js"      
+  include "extend.js" 
+  include "Processor.js" 
+  include "Streams.js" 
+  include "Connector.js"
 }));
