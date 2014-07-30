@@ -64,6 +64,7 @@
     this.eval = function(data){
       console.log("Evaluated");
       listeningBuses.forEach(function(bus){
+        debugger;
         bus.fire(data, context);
       });
     }
@@ -82,7 +83,7 @@
   function DataBus(proc){
     
     //private keys
-    var processor = proc,
+    var processor = proc || new Processor(),
         host = 0;
 
     this._publicData = {
@@ -111,8 +112,9 @@
     this.fire = function(event, context){
       var self = this;
 
-      if(processor){
-        while(processor.next(event, context, false)){
+      debugger;
+      if(processor.getLength()){
+        while(processor.tick(event, context, false)){
           event = processor.result;
         }
       }
@@ -169,11 +171,16 @@
         res = false;
       }
       i++;
+      this.result = res;
       return res;
     };
 
     this.push = function(process){
       processes.push(process)
+    }
+
+    this.getLength = function(){
+      return processes.length;
     }
     
   }
