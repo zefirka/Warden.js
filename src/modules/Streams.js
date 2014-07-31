@@ -1,24 +1,28 @@
 Warden.makeStream = function(x, context){
-    var stream;
-    if(typeof x === 'function'){
-      var type = [0,0,0,0,0].map(function(item, i){ return (((Math.random() * Math.pow(10, i+2))  >> 0 ) >> (Math.abs(i-1)))}).join("-"),
-          stream = new Stream(type, context);
-        debugger;
+  var stream,
+      ctype = typeof x;
+
+  switch(ctype){
+    case 'function':
+      for(var i = 0, type = ""; i<2; i++){
+        type += (Math.random() * 100000 >> 0) + "-";
+      }
+
+      stream = new Stream(type.slice(0,-1), context);
+
       x(function(expectedData){
         stream.eval(expectedData);
       });
-
-    }else
-    if(typeof x === 'string'){
+    break;
+    case 'string':  
       stream = new Stream(x, context);
-    }else{
+    break;
+    default:
       throw "Unexpected data type at stream\n";
-    }
+      break;
 
-    return stream;
-  }
-
-
+  return stream.get();
+}
 
 function Stream(dataType, context, toolkit){
   var listeningBuses = [];
@@ -36,17 +40,16 @@ function Stream(dataType, context, toolkit){
 
   this.push = function(bus){
     listeningBuses.push(bus);
-  }
+  };
 
   this.get = function(){
     return bus;
-  }
+  };
 
   return this;
 }
 
 function DataBus(proc){
-
   //private keys
   var processor = proc || new Processor(),
       host = 0;

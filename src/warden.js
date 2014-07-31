@@ -1,3 +1,5 @@
+'use strict';
+
 ((function (root, factory) {
   if (typeof exports === "object" && exports) {
     factory(exports); // CommonJS
@@ -13,16 +15,16 @@
     }
   }
 })(this, function(Warden){
+  Warden.version = "0.0.2"; 
+  Warden.log = function(){
+    if(Warden.debug || window.debug){
+      console.log(arguments);
+    }
+    return void 0;
+  }
   
-  // Warden properties and methods
-  Warden.version = "0.0.1"; 
-  Warden.toString = function() {
-    return "Warden.js";
-  };
-
-
-  include "helpers.js"      
-  include "extend.js" 
+  include "Helpers.js"      
+  include "Extend.js" 
   include "Processor.js" 
   include "Streams.js" 
   include "Connector.js"
