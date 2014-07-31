@@ -1,5 +1,3 @@
-'use strict';
-
 ((function (root, factory) {
   if (typeof exports === "object" && exports) {
     factory(exports); // CommonJS
@@ -15,6 +13,8 @@
     }
   }
 })(this, function(Warden){
+  
+  'use strict';
   Warden.version = "0.0.2"; 
   Warden.log = function(){
     if(Warden.debug || window.debug){
@@ -27,5 +27,5 @@
   include "Extend.js" 
   include "Processor.js" 
   include "Streams.js" 
-  include "Connector.js"
+  //include "Connector.js"
 }));

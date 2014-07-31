@@ -20,7 +20,8 @@ Warden.makeStream = function(x, context){
     default:
       throw "Unexpected data type at stream\n";
       break;
-
+  }
+  
   return stream.get();
 }
 

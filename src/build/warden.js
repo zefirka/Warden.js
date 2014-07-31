@@ -14,24 +14,31 @@
   }
 })(this, function(Warden){
   
-  // Warden properties and methods
-  Warden.version = "0.0.1"; 
-  Warden.toString = function() {
-    return "Warden.js";
-  };
+  'use strict';
+  Warden.version = "0.0.2"; 
+  Warden.log = function(){
+    if(Warden.debug || window.debug){
+      console.log(arguments);
+    }
+    return void 0;
+  }
+  
+/* Begin: src/modules/Helpers.js */
+  /* Helpers functions */
 
-
-/* Begin: src/modules/helpers.js */
-  /* Helpers module */
-
-  // function exists(x)
-  // returns true is x exists;
+  /*
+    Function exists(@mixed x):
+    Returns true is x exists and not equal null.
+  */
   var exists = function(x){
-    return x != void 0 && x !== null;
+    return typeof x !== 'undefined' && x !== null;
   }
 
-  // function isArray(x)
-  // checks is x param is real array or object (or arguments object)
+
+  /*
+    Function isArray(@mixed x):
+    Checks is x param is real array or object (or arguments object)
+  */
   var isArray = (function(){
     if(Array.isArray){
       return function(x){ 
@@ -45,17 +52,25 @@
   }());
 
 
+  /*
+    Function forWhilte(@array arr, @function fn, @mixed preventVal, @mixed preventRet):
+    Applyies @fn to each element of arr while result of applying doesn't equal @preventVal
+    Then returns @preventRet or false if @preventRet is not defined
+  */
   var forWhile = function(arr, fn, preventVal, preventRet){
     for(var i=0, l=arr.length; i<l; i++){
       if(fn(arr[i], i) === preventVal){
-        return preventRet; 
+        return preventRet && false; 
         break;
       }
     }
   };
 
-  // function forEach(@array arr, @function fn)
-  // applies @fn for each item from array @arrm usage: forEach([1,2], function(item){...});
+
+  /* 
+    Function forEach(@array arr, @function fn):
+    Applies @fn for each item from array @arr usage: forEach([1,2], function(item){...})
+  */
   var forEach = (function(){
     if(Array.prototype.forEach){
       return function(arr, fn){ 
@@ -64,14 +79,18 @@
     }else{
       return function(arr, fn){ 
         for(var i=0, l=arr.length; i<l;i++){ 
-          if(fn(arr[i], i) === false) break;
+          fn(arr[i], i);
         }
       }
     }
   }());
 
-  // function filter(@array, @function)
-  // filtering @array by @function and returns only mathcing as @function(item) === true  elements
+
+  /*
+    Function filter(@array, @function)
+    Filtering @array by @function and returns only mathcing as @function(item) === true  elements
+    TODO: Should we keep it here?
+  */
   var filter = (function(){
     if(Array.prototype.filter){
       return function(arr, fn){
@@ -89,51 +108,71 @@
         return filtered;
       }
     }
-  })();/* End: src/modules/helpers.js */
-/* Begin: src/modules/extend.js */
+  })();/* End: src/modules/Helpers.js */
+/* Begin: src/modules/Extend.js */
+  /* 
+    This methods extends @obj which can be both 
+    function or object with Warden.js methods .emit(), 
+    .listen() and .stream() 
+  */
+
   Warden.extend = function(obj, conf) {
     /* Default configuration */
+
     var config = conf || {
-      max : 128,
-      context : 'this',
-      nativeEmitter : null,
-      nativeListener : null
+      max : 256, // maximal handlers per object
+      context : 'this', // context of evaluation
+      emitter : null, // custom event emitter if exists
+      listener : null // custrom event listener if exists
     };
     
-    /* Choose object to extend,
-       if fn is constructor function, then that's prototype, else
-       use actual object element 
+    /* 
+      Choose object to extend,
+      if fn is constructor function, then that's prototype, else
+      use actual object element 
     */
     
     var ctype = typeof obj, // type of object to extend
         inheritor = obj, // final object to expand
-        isConstructor = true; 
-      
+        isConstructor = true; // is obj is constructor
+    
     switch(ctype){
-      case 'function': 
+      case 'function': // then object is constructor
         inheritor = obj.prototype;
         isConstructor = true;
       break;
-      case 'object':
+      case 'object': // else its just an js object
         isConstructor = false;
       break;
     }
     
-    
+    /* 
+      Setting up standart DOM event listener 
+      and emitters  function to not overwrite them 
+      and user should do not use that in config 
+    */
+
     if(typeof jQuery !== 'undefined'){
-      config.nativeEmitter = config.nativeEmitter || 'trigger';
-      config.nativeListener = config.nativeListener || 'on';    
+      config.emitter = config.emitter || 'trigger';
+      config.listener = config.listener || 'on';    
     }else
-    if(typeof inheritor.addEventListener === 'function') {
-      config.nativeListener = config.nativeListener || "addEventListener";
+    if(typeof inheritor.addEventListener === 'function' || typeof inheritor.attachEvent === 'function'){
+      config.listener = config.listener || (typeof inheritor.addEventListener === 'function' ? "addEventListener" : "attachEvent");
     }
       
     /* Collections of private handlers */
+    /* Developed to incapsulate handlers of every object */
     var handlers = [];
+
+    /* Setting new handler @fn of event type @type to @object */
     handlers.setNewHandler = function(object, type, fn){
       var handlers = this.getHandlers(object, type);
       if(handlers){
-        handlers.push(fn);
+        if(handlers.length < config.max){
+          handlers = handlers.push(fn);
+        }else{
+          throw "Maximal handlers count";
+        }
       }else{
         var collection = this.getCollection(object);
         if(collection){
@@ -149,6 +188,7 @@
       }
     };
     
+    /* Get collections of handlers by types of @object */
     handlers.getCollection = function(object){
       for(var i=this.length-1; i>=0; i--){
         if(this[i].object === object){
@@ -158,18 +198,30 @@
       return false;
     };
 
+    /* Get handlers of @object by @type */
     handlers.getHandlers = function(object, type){
       for(var i=this.length-1; i>=0; i--){
         if(this[i].object === object){
           return this[i].handlers[type];
         }
       }
-      return null;
+      return false;
     };  
     
-    /* Emitter function */
-    inheritor.emit = inheritor.emit || function(ev) {
-      console.log("Emitted " + ev.type);
+    /* React function to emit std. events */
+    function react(type){
+      var self = this;
+      if(this[config.listener]){
+        var fn = function(event){ 
+          self.emit(event);
+        };
+        this[config.listener].apply(this, [type, react]);
+      }
+    }
+
+    /* Emitter method */
+    inheritor.emit = function(ev) {
+      Warden.log("Emitted " + ev.type);
       var self = this,
           callbacks = handlers.getHandlers(this, ev.type);
         
@@ -181,33 +233,27 @@
     };
 
     /* Listener function */
-    inheritor.listen = function(ev, callback, settings){    
-      var self = this;
-      handlers.setNewHandler(this, ev, callback);    
-      if(this[config.nativeListener]){
-        this[config.nativeListener].apply(this, [ev, function(event){ self.emit(event)}]);
-      }
+    inheritor.listen = function(type, callback, settings){    
+      handlers.setNewHandler(this, type, callback);    
+      react.apply(this, [type]);
       return this;
     };
       
     /* Creates stream */
     inheritor.stream = function(type, cnt) {
-      var self = this,
-          stream = Warden.makeStream(type, cnt || this);
-      
+      var stream = Warden.makeStream(type, cnt || this);
+
       handlers.setNewHandler(this, type, function(event){
         stream.eval(event);
       });
-      
-      if(this[config.nativeListener]){
-        this[config.nativeListener].apply(this, [type, function(event){ stream.eval(event);}]);
-      }
+
+      react.apply(this, [type]);
       
       return stream.get();
     };
 
     return obj;
-  };/* End: src/modules/extend.js */
+  };/* End: src/modules/Extend.js */
 /* Begin: src/modules/Processor.js */
   /*
     Processor module:
@@ -249,26 +295,31 @@
 /* End: src/modules/Processor.js */
 /* Begin: src/modules/Streams.js */
   Warden.makeStream = function(x, context){
-      var stream;
-      if(typeof x === 'function'){
-        var type = [0,0,0,0,0].map(function(item, i){ return (((Math.random() * Math.pow(10, i+2))  >> 0 ) >> (Math.abs(i-1)))}).join("-"),
-            stream = new Stream(type, context);
-          debugger;
+    var stream,
+        ctype = typeof x;
+
+    switch(ctype){
+      case 'function':
+        for(var i = 0, type = ""; i<2; i++){
+          type += (Math.random() * 100000 >> 0) + "-";
+        }
+
+        stream = new Stream(type.slice(0,-1), context);
+
         x(function(expectedData){
           stream.eval(expectedData);
         });
-
-      }else
-      if(typeof x === 'string'){
+      break;
+      case 'string':  
         stream = new Stream(x, context);
-      }else{
+      break;
+      default:
         throw "Unexpected data type at stream\n";
-      }
-
-      return stream;
+        break;
     }
-
-
+    
+    return stream.get();
+  }
 
   function Stream(dataType, context, toolkit){
     var listeningBuses = [];
@@ -286,17 +337,16 @@
 
     this.push = function(bus){
       listeningBuses.push(bus);
-    }
+    };
 
     this.get = function(){
       return bus;
-    }
+    };
 
     return this;
   }
 
   function DataBus(proc){
-
     //private keys
     var processor = proc || new Processor(),
         host = 0;
@@ -388,39 +438,6 @@
     var nbus = this.clone();
     nbus.addProcess(fn);
     return nbus;
-  };
-
-
-
-/* End: src/modules/Streams.js */
-/* Begin: src/modules/Connector.js */
-  // Connector module 
-
-  var Connector = (function(){
-    function Connector(item, prop, host){
-      this.item = item;
-      if(typeof item.prop === 'function'){
-        this.method = prop;
-      }else{
-        this.prop = prop;  
-      }
-
-      this.host = host;
-      this.locked = false;
-    }
-    Connector.prototype.assign = function(value) {
-      if(this.method){
-        this.item[this.method](value);
-      }else{
-        this.item[this.prop] = value;
-      }
-    };
-    Connector.prototype.unbind = function() {
-      this.locked = true;
-    };
-    Connector.prototype.bind = function() {
-      this.locked = false;
-    };
-    return Connector;
-  })();/* End: src/modules/Connector.js */
+  };/* End: src/modules/Streams.js */
+  //include "Connector.js"
 }));

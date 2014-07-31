@@ -1,58 +1,48 @@
 describe('Warden.create emitting and listening', function () {  
 	
 	//Here will be creation specs
-	var Class1 = Warden.create(function Class1(){
+	var Mod = Warden.extend(function Class1(){
 		this.name = "module 1";
 	});
 
-	var Class2 = Warden.create(function Class2(){
-		this.name = "module 2";
-	});
-
-	Class1.prototype.fn = function(){
+	Mod.prototype.sync = function(){
 		this.emit({
 			type : "custom",
 			value : Math.random(),
-			gen : "some"
+			ng : "sync"
 		})
 	};
 
-	Class1.prototype.async = function(){
+	Mod.prototype.async = function(){
 		var self = this;
 		setTimeout(function(){
 			self.emit({
 				type : "async",
 				value : Math.random(),
-				gen : "test"
+				ng : "async"
 			});
 		}, 2000);		
 	};
 
-	var mod1 = new Class1()
+    function transmit(e){
+      custom = e.ng;
+    }
+  
+	var test = new Mod();
+	var custom = null;
 	
-	var result = false,
-		transmitted = null,
-		async = false;
-	
-	mod1.on('async', function(e){
-		async = true;
-	});		
+	test.listen('async',transmit);
+	test.listen('custom', transmit);
 
-	mod1.on('custom', function(e){
-		result = true;
-		transmitted = e.gen;
-	});
 
-	mod1.fn();
-	mod1.async();
-
-    it('Emitting and catching event', function (done) {      
-        expect(result).toBe(true); 
-        done();
+    it('Emitting and catching sync event', function (done) {      
+        test.sync();
+        expect(custom).toBe("sync"); 
     });  
 
-    it('Catching event transmission value', function (done) {      
-        expect(transmitted).toBe("some"); 
+    it('Emitting and catching async event', function (done) {      
+        test.async();
+        expect(custom).toBe("async"); 
         done();
     });  
 
