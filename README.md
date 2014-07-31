@@ -3,7 +3,7 @@ Warden.js
 
 Small declarative library for event-driven development.
 
-Warden.js provides a functionality for the development of event-driven web-applications without any dependencies. You can emit custom events with [`.emit()`](#emit) method and listen them with [`.listen()`](#listen) method, you can also listen native DOM events or extend EventEmitter class of Node. But the greatest is you can create and maintain streams of events with [`.stream()`](#stream).
+Warden.js provides a functionality for the development of event-driven applications without any dependencies. You can emit custom events with [`.emit()`](#emit) method and listen them with [`.listen()`](#listen) method, you can also listen native DOM events or extend EventEmitter class of Node. But the greatest is you can create and maintain streams of events with [`.stream()`](#stream). And more: you can create a custom data streams by [`Wardem.makeStream()`](#makeStream).
 
 ##Warden.extend##
 
@@ -27,14 +27,19 @@ var module = Warden.extend({
   }
 });
 ```
-Now objects made by <code>Clicker</code> and object `module` has methods <code>.listen</code>, <code>.emit</code> and <code>.stream</code>.
+or even
+```js
+Warden.extend($)
+var clicks = $('body').stream('click');
+```
+Now objects extended by `extend` method has methods `.listen`, `.emit` and `.stream`.
 
 ####Configuration####
 You can configure next terms:
 -  `max` - Count of maximal handlers per one event type. Default: 128
--  `nativeEmitter` - Name of native emitter function. For example $.trigger() for jQuery. Use it if your framework has already have event emitter method and you creating emittor from object that contains native emittor.
--  `nativeListener` - Name of native listener function. For example $.on() for jQuery, or .addEventListener for native browser's DOM API
--  `context` - Value of `this` variable in handler. Class object by default.
+-  `emitter` - Name of native emitter function. For example $.trigger() for jQuery. Use it if your framework has already have event emitter method and you creating emittor from object that contains native emittor.
+-  `listener` - Name of native listener function. For example $.on() for jQuery, or .addEventListener for native browser's DOM API
+-  `context` - Value of `this` variable in handler. Emitted object by default.
 
 ###Methods###
 ####emit####
