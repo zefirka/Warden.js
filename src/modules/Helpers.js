@@ -1,13 +1,18 @@
-/* Helpers module */
+/* Helpers functions */
 
-// function exists(x)
-// returns true is x exists;
+/*
+  Function exists(@mixed x):
+  Returns true is x exists and not equal null.
+*/
 var exists = function(x){
-  return x != void 0 && x !== null;
+  return typeof x !== 'undefined' && x !== null;
 }
 
-// function isArray(x)
-// checks is x param is real array or object (or arguments object)
+
+/*
+  Function isArray(@mixed x):
+  Checks is x param is real array or object (or arguments object)
+*/
 var isArray = (function(){
   if(Array.isArray){
     return function(x){ 
@@ -21,17 +26,25 @@ var isArray = (function(){
 }());
 
 
+/*
+  Function forWhilte(@array arr, @function fn, @mixed preventVal, @mixed preventRet):
+  Applyies @fn to each element of arr while result of applying doesn't equal @preventVal
+  Then returns @preventRet or false if @preventRet is not defined
+*/
 var forWhile = function(arr, fn, preventVal, preventRet){
   for(var i=0, l=arr.length; i<l; i++){
     if(fn(arr[i], i) === preventVal){
-      return preventRet; 
+      return preventRet && false; 
       break;
     }
   }
 };
 
-// function forEach(@array arr, @function fn)
-// applies @fn for each item from array @arrm usage: forEach([1,2], function(item){...});
+
+/* 
+  Function forEach(@array arr, @function fn):
+  Applies @fn for each item from array @arr usage: forEach([1,2], function(item){...})
+*/
 var forEach = (function(){
   if(Array.prototype.forEach){
     return function(arr, fn){ 
@@ -40,14 +53,18 @@ var forEach = (function(){
   }else{
     return function(arr, fn){ 
       for(var i=0, l=arr.length; i<l;i++){ 
-        if(fn(arr[i], i) === false) break;
+        fn(arr[i], i);
       }
     }
   }
 }());
 
-// function filter(@array, @function)
-// filtering @array by @function and returns only mathcing as @function(item) === true  elements
+
+/*
+  Function filter(@array, @function)
+  Filtering @array by @function and returns only mathcing as @function(item) === true  elements
+  TODO: Should we keep it here?
+*/
 var filter = (function(){
   if(Array.prototype.filter){
     return function(arr, fn){
