@@ -3,24 +3,19 @@
   In all processing functions: this variable is EventBus object;
 */
 
-function Processor(){
-  var processes = [], i = 0;
+function Processor(proc, host){
+  var processes = [] || proc, 
+      i = 0, 
+      self = this;
   this.result = null;
 
-  this.tick = function(event, context, preventValue) {
-    if(i>=processes.length){
-      return false;
-    }
-    
-    var res = processes[i].apply(context, [event]);    
-    
-    if(preventValue !== undefined && res === preventValue){
-      res = false;
-    }
-    i++;
-    this.result = res;
-    return res;
-  };
+  var fns = [
+  function $continue(data, context){
+     return self.tick(data, context);
+  },
+  function $break(preventValue){
+    return preventValue || false;
+  }];
 
   this.push = function(process){
     processes.push(process)
@@ -34,4 +29,31 @@ function Processor(){
     i = 0;
   };
 
+  this.hoster = host;
+
+  this.start = function(event, context, fin){
+    var i = 0;
+    self.fin = fin;
+    // если процессоров нет
+    if(i>=processes.length){
+      return event;
+    } 
+
+    // подготавливаем контекст
+    forEach(fns, function(x){
+      context[x.name] = x;
+    });
+
+    //запустили процессор
+    this.tick(event, context);
+  }
+
+  this.tick = function(event, context){    
+    if(i==processes.length){
+      return fin(event);
+    }
+    i++;
+    processes[i].apply(context, [event]);
+  };  
 }
+

@@ -80,7 +80,27 @@ You can configure next terms:
 
 ###Methods###
 ####emit####
-Emits custom event
+Emits custom event. If you use `emit([string])`, than it will emit event of `[string]` type. To transfer data though event - use JSON:
+```js
+mod.listen('custom', function(event){
+	console.log(event.data);
+});
+
+mod.emit({
+	type : 'custom',
+	data : 'Hello world!'
+});
+// --> Hello world!
+```
+
+If you use JSON, `type` property is required.
+
+####listen####
+Ataching event handler to the module. 
+
+####stream####
+Creating data-stream and returns first DataBus of it;
+
 
 
 
