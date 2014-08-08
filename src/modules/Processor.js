@@ -15,6 +15,9 @@ function Processor(proc, host){
   },
   function $break(preventValue){
     return preventValue || false;
+  },
+  function $host(){
+    return self.hoster;
   }];
 
   this.push = function(process){

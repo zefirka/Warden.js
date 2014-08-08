@@ -1,14 +1,15 @@
 function DataBus(){
+  var self = this;
+  this._. = {
+    skipped : 0,
+    emitted : 0,
+    taken : 0,
+  };
+
+
 
   this.fire = function(event, context){  
     event.timestamp = new Date();
-
-    self._.emitted++;
-
-    if(self._.skip && self._.skipped<sel._.emitted){
-      return false;
-    }
-
     processor.start(event, context, function(result){
       self._.taken++;
       self.finalCallback.apply(context, [result]);
@@ -20,7 +21,7 @@ DataBus.prototype.filter = function(x) {
   if(typeof x!== 'function'){
     throw "TypeError: filter argument mus be a function";
   }
-  this.processor.add(function(e){
+  return this.processor.add(function(e){
     return x(e) === true ? this.$continue(e) : this.$break();
   });
 }
@@ -66,7 +67,7 @@ DataBus.prototype.map = function(x) {
       }
     break;
   }
-  this.processor.add(fn);
+  return this.processor.add(fn);
 };
 
 DataBus.prototype.take = function(x){
@@ -75,8 +76,15 @@ DataBus.prototype.take = function(x){
     return this.filter(x);
   }else
   if(ctype == 'number'){
-
-    this._.limit = x;
+    return this.processor.add(function(e){
+      var bus = this.$host();
+      bus._.limit = bus._.limit || x;
+      if(bus._.taken > bus._.limit){
+        return this.$break();
+      }else{
+        return this.$continue(e);
+      }
+    });
   }else{
     throw "TypeError: take argument must be function or number"
   }
@@ -84,7 +92,14 @@ DataBus.prototype.take = function(x){
 
 DataBus.prototype.skip = function(c) {
   if(typeof c === 'number'){
-    this.skip = c;
+    return this.processor.add(function(e){
+      var bus = this.$host();
+      if(bus._.emitted <= c){
+        this.$break();
+      }else{
+        return this.$continue(e);
+      }
+    });
   }else{
     throw "TypeError: skip argument must be only number";
   }
@@ -94,9 +109,10 @@ DataBus.prototype.mask = function(s){
   if(typeof s !== 'string'){
     return this.map(s);
   }else{
-    this.process.add(function(event){
+    return this.process.add(function(event){
       var regex = /{{\s*[\w\.]+\s*}}/g;
       return this.$continue(s.replace(regex, function(i){return e[i.slice(2,-2)]}));
     })
   }
 }
+
