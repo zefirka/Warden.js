@@ -53,6 +53,10 @@ function Processor(proc, host){
 
   this.tick = function(event, context){    
     if(i==processes.length){
+      // очищаем контекст от барахла
+      forEach(fns, function(x){
+        delete  context[x.name]
+      });
       return fin(event);
     }
     i++;

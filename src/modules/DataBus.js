@@ -10,6 +10,8 @@ function DataBus(){
 
   this.fire = function(event, context){  
     event.timestamp = new Date();
+
+    this._.emitted++;
     processor.start(event, context, function(result){
       self._.taken++;
       self.finalCallback.apply(context, [result]);
@@ -116,3 +118,35 @@ DataBus.prototype.mask = function(s){
   }
 }
 
+DataBus.prototype.debounce = function(t) {
+  if(typeof t == 'number'){
+    return this.processor.add(function(e){
+      var self = this, bus = this.$host();
+      clearTimeout(bus._.dbtimer);
+      bus._.dbtimer = setTimeout(function(){
+        delete bus._.dbtimer;
+        self.$continue(e);
+      }, t);      
+    });
+  }else{
+    throw "TypeError: argument of debounce must be a number of ms.";
+  }
+};
+
+DataBus.prototype.getCollected = function(t){
+  if(typeof t == 'number'){
+    return this.processor.add(function(e){
+      var self = this, bus = this.$host();
+      if(!bus._.timer){
+        bus._.collectionStart = bus.emitted.length;
+      }
+      bus._.timer = setTimeout(function(){
+        var collection = bus._.emitted.slice(bus._.collectionStart, bus._.emitted.length);
+        delete bus._.timer;
+        self.$continue(collection);
+      }, t)
+    })
+  }else{
+    throw "TypeError: getCollected of debounce must be a number of ms.";
+  }
+}
