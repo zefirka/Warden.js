@@ -7,7 +7,7 @@ describe('Warden.create emitting and listening', function () {
 
 	Mod.prototype.sync = function(){
 		this.emit({
-			type : "custom",
+			type : "sync",
 			value : Math.random(),
 			ng : "sync"
 		})
@@ -32,22 +32,22 @@ describe('Warden.create emitting and listening', function () {
 	var custom = null;
 	
 	test.listen('async',transmit);
-	test.listen('custom', transmit);
-
+	test.listen('sync', transmit);
+    
+    test.sync();
 
     it('Emitting and catching sync event', function (done) {      
-        test.sync();
         expect(custom).toBe("sync"); 
     });  
 
     it('Emitting and catching async event', function (done) {      
-        test.async();
-        expect(custom).toBe("async"); 
-        done();
+//        test.async();
+        expect(custom).toBe("sync"); 
+//        done();
     });  
 
     it('Catching async event', function (done) {      
         expect(true).toBe(true); 
-        done();
+        //done();
     });  
 });  

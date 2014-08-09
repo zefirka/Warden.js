@@ -195,17 +195,6 @@
       return false;
     };  
     
-    /* React function to emit std. events */
-    function react(type){
-      var self = this;
-      if(this[config.listener]){
-        var fn = function(event){ 
-          self.emit(event);
-        };
-        this[config.listener].apply(this, [type, react]);
-      }
-    }
-
     /* Emitter method */
     inheritor.emit = function(ev) {
       Warden.log("Emitted " + ev.type);
@@ -222,7 +211,9 @@
     /* Listener function */
     inheritor.listen = function(type, callback, settings){    
       handlers.setNewHandler(this, type, callback);    
-      react.apply(this, [type]);
+      if(this[config.listener]){
+        this[config.listener].apply(this, [ev, function(event){ self.emit(event)}]);
+      }
       return this;
     };
       
@@ -234,7 +225,9 @@
         stream.eval(event);
       });
 
-      react.apply(this, [type]);
+      if(this[config.listener]){
+        this[config.listener].apply(this, [type, function(event){ stream.eval(event);}]);
+      }
       
       return stream.get();
     };
@@ -247,43 +240,76 @@
     In all processing functions: this variable is EventBus object;
   */
 
-  function Processor(){
-    var processes = [], i = 0;
-    this.result = null;
-
-    this.tick = function(event, context, preventValue) {
-      if(i>=processes.length){
-        return false;
-      }
-      
-      var res = processes[i].apply(context, [event]);    
-      
-      if(preventValue !== undefined && res === preventValue){
-        res = false;
-      }
-      i++;
-      this.result = res;
-      return res;
+  function Processor(proc, host){
+    var processes = proc || [], 
+        i = 0, 
+        self = this;
+    
+    this.getProcesses = function(){
+      return processes;
     };
 
-    this.push = function(process){
-      processes.push(process)
+    var fns = [
+      function $continue(data, context){
+         return self.tick(data);
+      },
+      function $break(preventValue){
+        return self.tick({}, 1);       },
+      function $async(data, context){
+        return self.tick(data, 0, 1);
+      },
+      function $host(){
+        return self.hoster;
+      }];
+    
+
+    this.hoster = host;
+
+    this.start = function(event, context, fin){
+      var i = 0;
+      self.ctx = context;
+      self.fin = fin;    
+      
+      if(i==processes.length){
+        i = 0;
+        return fin(event);
+      } 
+
+      forEach(fns, function(x){
+        self.ctx[x.name] = x;
+      });
+
+      this.tick(event);
     }
 
-    this.getLength = function(){
-      return processes.length;
-    };
-    
-    this.flush = function(){
-      i = 0;
-    };
-
-  }
-/* End: src/modules/Processor.js */
+    this.tick = function(event, br, async){    
+      if(br){
+        i = 0;
+        return void 0;
+      }
+      if(async){
+        i=0;
+      }
+      if(i==processes.length){
+        forEach(fns, function(x){
+          delete self.ctx[x.name]
+        });
+        i = 0;
+        return self.fin(event);
+      }
+      i++
+      processes[i-1].apply(self.ctx, [event]);
+    };  
+  }/* End: src/modules/Processor.js */
 /* Begin: src/modules/Streams.js */
+  /*
+    Creates stream of data.
+    If @x is string, that it interprets as datatype
+    else if @x is function, than x's first arg is emitting data function
+  */
+
   Warden.makeStream = function(x, context){
-    var stream,
-        ctype = typeof x;
+    var stream, ctype = typeof x;
 
     switch(ctype){
       case 'function':
@@ -292,7 +318,6 @@
         }
 
         stream = new Stream(type.slice(0,-1), context);
-
         x(function(expectedData){
           stream.eval(expectedData);
         });
@@ -305,7 +330,7 @@
         break;
     }
     
-    return stream.get();
+    return stream;
   }
 
   function Stream(dataType, context, toolkit){
@@ -331,17 +356,16 @@
     };
 
     return this;
-  }
-
+  }/* End: src/modules/Streams.js */
+/* Begin: src/modules/DataBus.js */
   function DataBus(proc){
-        var processor = proc || new Processor(),
+    var processor = new Processor(proc || [], this),
         host = 0;
-
-    this._publicData = {
+    
+    this._ = {
+      fired : 0,
       taken : 0,
-      filtered : 0,
-      skipped : 0,
-      fired : 0
+      skipped : 0
     };
 
     this.setHost = function(nhost){
@@ -357,32 +381,40 @@
     }
 
     this.addProcess = function(process){
-      processor.push(process);
+      var nprocess = [];
+      forEach(processor.getProcesses(), function(i){
+        nprocess.push(i);
+      });
+      nprocess.push(process);
+      var nbus = new DataBus(nprocess);
+      nbus.setHost(this.getHost());
+      return nbus;
     }
-
-    this.fire = function(event, context){
-      var self = this;
-
-      debugger;
-      if(processor.getLength()){
-        while(processor.tick(event, context, false)){
-          event = processor.result;
-        }
-      }
       
-      processor.flush();
+    this.fire = function(data, context){  
+      var self = this;
+      data = this.setupData(data);
 
-      return this.callback.apply(context, [event]);;
+      this._.fired++;
+      processor.start(data, context, function(result){
+        self._.taken++;
+        self.handler.apply(context, [result]);
+      });
     }
+  }
+
+  DataBus.prototype.setupData = function(data){
+    data.timestamp = new Date(). getTime();
+    return data;
   }
 
   DataBus.prototype.listen = function(x){
     var nb = this.clone();
     
     if(typeof x === 'function'){
-      nb.callback = x;
+      nb.handler = x;
     } else {
-      nb.callback = function(){
+      nb.handler = function(){
         console.log(x);
       }
     }
@@ -398,31 +430,141 @@
   }
 
   DataBus.prototype.clone = function() {
-    var nbus = new DataBus(this.getProcessor());
+    var nbus = new DataBus(this.getProcessor().getProcesses());
     nbus.setHost(this.getHost());
     return nbus;
   }
 
-  DataBus.prototype.map = function(x) {
-    var fn;
-
-    if(typeof x === 'string'){
-      fn = function(event, context){
-        if(exists(event[x])){
-          return event[x]
-        }else{
-          return x
-        }
-      }
-    }else{
-      fn = function(event, context){
-        event = x.apply(context, [event]);
-        return event;
-      }
+  DataBus.prototype.filter = function(x) {
+    if(typeof x!== 'function'){
+      throw "TypeError: filter argument mus be a function";
     }
+    return this.addProcess(function(e){
+      return x(e) === true ? this.$continue(e) : this.$break();
+    });
+  }
 
-    var nbus = this.clone();
-    nbus.addProcess(fn);
-    return nbus;
-  };/* End: src/modules/Streams.js */
+  DataBus.prototype.map = function(x) {
+    var fn, ctype = typeof x, res;
+    switch(ctype){
+      case 'function':
+        fn = function(e){
+          return this.$continue(x.apply(this, [e]));
+        }
+      break;
+      case 'string':
+        fn = function(e){
+          var t = e[x];
+          return this.$continue(exists(t) ? t : x);
+        }
+      break;
+      case 'object':
+        if(isArray(x)){
+          fn = function(e){
+            var res = [];
+            forEach(x, function(i){
+              var t = e[i];
+              res.push(exists(t) ? t : i);
+            }); 
+            return this.$continue(res);
+          }
+        }else{
+          fn = function(e){
+            var res = {}, t;
+            for(var prop in x){
+              t = e[x[prop]];
+              res[prop] = exists(t) ? t : x[prop];
+            }
+            return this.$continue(prop);
+          }
+        }
+      break;
+      default:
+        fn = function(e){
+          return this.$continue(x);
+        }
+      break;
+    }
+    return this.addProcess(fn);
+  };
+
+  DataBus.prototype.take = function(x){
+    var ctype = typeof x;
+    if(ctype == 'function'){
+      return this.filter(x);
+    }else
+    if(ctype == 'number'){
+      return this.processor.add(function(e){
+        var bus = this.$host();
+        bus._.limit = bus._.limit || x;
+        if(bus._.taken > bus._.limit){
+          return this.$break();
+        }else{
+          return this.$continue(e);
+        }
+      });
+    }else{
+      throw "TypeError: take argument must be function or number"
+    }
+  };
+
+  DataBus.prototype.skip = function(c) {
+    if(typeof c === 'number'){
+      return this.processor.add(function(e){
+        var bus = this.$host();
+        if(bus._.emitted <= c){
+          this.$break();
+        }else{
+          return this.$continue(e);
+        }
+      });
+    }else{
+      throw "TypeError: skip argument must be only number";
+    }
+  };
+
+  DataBus.prototype.mask = function(s){
+    if(typeof s !== 'string'){
+      return this.map(s);
+    }else{
+      return this.process.add(function(event){
+        var regex = /{{\s*[\w\.]+\s*}}/g;
+        return this.$continue(s.replace(regex, function(i){return e[i.slice(2,-2)]}));
+      })
+    }
+  }
+
+  DataBus.prototype.debounce = function(t) {
+    if(typeof t == 'number'){
+      return this.addProcess(function(e){
+        var self = this, bus = this.$host();
+        clearTimeout(bus._.dbtimer);
+        bus._.dbtimer = setTimeout(function(){
+          delete bus._.dbtimer;
+          self.$continue(e);
+        }, t);      
+        this.$break();
+      });
+    }else{
+      throw "TypeError: argument of debounce must be a number of ms.";
+    }
+  };
+
+  DataBus.prototype.getCollected = function(t){
+    if(typeof t == 'number'){
+      return this.processor.add(function(e){
+        var self = this, bus = this.$host();
+        if(!bus._.timer){
+          bus._.collectionStart = bus.emitted.length;
+        }
+        bus._.timer = setTimeout(function(){
+          var collection = bus._.emitted.slice(bus._.collectionStart, bus._.emitted.length);
+          delete bus._.timer;
+          self.$continue(collection);
+        }, t)
+      })
+    }else{
+      throw "TypeError: getCollected of debounce must be a number of ms.";
+    }
+  }/* End: src/modules/DataBus.js */
   }));

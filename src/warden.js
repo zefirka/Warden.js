@@ -26,6 +26,7 @@
   include "Helpers.js"      
   include "Extend.js" 
   include "Processor.js" 
-  include "Streams.js" 
+  include "Streams.js"
+  include "DataBus.js"
   //include "Connector.js"
 }));

@@ -80,8 +80,8 @@ module.exports = function(grunt){
 
     watch: {
       scripts : {
-        files : ['test/specs/*.js', "src/*js"],
-        tasks : ['includes', 'copy', 'comments','jasmine']
+        files : ['test/specs/*.js', "src/*.js", "src/**/*.js"],
+        tasks : ['build']
       },
       coffee: {
         files: ['src/plugins/*.coffee'],
@@ -107,7 +107,7 @@ module.exports = function(grunt){
     "copy",
     "comments",
     "uglify",
-    "jasmine",
+//    "jasmine",
     "watch"
   ]);
   grunt.registerTask('default', [

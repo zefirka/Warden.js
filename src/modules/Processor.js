@@ -4,63 +4,64 @@
 */
 
 function Processor(proc, host){
-  var processes = [] || proc, 
+  var processes = proc || [], 
       i = 0, 
       self = this;
-  this.result = null;
+  
+  this.getProcesses = function(){
+    return processes;
+  };
 
   var fns = [
-  function $continue(data, context){
-     return self.tick(data, context);
-  },
-  function $break(preventValue){
-    return preventValue || false;
-  },
-  function $host(){
-    return self.hoster;
-  }];
-
-  this.push = function(process){
-    processes.push(process)
-  }
-
-  this.getLength = function(){
-    return processes.length;
-  };
+    function $continue(data, context){
+       return self.tick(data);
+    },
+    function $break(preventValue){
+      return self.tick({}, 1); //break
+    },
+    function $async(data, context){
+      return self.tick(data, 0, 1);
+    },
+    function $host(){
+      return self.hoster;
+    }];
   
-  this.flush = function(){
-    i = 0;
-  };
 
   this.hoster = host;
 
   this.start = function(event, context, fin){
     var i = 0;
-    self.fin = fin;
-    // если процессоров нет
-    if(i>=processes.length){
-      return event;
+    self.ctx = context;
+    self.fin = fin;    
+    
+    if(i==processes.length){
+      i = 0;
+      return fin(event);
     } 
 
-    // подготавливаем контекст
     forEach(fns, function(x){
-      context[x.name] = x;
+      self.ctx[x.name] = x;
     });
 
-    //запустили процессор
-    this.tick(event, context);
+    this.tick(event);
   }
 
-  this.tick = function(event, context){    
-    if(i==processes.length){
-      // очищаем контекст от барахла
-      forEach(fns, function(x){
-        delete  context[x.name]
-      });
-      return fin(event);
+  this.tick = function(event, br, async){    
+    if(br){
+      i = 0;
+      return void 0;
     }
-    i++;
-    processes[i].apply(context, [event]);
+    if(async){
+      i=0;
+    }
+    if(i==processes.length){
+      forEach(fns, function(x){
+        delete self.ctx[x.name]
+      });
+      i = 0;
+      return self.fin(event);
+    }
+    i++
+    processes[i-1].apply(self.ctx, [event]);
   };  
 }
-

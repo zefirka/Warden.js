@@ -96,17 +96,6 @@ Warden.extend = function(obj, conf) {
     return false;
   };  
   
-  /* React function to emit std. events */
-  function react(type){
-    var self = this;
-    if(this[config.listener]){
-      var fn = function(event){ 
-        self.emit(event);
-      };
-      this[config.listener].apply(this, [type, react]);
-    }
-  }
-
   /* Emitter method */
   inheritor.emit = function(ev) {
     Warden.log("Emitted " + ev.type);
@@ -123,7 +112,9 @@ Warden.extend = function(obj, conf) {
   /* Listener function */
   inheritor.listen = function(type, callback, settings){    
     handlers.setNewHandler(this, type, callback);    
-    react.apply(this, [type]);
+    if(this[config.listener]){
+      this[config.listener].apply(this, [ev, function(event){ self.emit(event)}]);
+    }
     return this;
   };
     
@@ -135,7 +126,9 @@ Warden.extend = function(obj, conf) {
       stream.eval(event);
     });
 
-    react.apply(this, [type]);
+    if(this[config.listener]){
+      this[config.listener].apply(this, [type, function(event){ stream.eval(event);}]);
+    }
     
     return stream.get();
   };
