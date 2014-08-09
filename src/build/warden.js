@@ -255,7 +255,8 @@
 
   function Processor(proc, host){
     var processes = proc || [], 
-        i = 0, 
+        locked = 0, 
+        i = 0,
         self = this;
     
     this.getProcesses = function(){
@@ -269,8 +270,11 @@
       function $break(preventValue){
         return self.tick({}, 1); //break
       },
-      function $async(data, context){
-        return self.tick(data, 0, 1);
+      function $lock(){
+        return locked = 1;
+      },
+      function $unlock(){
+        return locked = 0;
       },
       function $host(){
         return self.hoster;
@@ -280,9 +284,12 @@
     this.hoster = host;
 
     this.start = function(event, context, fin){
-      var i = 0;
       self.ctx = context;
       self.fin = fin;    
+      
+      if(locked){
+        i = 0;
+      }
       
       if(i==processes.length){
         i = 0;
@@ -296,14 +303,12 @@
       this.tick(event);
     }
 
-    this.tick = function(event, br, async){    
+    this.tick = function(event, br, async){        
       if(br){
         i = 0;
         return void 0;
       }
-      if(async){
-        i=0;
-      }
+      
       if(i==processes.length){
         forEach(fns, function(x){
           delete self.ctx[x.name]
@@ -377,6 +382,7 @@
         host = 0;
     
     this._ = {
+      history : [],
       fired : 0,
       taken : 0,
       skipped : 0
@@ -410,6 +416,7 @@
       data = this.setupData(data);
 
       this._.fired++;
+      this._.history.push(data);
       processor.start(data, context, function(result){
         self._.taken++;
         self.handler.apply(context, [result]);
@@ -468,8 +475,10 @@
       break;
       case 'string':
         fn = function(e){
-          var t = e[x];
-          return this.$continue(exists(t) ? t : x);
+          var t = e[x], 
+              r = exists(t) ? t : x;
+          this.$host()._.history[this.$host()._.fired-1] = r;
+          return this.$continue(r);
         }
       break;
       case 'object':
@@ -555,9 +564,10 @@
         clearTimeout(bus._.dbtimer);
         bus._.dbtimer = setTimeout(function(){
           delete bus._.dbtimer;
+          self.$unlock();
           self.$continue(e);
         }, t);      
-        this.$break();
+        this.$lock();
       });
     }else{
       throw "TypeError: argument of debounce must be a number of ms.";
@@ -566,16 +576,18 @@
 
   DataBus.prototype.getCollected = function(t){
     if(typeof t == 'number'){
-      return this.processor.add(function(e){
+      return this.addProcess(function(e){
         var self = this, bus = this.$host();
         if(!bus._.timer){
-          bus._.collectionStart = bus.emitted.length;
+          bus._.collectionStart = bus._.fired-1;
+          bus._.timer = setTimeout(function(){
+            var collection = bus._.history.slice(bus._.collectionStart, bus._.fired);
+            delete bus._.timer;
+            self.$unlock();
+            self.$continue(collection);
+          }, t);
+          this.$lock();
         }
-        bus._.timer = setTimeout(function(){
-          var collection = bus._.emitted.slice(bus._.collectionStart, bus._.emitted.length);
-          delete bus._.timer;
-          self.$continue(collection);
-        }, t)
       })
     }else{
       throw "TypeError: getCollected of debounce must be a number of ms.";

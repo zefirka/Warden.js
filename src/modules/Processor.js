@@ -5,7 +5,8 @@
 
 function Processor(proc, host){
   var processes = proc || [], 
-      i = 0, 
+      locked = 0, 
+      i = 0,
       self = this;
   
   this.getProcesses = function(){
@@ -19,8 +20,11 @@ function Processor(proc, host){
     function $break(preventValue){
       return self.tick({}, 1); //break
     },
-    function $async(data, context){
-      return self.tick(data, 0, 1);
+    function $lock(){
+      return locked = 1;
+    },
+    function $unlock(){
+      return locked = 0;
     },
     function $host(){
       return self.hoster;
@@ -30,9 +34,12 @@ function Processor(proc, host){
   this.hoster = host;
 
   this.start = function(event, context, fin){
-    var i = 0;
     self.ctx = context;
     self.fin = fin;    
+    
+    if(locked){
+      i = 0;
+    }
     
     if(i==processes.length){
       i = 0;
@@ -46,14 +53,12 @@ function Processor(proc, host){
     this.tick(event);
   }
 
-  this.tick = function(event, br, async){    
+  this.tick = function(event, br, async){        
     if(br){
       i = 0;
       return void 0;
     }
-    if(async){
-      i=0;
-    }
+    
     if(i==processes.length){
       forEach(fns, function(x){
         delete self.ctx[x.name]

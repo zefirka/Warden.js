@@ -11,7 +11,7 @@
 var doc = Warden.extend(document);
 
 var clicks = doc.stream('click');
-clicks.debounce(3000).log();
+clicks.map('timestamp').getCollected(2000).log();
 //
 //var keydowns = doc.stream('keydown', {x: 20});
 //keydowns.log();
