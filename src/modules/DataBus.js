@@ -4,19 +4,16 @@ function DataBus(proc){
   
   this._ = {
     history : [],
+    takes : [],
     fired : 0,
     taken : 0,
     skipped : 0
   };
 
-  this.setHost = function(nhost){
-    host = nhost;
-  };
-
-  this.getHost = function(nhost){
-    return host;
-  };
-
+  this.host = function(h){
+    return host = h || host;
+  }
+  
   this.getProcessor = function(){
     return processor;
   }
@@ -28,14 +25,12 @@ function DataBus(proc){
     });
     nprocess.push(process);
     var nbus = new DataBus(nprocess);
-    nbus.setHost(this.getHost());
+    nbus.host(this.host());
     return nbus;
   }
     
   this.fire = function(data, context){  
     var self = this;
-    data = this.setupData(data);
-
     this._.fired++;
     this._.history.push(data);
     processor.start(data, context, function(result){
@@ -45,14 +40,8 @@ function DataBus(proc){
   }
 }
 
-DataBus.prototype.setupData = function(data){
-  data.timestamp = new Date(). getTime();
-  return data;
-}
-
 DataBus.prototype.listen = function(x){
   var nb = this.clone();
-  
   if(typeof x === 'function'){
     nb.handler = x;
   } else {
@@ -61,10 +50,14 @@ DataBus.prototype.listen = function(x){
     }
   }
   
-  this.getHost().push(nb);
+  this.host().push(nb);
   return nb;
 };
-  
+
+DataBus.prototype.unbind = function(){
+  this.host().pop(this);
+};
+
 DataBus.prototype.log = function(){
   return this.listen(function(data){
     console.log(data);
@@ -73,7 +66,7 @@ DataBus.prototype.log = function(){
 
 DataBus.prototype.clone = function() {
   var nbus = new DataBus(this.getProcessor().getProcesses());
-  nbus.setHost(this.getHost());
+  nbus.host(this.host());
   return nbus;
 }
 
@@ -138,10 +131,10 @@ DataBus.prototype.take = function(x){
     return this.filter(x);
   }else
   if(ctype == 'number'){
-    return this.processor.add(function(e){
+    return this.addProcess(function(e){
       var bus = this.$host();
       bus._.limit = bus._.limit || x;
-      if(bus._.taken > bus._.limit){
+      if(bus._.taken === bus._.limit){
         return this.$break();
       }else{
         return this.$continue(e);
@@ -154,9 +147,9 @@ DataBus.prototype.take = function(x){
 
 DataBus.prototype.skip = function(c) {
   if(typeof c === 'number'){
-    return this.processor.add(function(e){
+    return this.addProcess(function(e){
       var bus = this.$host();
-      if(bus._.emitted <= c){
+      if(bus._.fired <= c){
         this.$break();
       }else{
         return this.$continue(e);
@@ -171,12 +164,12 @@ DataBus.prototype.mask = function(s){
   if(typeof s !== 'string'){
     return this.map(s);
   }else{
-    return this.process.add(function(event){
+    return this.addProcess(function(event){
       var regex = /{{\s*[\w\.]+\s*}}/g;
-      return this.$continue(s.replace(regex, function(i){return e[i.slice(2,-2)]}));
+      return this.$continue(s.replace(regex, function(i){return event[i.slice(2,-2)]}));
     })
   }
-}
+};
 
 DataBus.prototype.debounce = function(t) {
   if(typeof t == 'number'){
@@ -213,4 +206,12 @@ DataBus.prototype.getCollected = function(t){
   }else{
     throw "TypeError: getCollected of debounce must be a number of ms.";
   }
-}
+};
+
+DataBus.prototype.merge = function(bus){
+  var self = this;
+  return Warden.makeStream(function(emit){
+    bus.listen(emit);
+    self.listen(emit)
+  }).get();
+};

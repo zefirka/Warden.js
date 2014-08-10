@@ -1,22 +1,48 @@
-//var left = Warden.extend(document.getElementById("left"));
-//
-//var str = left.stream("click");
-//var str2 = left.stream('click');
+var left = Warden.extend(document.getElementById("left")),
+    str = left.stream("click"),
+    str2 = left.stream('click'),
+    console1 = document.getElementById('console1');
 
-//str.listen("Stream 1 bus");
+str.map('x').listen(function(e){
+  console1.innerHTML += "X = " + e + "\n";
+});
+str2.map('y').listen(function(e){
+    console1.innerHTML += "Y = " + e + "\n\n";
+})
 
-//str2.map('x').filter(function(x){ return x > 300; }).log();
-//str2.listen("Stream 2 bus 2");
+///////////////////////////////////////////
 
-var doc = Warden.extend(document);
 
-var clicks = doc.stream('click');
-clicks.map('timestamp').getCollected(2000).log();
-//
-//var keydowns = doc.stream('keydown', {x: 20});
-//keydowns.log();
-//keydowns.listen(function(x){
-//  x.preventDefault();
-//  console.log(this.x + x.keyCode);
-//});
-//
+var i1 = Warden.extend(document.getElementById("input1")),
+    i2 = Warden.extend(document.getElementById("input2"));
+
+var ic1 = document.getElementById('cni1'),
+    ic2 = document.getElementById('cni2'),
+    ic1 = document.getElementById('cni3');
+
+var i1kd = i1.stream('keydown').map('keyCode').map(String.fromCharCode),
+    i2kd = i2.stream('keydown').map('keyCode').map(String.fromCharCode);
+
+i1kd.listen(function(e){
+  cni1.innerHTML += e;
+});
+
+i2kd.listen(function(e){
+  cni2.innerHTML += e;
+});
+
+i1kd.merge(i2kd).listen(function(e){
+  cni3.innerHTML += e;
+});
+
+
+//////////////////////////////////////////
+
+var mid = Warden.extend(document.getElementById('middle')),
+    c3 = document.getElementById('console3');
+
+var mouseMoves = mid.stream('mousemove');
+
+mouseMoves.mask("Mouse now on x:{{x}}, y:{{y}}").listen(function(e){
+  c3.innerHTML = e;
+});

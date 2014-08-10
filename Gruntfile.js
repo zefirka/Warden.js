@@ -1,5 +1,3 @@
-console.log("Starting Grunt");
-
 module.exports = function(grunt){
   grunt.initConfig({
 
@@ -80,8 +78,8 @@ module.exports = function(grunt){
 
     watch: {
       scripts : {
-        files : ['test/specs/*.js', "src/*.js", "src/**/*.js"],
-        tasks : ['build']
+        files : ['test/specs/*.js', "src/*.js", "src/**/*.js", "src/modules/*.js"],
+        tasks : ['default']
       },
       coffee: {
         files: ['src/plugins/*.coffee'],
@@ -101,18 +99,24 @@ module.exports = function(grunt){
   grunt.loadNpmTasks('grunt-includes');
   grunt.loadNpmTasks('grunt-devtools');
 
+  grunt.registerTask('test', [
+    "jasmine"
+  ]);
+  
   grunt.registerTask('build', [
     "coffee",
     "includes",
     "copy",
     "comments",
     "uglify",
-//    "jasmine",
-    "watch"
+    "jasmine"
   ]);
   grunt.registerTask('default', [
     "coffee",
     "includes",
+    "copy",
+    "comments",
+    "uglify",
     "watch"
   ]);  
 };

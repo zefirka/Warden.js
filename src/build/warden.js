@@ -15,12 +15,9 @@
 })(this, function(Warden){
   
   'use strict';
-  Warden.version = "0.0.2"; 
+  Warden.version = "0.0.3-alpha"; 
   Warden.log = function(){
-    if(Warden.debug || window.debug){
-      console.log(arguments);
-    }
-    return void 0;
+    console.log(arguments);
   }
   
 /* Begin: src/modules/Helpers.js */
@@ -209,8 +206,7 @@
     };  
     
     /* Emitter method */
-    inheritor.emit = function(ev) {
-      Warden.log("Emitted " + ev.type);
+    inheritor.emit = function(ev){
       var self = this,
           callbacks = handlers.getHandlers(this, ev.type);
         
@@ -329,9 +325,11 @@
 
   Warden.makeStream = function(x, context){
     var stream, ctype = typeof x;
-
-    switch(ctype){
-      case 'function':
+    
+    if(ctype == 'string'){
+      stream = new Stream(x, context);
+    }else
+    if(ctype == 'function'){
         for(var i = 0, type = ""; i<2; i++){
           type += (Math.random() * 100000 >> 0) + "-";
         }
@@ -339,35 +337,36 @@
         stream = new Stream(type.slice(0,-1), context);
         x(function(expectedData){
           stream.eval(expectedData);
-        });
-      break;
-      case 'string':  
-        stream = new Stream(x, context);
-      break;
-      default:
-        throw "Unexpected data type at stream\n";
-        break;
+        });  
+    }else{
+      throw "Unexpected data type at stream\n";      
     }
     
     return stream;
   }
 
   function Stream(dataType, context, toolkit){
-    var listeningBuses = [];
-    this.drive = []; 
-    this.id = Math.random() * 10000 >> 0;
-
-    var bus = new DataBus();
-    bus.setHost(this);
+    var drive = [],
+        bus = new DataBus();
+    
+    bus.host(this);
 
     this.eval = function(data){
-      listeningBuses.forEach(function(bus){
+      drive.forEach(function(bus){
         bus.fire(data, context);
       });
     };
 
     this.push = function(bus){
-      listeningBuses.push(bus);
+      drive.push(bus);
+    };
+    
+    this.pop = function(bus){
+      forEach(drive, function(b){
+        if(bus == b){
+          debugger;
+        }
+      });
     };
 
     this.get = function(){
@@ -383,19 +382,16 @@
     
     this._ = {
       history : [],
+      takes : [],
       fired : 0,
       taken : 0,
       skipped : 0
     };
 
-    this.setHost = function(nhost){
-      host = nhost;
-    };
-
-    this.getHost = function(nhost){
-      return host;
-    };
-
+    this.host = function(h){
+      return host = h || host;
+    }
+    
     this.getProcessor = function(){
       return processor;
     }
@@ -407,14 +403,12 @@
       });
       nprocess.push(process);
       var nbus = new DataBus(nprocess);
-      nbus.setHost(this.getHost());
+      nbus.host(this.host());
       return nbus;
     }
       
     this.fire = function(data, context){  
       var self = this;
-      data = this.setupData(data);
-
       this._.fired++;
       this._.history.push(data);
       processor.start(data, context, function(result){
@@ -424,14 +418,8 @@
     }
   }
 
-  DataBus.prototype.setupData = function(data){
-    data.timestamp = new Date(). getTime();
-    return data;
-  }
-
   DataBus.prototype.listen = function(x){
     var nb = this.clone();
-    
     if(typeof x === 'function'){
       nb.handler = x;
     } else {
@@ -440,10 +428,14 @@
       }
     }
     
-    this.getHost().push(nb);
+    this.host().push(nb);
     return nb;
   };
-    
+
+  DataBus.prototype.unbind = function(){
+    this.host().pop(this);
+  };
+
   DataBus.prototype.log = function(){
     return this.listen(function(data){
       console.log(data);
@@ -452,7 +444,7 @@
 
   DataBus.prototype.clone = function() {
     var nbus = new DataBus(this.getProcessor().getProcesses());
-    nbus.setHost(this.getHost());
+    nbus.host(this.host());
     return nbus;
   }
 
@@ -517,10 +509,10 @@
       return this.filter(x);
     }else
     if(ctype == 'number'){
-      return this.processor.add(function(e){
+      return this.addProcess(function(e){
         var bus = this.$host();
         bus._.limit = bus._.limit || x;
-        if(bus._.taken > bus._.limit){
+        if(bus._.taken === bus._.limit){
           return this.$break();
         }else{
           return this.$continue(e);
@@ -533,9 +525,9 @@
 
   DataBus.prototype.skip = function(c) {
     if(typeof c === 'number'){
-      return this.processor.add(function(e){
+      return this.addProcess(function(e){
         var bus = this.$host();
-        if(bus._.emitted <= c){
+        if(bus._.fired <= c){
           this.$break();
         }else{
           return this.$continue(e);
@@ -550,12 +542,12 @@
     if(typeof s !== 'string'){
       return this.map(s);
     }else{
-      return this.process.add(function(event){
+      return this.addProcess(function(event){
         var regex = /{{\s*[\w\.]+\s*}}/g;
-        return this.$continue(s.replace(regex, function(i){return e[i.slice(2,-2)]}));
+        return this.$continue(s.replace(regex, function(i){return event[i.slice(2,-2)]}));
       })
     }
-  }
+  };
 
   DataBus.prototype.debounce = function(t) {
     if(typeof t == 'number'){
@@ -592,6 +584,17 @@
     }else{
       throw "TypeError: getCollected of debounce must be a number of ms.";
     }
-  }/* End: src/modules/DataBus.js */
-  //include "Connector.js"
+  };
+
+  DataBus.prototype.merge = function(bus){
+    var self = this;
+    return Warden.makeStream(function(emit){
+      bus.listen(emit);
+      self.listen(emit)
+    }).get();
+  };/* End: src/modules/DataBus.js */
+/* Begin: src/modules/Pkg.js */
+  Warden.pkg = function(object, method){
+
+  };/* End: src/modules/Pkg.js */
 }));

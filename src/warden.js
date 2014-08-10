@@ -15,12 +15,9 @@
 })(this, function(Warden){
   
   'use strict';
-  Warden.version = "0.0.2"; 
+  Warden.version = "0.0.3-alpha"; 
   Warden.log = function(){
-    if(Warden.debug || window.debug){
-      console.log(arguments);
-    }
-    return void 0;
+    console.log(arguments);
   }
   
   include "Helpers.js"      
@@ -28,5 +25,4 @@
   include "Processor.js" 
   include "Streams.js"
   include "DataBus.js"
-  //include "Connector.js"
 }));

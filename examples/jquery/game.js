@@ -420,25 +420,12 @@ $(function(){
 
   var pushes = playerMoves.filter(player.isTypeOf('box')).listen(pushBox);
   
-  var cs = enemyMoves.map("Enemy on X:{{x}}, Y:{{y}}").connect(h1, 'text');
-
-  playerMoves
-    .filter(player.isTypeOf('enemy'))
-    .map("You loose at position x:{{x}}, y:{{y}}!").listen(function(msg){
-      cs.unbind();
-      cs.assign(msg);
-      playerMoves.lock();
+  var loses = playerMoves.filter(player.isTypeOf('enemy')).merge(enemyMoves.filter(enemy.isTypeOf('player'))).listen(function(){
+      alert('You loose');
+      playerMoves.unbind();
       enemy.clear();
-    });         ;
-          
-  enemyMoves
-    .filter(enemy.isTypeOf('player'));
-    .map('You loose  at position x:{{x}}, y:{{y}}!').listen(function(msg){
-      cs.unbind();
-      cs.assign(msg)
-      playerMoves.lock();
-      enemy.clear();
-    });
+  });
+  
 
   playerMoves.filter(enemy.isLockedBy('box')).listen(function(){
     alert("You win! Hooray!")

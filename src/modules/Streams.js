@@ -6,9 +6,11 @@
 
 Warden.makeStream = function(x, context){
   var stream, ctype = typeof x;
-
-  switch(ctype){
-    case 'function':
+  
+  if(ctype == 'string'){
+    stream = new Stream(x, context);
+  }else
+  if(ctype == 'function'){
       for(var i = 0, type = ""; i<2; i++){
         type += (Math.random() * 100000 >> 0) + "-";
       }
@@ -16,35 +18,36 @@ Warden.makeStream = function(x, context){
       stream = new Stream(type.slice(0,-1), context);
       x(function(expectedData){
         stream.eval(expectedData);
-      });
-    break;
-    case 'string':  
-      stream = new Stream(x, context);
-    break;
-    default:
-      throw "Unexpected data type at stream\n";
-      break;
+      });  
+  }else{
+    throw "Unexpected data type at stream\n";      
   }
   
   return stream;
 }
 
 function Stream(dataType, context, toolkit){
-  var listeningBuses = [];
-  this.drive = []; 
-  this.id = Math.random() * 10000 >> 0;
-
-  var bus = new DataBus();
-  bus.setHost(this);
+  var drive = [],
+      bus = new DataBus();
+  
+  bus.host(this);
 
   this.eval = function(data){
-    listeningBuses.forEach(function(bus){
+    drive.forEach(function(bus){
       bus.fire(data, context);
     });
   };
 
   this.push = function(bus){
-    listeningBuses.push(bus);
+    drive.push(bus);
+  };
+  
+  this.pop = function(bus){
+    forEach(drive, function(b){
+      if(bus == b){
+        debugger;
+      }
+    });
   };
 
   this.get = function(){

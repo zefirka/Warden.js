@@ -97,8 +97,7 @@ Warden.extend = function(obj, conf) {
   };  
   
   /* Emitter method */
-  inheritor.emit = function(ev) {
-    Warden.log("Emitted " + ev.type);
+  inheritor.emit = function(ev){
     var self = this,
         callbacks = handlers.getHandlers(this, ev.type);
       
