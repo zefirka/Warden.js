@@ -59,7 +59,7 @@ Warden.extend = function(obj, conf) {
       if(handlers.length < config.max){
         handlers = handlers.push(fn);
       }else{
-        throw "Maximal handlers count";
+        throw "Maximal handlers count reached";
       }
     }else{
       var collection = this.getCollection(object);

@@ -2,12 +2,15 @@ Warden.extend
 =========
 
 Module at: `./src/module/Extend.js`
+
 Usage : `Warden.extend(object, config)`
+
 Description: Extends object with `emit()`, `.listen()` and `.stream()` methods. And returns extented object;
+
 
 ###Usage###
 ####Extend objects with Warden.extend()###
-Extension method is the base method of Warden, that extends objects or object constructors by methods that implements custom event triggering/listening for simple Pub/Sub pattern
+Extension method is the base method of Warden, that extends objects or object constructors by methods that implements custom event triggering/listening for Pub/Sub pattern. You can extend simple JS objects, then that object will be transmitter for Pub/Sub or you can extend constructor of objects and then `emit`, `listen`  and `stream` will be methods of prototype.
 
 #####With constructors#####
 ```js
@@ -73,34 +76,70 @@ lols.listen(function(event){
 ####Configuration
 
 You can configure next terms:
--  `max` - Count of maximal handlers of unique event type per each object. Default: 512
+-  `max` - Count of maximal handlers of unique event type per each object. Default: *512*. Note that every stream makes new handler.
 -  `emitter` - Name of native emitter function if you have such. For example $.trigger() for jQuery. Use it if your framework has already have event emitter method and you creating emittor from object that contains native emittor. If you use jQuery you can't dont use this configuration item because Warden automaticaly find it.
 -  `listener` - Name of native listener function if you have such. For example $.on() for jQuery, or .addEventListener for native browser's DOM API, both of them you can don't configure. 
 -  `context` - Value of `this` variable in handler. Extented object by default.
 
 ###Methods###
 ####emit####
-Emits custom event. If you use `emit([string])`, than it will emit event of `[string]` type. To transfer data though event - use JSON:
+Usage: `object.emit(event)`
+
+Returns: `object`
+
+Emits custom event. If you use `emit([string])`, than it will emit event of `[string]` type empty event. To transfer data though event - use JSON:
 ```js
-mod.listen('custom', function(event){
-	console.log(event.data);
-});
 
 mod.emit({
 	type : 'custom',
-	data : 'Hello world!'
+	data : 'some data!'
 });
+
+```
+
+If you use JSON, event type is on `type` property and it's required. Note that `emit` - is method of object that emits event which you will can subscibe on same object.
+
+####listen####
+Usage: `object.listen(type, handler)`
+
+Returns: `object`.
+
+Attaching to the object handler that proces all events of `@type` type.
+```js
+mod.emit({
+	type: 'custom',
+	greet: 'Hello world!'
+});
+
+mod.listen('custom', function(event){
+	console.log(event.greet);
+});
+
 // --> Hello world!
 ```
 
-If you use JSON, `type` property is required.
-
-####listen####
-Ataching event handler to the module. 
+Handlers will be started in same order which they was registered. If you reach maximal number of handlers for current object you'l recieve error : `Maximal handlers count` in console.
 
 ####stream####
-Creating data-stream and returns first DataBus of it;
+Usage: `object.stream(type, [context])`
 
+Returns: `DataBus` object associated with created stream
+```js
+var recievedTweets = socket.stream('tweet'),
+	recievedPosts = socket.stream('post');
 
+recievedTweets
+	.map({
+		user : 'author',
+		time : 'timestamp'
+	})
+	.listen(function(data){
+		console.log("@" + data.user + " has been tweeted at " + data.time);
+	});
 
+recievedTweets.merge(recievedPosts).map(['author','type']).listen(function(data){
+	console.log('@'+data[0]+" have made " + data[2]);
+});
 
+```
+Creates stream of data. 
