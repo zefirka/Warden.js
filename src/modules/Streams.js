@@ -5,13 +5,12 @@
 */
 
 Warden.makeStream = function(x, context){
-  var stream, ctype = typeof x;
-  
-  if(ctype == 'string'){
+  var stream;  
+  if(is.str(x)){
     stream = new Stream(x, context);
   }else
-  if(ctype == 'function'){
-      for(var i = 0, type = ""; i<2; i++){
+  if(is.fn(x)){
+      for(var i = 0, type = x.name; i<2; i++){
         type += (Math.random() * 100000 >> 0) + "-";
       }
 
@@ -20,11 +19,10 @@ Warden.makeStream = function(x, context){
         stream.eval(expectedData);
       });  
   }else{
-    throw "Unexpected data type at stream\n";      
+    throw "Unexpected data type at stream\n";
   }
-  
   return stream;
-}
+};
 
 function Stream(dataType, context, toolkit){
   var drive = [],
@@ -43,9 +41,10 @@ function Stream(dataType, context, toolkit){
   };
   
   this.pop = function(bus){
-    forEach(drive, function(b){
+    forEach(drive, function(b, d){
       if(bus == b){
-        debugger;
+        console.log("Removed DataBus:"+bus.id);
+        drive = drive.slice(0,d).concat(drive.slice(d+1,drive.length))
       }
     });
   };

@@ -8,7 +8,7 @@ Warden.extend = function(obj, conf) {
   /* Default configuration */
 
   var config = conf || {
-    max : 256, // maximal handlers per object
+    max : 512, // maximal handlers per object
     context : 'this', // context of evaluation
     emitter : null, // custom event emitter if exists
     listener : null // custrom event listener if exists

@@ -9,6 +9,28 @@ var exists = function(x){
 }
 
 
+/* Typeof methods */
+var is = {
+  fn : function (x) {
+    return typeof x === 'function';
+  },
+  num : function (x) {
+    return typeof x === 'number';
+  },
+  str : function (x) {
+    return typeof x === 'string';
+  },
+  array : function(x){
+    return isArray(x);
+  },
+  obj : function(x){
+    return typeof x === 'object';
+  },
+  exists : function(x){
+    return exists(x);
+  }
+}
+
 /*
   Function isArray(@mixed x):
   Checks is x param is real array or object (or arguments object)

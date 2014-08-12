@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Blocker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+    <script src="jquery/dist/jquery.min.js"></script>
+    <script src="../../dist/warden.js"></script>
+  
+  </head>
+
+    
+  <body>
+  <a href='#' id='btn1'>Click 1</a> : <span>Value: 100</span>
+  <br>
+  <a href='#' id='btn2'>Click 2</a> : <span>Value: 100</span>
+
+  <p>Synced</p>
+  <div>
+    <div> Is synced: <span class="synced">false</span></div>
+    <div> Console: <span class="console"></span></div>
+  </div>
+  
+  <script type="text/javascript">
+    $(function() {
+      Warden.extend($);
+      var btn1Clicks = $("#btn1").stream('click');
+      var btn2Clicks = $("#btn2").stream('click');
+      
+      btn1Clicks.merge(btn2Clicks).listen(function(e){
+        $(".synced").html("false");
+        $(".console").html('Clicked at one bus, now asynchronized');
+      })
+
+      var synced = btn1Clicks.sync(btn2Clicks).listen(function(e){
+        $(".synced").html("true");
+        $(".console").html("Emitted " + e.map(function(t){return new Date(t.timeStamp).toLocaleTimeString();}).join(" and "));
+      });
+
+
+    });
+  </script>
+  </body>
+</html>

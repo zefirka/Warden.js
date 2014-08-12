@@ -15,9 +15,9 @@
 })(this, function(Warden){
   
   'use strict';
-  Warden.version = "0.0.3-alpha"; 
-  Warden.log = function(){
-    console.log(arguments);
+  Warden.version = "0.0.3.1"; 
+  Warden.log = function(x){
+    console.log(x);
   }
   
   include "Helpers.js"      
@@ -25,4 +25,6 @@
   include "Processor.js" 
   include "Streams.js"
   include "DataBus.js"
+  include "Watcher.js"
+
 }));
