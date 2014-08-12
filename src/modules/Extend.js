@@ -1,4 +1,8 @@
 /* 
+  Extend module: 
+    docs: ./docs/Extend.md
+    version: v.0.1.0
+
   This methods extends @obj which can be both 
   function or object with Warden.js methods .emit(), 
   .listen() and .stream() 

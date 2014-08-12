@@ -33,26 +33,12 @@ function DataBus(proc){
       return nbus;  
     }
   };
-  
-  this.getProcessor = function(){
-    return processor;
-  }
-
-  this.addProcess = function(process){
-    var nprocess = [];
-    forEach(processor.getProcesses(), function(i){
-      nprocess.push(i);
-    });
-    nprocess.push(process);
-    var nbus = new DataBus(nprocess);
-    nbus.host(this.host());
-    return nbus;
-  }
     
   this.fire = function(data, context){  
     var self = this;
+    data = data || {};
     data.$$bus = this;
-    
+
     this._.fired++;
     this._.history.push(data);
     processor.start(data, context, function(result){
@@ -64,14 +50,7 @@ function DataBus(proc){
 
 DataBus.prototype.listen = function(x){
   var nb = this.clone();
-  if(typeof x === 'function'){
-    nb.handler = x;
-  } else {
-    nb.handler = function(){
-      console.log(x);
-    }
-  }
-  
+  nb.handler = is.fn(x) ? x : function(){console.log(x)}  
   this.host().push(nb);
   return nb;
 };
@@ -85,7 +64,7 @@ DataBus.prototype.log = function(logger){
 }
 
 DataBus.prototype.clone = function() {
-  var nbus = new DataBus(this.getProcessor().getProcesses());
+  var nbus = new DataBus(this.process().getProcesses());
   nbus.parent = this.parent || this;
   nbus.host(this.host());
   return nbus;
@@ -147,6 +126,24 @@ DataBus.prototype.map = function(x) {
   return this.process(fn);
 };
 
+
+DataBus.prototype.reduce = function(init, fn){
+  if(is.fn(fn)){
+    return this.process(function(event){
+      var bus = this.$host(),
+          prev = init,
+          cur = event;
+
+      if(init==='-f'){
+        var prev = bus._.takes.get(bus._.takes.length);
+      }
+      return this.$continue(fn(prev, next));
+    });   
+  }else{
+    throw "TypeError: second argument must be a function";
+  }
+};
+
 /* Take only x count or x(event) == true events */
 DataBus.prototype.take = function(x){
   if(is.fn(x)){
@@ -183,7 +180,7 @@ DataBus.prototype.skip = function(c) {
 };
 
 DataBus.prototype.mask = function(s){
-  if(is.str(s)){
+  if(!is.str(s)){
     return this.map(s);
   }else{
     return this.process(function(event){
@@ -195,7 +192,7 @@ DataBus.prototype.mask = function(s){
 
 DataBus.prototype.debounce = function(t) {
   if(is.num(t)){
-    return this.addProcess(function(e){
+    return this.process(function(e){
       var self = this, bus = this.$host();
       clearTimeout(bus._.dbtimer);
       bus._.dbtimer = setTimeout(function(){
@@ -242,16 +239,21 @@ DataBus.prototype.merge = function(bus){
 DataBus.prototype.sync = function(bus){
   var self = this;
   return Warden.makeStream(function(emit){
-    var exec1 = false, exec2 = false;
-    var val1, val2;
+    var exec1 = false, 
+        exec2 = false,
+        val1, 
+        val2,
+        clear = function(){
+          val1 = null; 
+          val2 = null;
+          exec1 = false,
+          exec2 = false;
+        };
 
     bus.listen(function(data){
       if(exec1){
         emit([val1, data]);
-        val1 = null; 
-        val2 = null;
-        exec1 = false,
-        exec2 = false;
+        clear();
       }else{
         val2 = data,
         exec2 = true;
@@ -261,10 +263,7 @@ DataBus.prototype.sync = function(bus){
     self.listen(function(data){
       if(exec2){
         emit([data, val2]);
-        val1 = null; 
-        val2 = null;
-        exec1 = false,
-        exec2 = false;
+        clear();
       }else{
         val1 = data;
         exec1 = true;
@@ -287,3 +286,4 @@ DataBus.prototype.bindTo = function(a,b){
   unshift.apply(args, [this]);
   Warden.watcher(args)
 };
+

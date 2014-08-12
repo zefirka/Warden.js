@@ -130,6 +130,10 @@
   })();/* End: src/modules/Helpers.js */
 /* Begin: src/modules/Extend.js */
   /* 
+    Extend module: 
+      docs: ./docs/Extend.md
+      version: v.0.1.0
+
     This methods extends @obj which can be both 
     function or object with Warden.js methods .emit(), 
     .listen() and .stream() 
@@ -340,6 +344,10 @@
   }/* End: src/modules/Processor.js */
 /* Begin: src/modules/Streams.js */
   /*
+    Streams module:
+      docs: ./docs/Streams.md
+      version: 0.0.2
+
     Creates stream of data.
     If @x is string, that it interprets as datatype
     else if @x is function, than x's first arg is emitting data function
@@ -356,9 +364,10 @@
         }
 
         stream = new Stream(type.slice(0,-1), context);
-        x(function(expectedData){
+        stream.context = {};
+        x.apply(stream.context, [function(expectedData){
           stream.eval(expectedData);
-        });  
+        }]);  
     }else{
       throw "Unexpected data type at stream\n";
     }
@@ -384,7 +393,6 @@
     this.pop = function(bus){
       forEach(drive, function(b, d){
         if(bus == b){
-          console.log("Removed DataBus:"+bus.id);
           drive = drive.slice(0,d).concat(drive.slice(d+1,drive.length))
         }
       });
@@ -393,6 +401,16 @@
     this.get = function(){
       return bus;
     };
+
+    /* Need to research: 
+    this.get = function(){
+      var bus = new DataBus();
+      bus.host(this);
+      return bus;
+    }
+
+    and delete old bus
+    */
 
     return this;
   }/* End: src/modules/Streams.js */
@@ -432,26 +450,12 @@
         return nbus;  
       }
     };
-    
-    this.getProcessor = function(){
-      return processor;
-    }
-
-    this.addProcess = function(process){
-      var nprocess = [];
-      forEach(processor.getProcesses(), function(i){
-        nprocess.push(i);
-      });
-      nprocess.push(process);
-      var nbus = new DataBus(nprocess);
-      nbus.host(this.host());
-      return nbus;
-    }
       
     this.fire = function(data, context){  
       var self = this;
+      data = data || {};
       data.$$bus = this;
-      
+
       this._.fired++;
       this._.history.push(data);
       processor.start(data, context, function(result){
@@ -463,14 +467,7 @@
 
   DataBus.prototype.listen = function(x){
     var nb = this.clone();
-    if(typeof x === 'function'){
-      nb.handler = x;
-    } else {
-      nb.handler = function(){
-        console.log(x);
-      }
-    }
-    
+    nb.handler = is.fn(x) ? x : function(){console.log(x)}  
     this.host().push(nb);
     return nb;
   };
@@ -484,7 +481,7 @@
   }
 
   DataBus.prototype.clone = function() {
-    var nbus = new DataBus(this.getProcessor().getProcesses());
+    var nbus = new DataBus(this.process().getProcesses());
     nbus.parent = this.parent || this;
     nbus.host(this.host());
     return nbus;
@@ -594,7 +591,7 @@
 
   DataBus.prototype.debounce = function(t) {
     if(is.num(t)){
-      return this.addProcess(function(e){
+      return this.process(function(e){
         var self = this, bus = this.$host();
         clearTimeout(bus._.dbtimer);
         bus._.dbtimer = setTimeout(function(){

@@ -1,4 +1,8 @@
 /*
+  Streams module:
+    docs: ./docs/Streams.md
+    version: 0.0.3
+
   Creates stream of data.
   If @x is string, that it interprets as datatype
   else if @x is function, than x's first arg is emitting data function
@@ -15,9 +19,10 @@ Warden.makeStream = function(x, context){
       }
 
       stream = new Stream(type.slice(0,-1), context);
-      x(function(expectedData){
+      stream.context = {};
+      x.apply(stream.context, [function(expectedData){
         stream.eval(expectedData);
-      });  
+      }]);  
   }else{
     throw "Unexpected data type at stream\n";
   }
@@ -43,7 +48,6 @@ function Stream(dataType, context, toolkit){
   this.pop = function(bus){
     forEach(drive, function(b, d){
       if(bus == b){
-        console.log("Removed DataBus:"+bus.id);
         drive = drive.slice(0,d).concat(drive.slice(d+1,drive.length))
       }
     });
@@ -52,6 +56,16 @@ function Stream(dataType, context, toolkit){
   this.get = function(){
     return bus;
   };
+
+  /* Need to research: 
+  this.get = function(){
+    var bus = new DataBus();
+    bus.host(this);
+    return bus;
+  }
+
+  and delete old bus
+  */
 
   return this;
 }

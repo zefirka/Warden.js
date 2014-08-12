@@ -26,18 +26,34 @@
       Warden.extend($);
       var btn1Clicks = $("#btn1").stream('click');
       var btn2Clicks = $("#btn2").stream('click');
+      var clears = Warden.makeStream(function(trigger){
+        this.start = function(){
+          this.timer = setInterval(trigger, 5000);
+        };
+        this.stop = function(){
+          clearInterval(this.timer);
+        }
+        this.start();
+      });
+
+      clears.get().listen(function(){
+        $(".synced").html("false");
+        $(".console").html('Cleared');        
+        clears.context.stop();
+      });
       
       btn1Clicks.merge(btn2Clicks).listen(function(e){
+        clears.context.stop();
         $(".synced").html("false");
-        $(".console").html('Clicked at one bus, now asynchronized');
+        $(".console").html('Clicked at link, now asynchronized, waiting for click to second link');
       })
 
       var synced = btn1Clicks.sync(btn2Clicks).listen(function(e){
+        clears.context.start();
         $(".synced").html("true");
         $(".console").html("Emitted " + e.map(function(t){return new Date(t.timeStamp).toLocaleTimeString();}).join(" and "));
       });
-
-
+      
     });
   </script>
   </body>
