@@ -1,7 +1,7 @@
 /*
   Streams module:
     docs: ./docs/Streams.md
-    version: 0.0.3
+    version: 0.0.4
 
   Creates stream of data.
   If @x is string, that it interprets as datatype
@@ -60,9 +60,9 @@ function Stream(dataType, context, toolkit){
   };
   
   this.pop = function(bus){
-    forEach(drive, function(b, d){
+    forEach(drive, function(b, i){
       if(bus == b){
-        drive = drive.slice(0,d).concat(drive.slice(d+1,drive.length))
+        drive = drive.slice(0,i).concat(drive.slice(i+1,drive.length));
       }
     });
   };

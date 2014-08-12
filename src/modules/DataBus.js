@@ -2,7 +2,7 @@ function DataBus(proc){
   var processor = new Processor(proc || [], this), //processor
       host = 0; //hosting stream
 
-  this.id = Math.random()*1000000000 >> 0;
+  this.id = Math.random()*1000000000 >> 0; //for debugging
   this.parent = null;
   this._ = {
     history : [],
