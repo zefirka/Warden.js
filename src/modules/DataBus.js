@@ -179,6 +179,17 @@ DataBus.prototype.skip = function(c) {
   }
 };
 
+DataBus.prototype.waitFor = function(bus){
+  return this.process(function(e){
+    var self = this;
+    this.$lock();
+    return bus.listen(function(){
+      self.$unlock && self.$unlock();
+      return self.$continue && self.$continue(e);
+    });
+  });
+};
+
 DataBus.prototype.mask = function(s){
   if(!is.str(s)){
     return this.map(s);

@@ -9,26 +9,40 @@
 */
 
 Warden.makeStream = function(x, context){
-  var stream;  
+  var stream;
+
+  /* If @x is string then @x is datatype for stream */
   if(is.str(x)){
     stream = new Stream(x, context);
   }else
   if(is.fn(x)){
-      for(var i = 0, type = x.name; i<2; i++){
-        type += (Math.random() * 100000 >> 0) + "-";
-      }
+      /* 
+        Genereting pseudo-random data-type for custom data stream.
+        Need to change it to more efficiently method.
+        May be we should research ability to remove required data-type. 
+        I think it possible cuz i don't find any reqirements at first look on streams realization.
+      
+        I've commented this code:
+        
+        for(var i = 0, type = x.name; i<2; i++){
+          type += (Math.random() * 100000 >> 0) + "-";
+        }
 
-      stream = new Stream(type.slice(0,-1), context);
-      stream.context = {};
+        It weird but it's working.
+      */
+
+      stream = new Stream(0, context);
+      stream.context = {}; //maybe we should use just stream as a context object?
       x.apply(stream.context, [function(expectedData){
         stream.eval(expectedData);
       }]);  
   }else{
-    throw "Unexpected data type at stream\n";
+    throw "Unexpected data type at stream";
   }
   return stream;
 };
 
+/* Why did i add dataType? */
 function Stream(dataType, context, toolkit){
   var drive = [],
       bus = new DataBus();

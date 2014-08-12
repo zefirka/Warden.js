@@ -53,7 +53,16 @@
         $(".synced").html("true");
         $(".console").html("Emitted " + e.map(function(t){return new Date(t.timeStamp).toLocaleTimeString();}).join(" and "));
       });
-      
+
+      var pulse = Warden.makeStream(function(trigger){
+        setInterval(function(){
+          trigger("PULSE!");
+        }, 2000);
+      }).get();
+
+      pulse.log();
+      btn2Clicks.map("HEY!").waitFor(pulse).log();
+
     });
   </script>
   </body>
