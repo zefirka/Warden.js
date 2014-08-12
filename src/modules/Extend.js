@@ -1,4 +1,8 @@
 /* 
+  Extend module: 
+    docs: ./docs/Extend.md
+    version: v.0.1.0
+
   This methods extends @obj which can be both 
   function or object with Warden.js methods .emit(), 
   .listen() and .stream() 
@@ -8,7 +12,7 @@ Warden.extend = function(obj, conf) {
   /* Default configuration */
 
   var config = conf || {
-    max : 256, // maximal handlers per object
+    max : 512, // maximal handlers per object
     context : 'this', // context of evaluation
     emitter : null, // custom event emitter if exists
     listener : null // custrom event listener if exists

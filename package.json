@@ -1,6 +1,6 @@
 {
   "name": "Warden",
-  "version": "0.0.3-alpha",
+  "version": "0.0.3.1",
   "description": "Event-driven development library",
   "main": "warden.js",
   "scripts": {
@@ -13,8 +13,8 @@
   "keywords": [
     "warden",
     "edd",
-    "event-driven",
-    "development"
+    "event driven development",
+    "frp"
   ],
   "author": "Eik Zeffirksy",
   "license": "MIT",
