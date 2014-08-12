@@ -346,7 +346,7 @@
   /*
     Streams module:
       docs: ./docs/Streams.md
-      version: 0.0.2
+      version: 0.0.3
 
     Creates stream of data.
     If @x is string, that it interprets as datatype
@@ -543,6 +543,24 @@
     return this.process(fn);
   };
 
+
+  DataBus.prototype.reduce = function(init, fn){
+    if(is.fn(fn)){
+      return this.process(function(event){
+        var bus = this.$host(),
+            prev = init,
+            cur = event;
+
+        if(init==='-f'){
+          var prev = bus._.takes.get(bus._.takes.length);
+        }
+        return this.$continue(fn(prev, next));
+      });   
+    }else{
+      throw "TypeError: second argument must be a function";
+    }
+  };
+
   /* Take only x count or x(event) == true events */
   DataBus.prototype.take = function(x){
     if(is.fn(x)){
@@ -579,7 +597,7 @@
   };
 
   DataBus.prototype.mask = function(s){
-    if(is.str(s)){
+    if(!is.str(s)){
       return this.map(s);
     }else{
       return this.process(function(event){
@@ -638,16 +656,21 @@
   DataBus.prototype.sync = function(bus){
     var self = this;
     return Warden.makeStream(function(emit){
-      var exec1 = false, exec2 = false;
-      var val1, val2;
+      var exec1 = false, 
+          exec2 = false,
+          val1, 
+          val2,
+          clear = function(){
+            val1 = null; 
+            val2 = null;
+            exec1 = false,
+            exec2 = false;
+          };
 
       bus.listen(function(data){
         if(exec1){
           emit([val1, data]);
-          val1 = null; 
-          val2 = null;
-          exec1 = false,
-          exec2 = false;
+          clear();
         }else{
           val2 = data,
           exec2 = true;
@@ -657,10 +680,7 @@
       self.listen(function(data){
         if(exec2){
           emit([data, val2]);
-          val1 = null; 
-          val2 = null;
-          exec1 = false,
-          exec2 = false;
+          clear();
         }else{
           val1 = data;
           exec1 = true;
@@ -682,7 +702,9 @@
     var concat = Array.prototype.concat;
     unshift.apply(args, [this]);
     Warden.watcher(args)
-  };/* End: src/modules/DataBus.js */
+  };
+
+/* End: src/modules/DataBus.js */
 /* Begin: src/modules/Watcher.js */
   Warden.watcher = function(bus, a, b){
   	var al = arguments.length,
