@@ -1,7 +1,7 @@
 /* 
   Extend module: 
     docs: ./docs/Extend.md
-    version: v.0.1.0
+    version: v.0.1.1
 
   This methods extends @obj which can be both 
   function or object with Warden.js methods .emit(), 
@@ -114,9 +114,10 @@ Warden.extend = function(obj, conf) {
 
   /* Listener function */
   inheritor.listen = function(type, callback, settings){    
+    var self = this;
     handlers.setNewHandler(this, type, callback);    
     if(this[config.listener]){
-      this[config.listener].apply(this, [ev, function(event){ self.emit(event)}]);
+      this[config.listener].apply(this, [type, function(event){ self.emit(event)}]);
     }
     return this;
   };

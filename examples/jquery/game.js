@@ -398,16 +398,18 @@ $(function(){
     return el;
   });
             
-  playerMoves
-    .filter(isNotBorder)
-    .filter(player.isNotTypeOf(['box','elephant']))
-    .listen(player.redraw);    
-
-  playerMoves
-    .filter(player.isTypeOf('box'))
-    .filter(player.isNotNext(['box','enemy','elephant']))
-    .filter(isNotNextBorder)
-    .listen(player.redraw);
+  
+  var redraws = [ 
+    playerMoves
+      .filter(isNotBorder)
+      .filter(player.isNotTypeOf(['box','elephant']))
+      .listen(player.redraw),
+    playerMoves
+      .filter(player.isTypeOf('box'))
+      .filter(player.isNotNext(['box','enemy','elephant']))
+      .filter(isNotNextBorder)
+      .listen(player.redraw)
+  ];
   
   enemyMoves
     .filter(enemy.isTypeOf('elephant'))
@@ -422,7 +424,10 @@ $(function(){
   
   var loses = playerMoves.filter(player.isTypeOf('enemy')).merge(enemyMoves.filter(enemy.isTypeOf('player'))).listen(function(){
       alert('You loose');
-      playerMoves.unbind();
+      playerMoves.lock();
+      redraws.forEach(function(r){
+        r.lock();
+      })
       enemy.clear();
   });
   
