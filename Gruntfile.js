@@ -34,7 +34,7 @@ module.exports = function(grunt){
 
     // Jasmine test
     jasmine: {
-      src: ['dist/warden.min.js', "dist/plugins/stringify.js"],
+      src: ['dist/warden.min.js'],
       options: {
         specs: 'test/specs/*Spec.js',
         outfile : "test/_SpecRunner.html",

@@ -132,7 +132,7 @@
   /* 
     Extend module: 
       docs: ./docs/Extend.md
-      version: v.0.1.0
+      version: v.0.1.1
 
     This methods extends @obj which can be both 
     function or object with Warden.js methods .emit(), 
@@ -245,9 +245,10 @@
 
     /* Listener function */
     inheritor.listen = function(type, callback, settings){    
+      var self = this;
       handlers.setNewHandler(this, type, callback);    
       if(this[config.listener]){
-        this[config.listener].apply(this, [ev, function(event){ self.emit(event)}]);
+        this[config.listener].apply(this, [type, function(event){ self.emit(event)}]);
       }
       return this;
     };
@@ -346,7 +347,7 @@
   /*
     Streams module:
       docs: ./docs/Streams.md
-      version: 0.0.3
+      version: 0.1.0
 
     Creates stream of data.
     If @x is string, that it interprets as datatype
@@ -361,37 +362,20 @@
       stream = new Stream(x, context);
     }else
     if(is.fn(x)){
-        /* 
-          Genereting pseudo-random data-type for custom data stream.
-          Need to change it to more efficiently method.
-          May be we should research ability to remove required data-type. 
-          I think it possible cuz i don't find any reqirements at first look on streams realization.
-        
-          I've commented this code:
-          
-          for(var i = 0, type = x.name; i<2; i++){
-            type += (Math.random() * 100000 >> 0) + "-";
-          }
-
-          It weird but it's working.
-        */
-
         stream = new Stream(0, context);
-        stream.context = {};
+        stream.context = {}; //maybe we should use just stream as a context object?
         x.apply(stream.context, [function(expectedData){
           stream.eval(expectedData);
         }]);  
     }else{
-      throw "Unexpected data type at stream\n";
+      throw "Unexpected data type at stream";
     }
     return stream;
   };
 
-  function Stream(dataType, context, toolkit){
-    var drive = [],
-        bus = new DataBus();
-    
-    bus.host(this);
+  /* Stream class */
+  function Stream(config, context){
+    var drive = [];
 
     this.eval = function(data){
       drive.forEach(function(bus){
@@ -404,26 +388,18 @@
     };
     
     this.pop = function(bus){
-      forEach(drive, function(b, d){
+      forEach(drive, function(b, i){
         if(bus == b){
-          drive = drive.slice(0,d).concat(drive.slice(d+1,drive.length))
+          drive = drive.slice(0,i).concat(drive.slice(i+1,drive.length));
         }
       });
     };
-
-    this.get = function(){
-      return bus;
-    };
-
-    /* Need to research: 
+    
     this.get = function(){
       var bus = new DataBus();
       bus.host(this);
       return bus;
-    }
-
-    and delete old bus
-    */
+    };
 
     return this;
   }/* End: src/modules/Streams.js */
@@ -432,7 +408,7 @@
     var processor = new Processor(proc || [], this), //processor
         host = 0; //hosting stream
 
-    this.id = Math.random()*1000000000 >> 0;
+    this.id = Math.random()*1000000000 >> 0; //for debugging
     this.parent = null;
     this._ = {
       history : [],
