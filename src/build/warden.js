@@ -51,6 +51,23 @@
     },
     exists : function(x){
       return exists(x);
+    },
+    map: {
+      '_function' : function(x){
+        return is.fn(x);
+      },
+      '_number' : function(x){
+        return is.num(x);
+      },
+      '_string' : function(x){
+        return is.str(x);
+      },
+      '_array' : function(x){
+        return is.arr(x);
+      },
+      '_object' : function(x){
+        return is.obj(x);
+      }
     }
   }
 
@@ -127,7 +144,63 @@
         return filtered;
       }
     }
-  })();/* End: src/modules/Helpers.js */
+  })();
+
+  /* 
+    Queue class @arr is Array;
+  */
+  function Queue(maxlength, arr){
+    var storage = arr || [],
+        length = (arr && arr.length) || 0,
+        max = maxlength || 16;
+
+    this.length = function(){
+      return length;
+    };
+
+    this.push = function(item){
+      if(length>=maxlength){
+        storage.shift();  
+      }
+      storage.push(item);
+      length = storage.length;
+    };
+
+    this.get = function(index){
+      return exists(index) ? storage[index] : storage;
+    };
+  }
+
+  /* 
+    Datatype analyzer
+  */
+
+  var Analyze = function(className, classMethod, i){
+    var res = {};
+    if(!Analyze.MAP[className][classMethod](typeof i)){
+      throw "TypeError: unexpected type of argument at : " + className + " : " + classMethod;
+    }else{
+      ['number', 'string', 'function', 'object', 'array'].forEach(function(name){
+        res["_" + name] = function(x){
+          if(is.map["_" + name](i)){
+            x();
+          }
+          return res;
+        }
+      });
+
+      return res;
+    }
+  }
+
+  Analyze.MAP = {
+    Warden : {
+      makeStream: function(type){
+        return type == 'string' || type == 'function';
+      }
+    },
+
+  }/* End: src/modules/Helpers.js */
 /* Begin: src/modules/Extend.js */
   /* 
     Extend module: 
@@ -354,27 +427,38 @@
     else if @x is function, than x's first arg is emitting data function
   */
 
-  Warden.makeStream = function(x, context){
-    var stream;
+  Warden.makeStream = function(x, context, strong){
+    var stream, xstr;
+    
+    Analyze("Warden", "makeStream", x)._string(function(){
+      stream = new Stream(context);
+    })._function(function(){
+      stream = new Stream(context);
+      xstr = x.toString();
 
+      forEach(["eval", 'pop', 'push', 'get'], function(i){
+        if(xstr.indexOf("this."+i)>=0){
+          console.warn("You have used reserved word '" + i + "' in stream");
+        }
+      });    
+      
+      x.apply(stream, [function(expectedData){
+        stream.eval(expectedData);
+      }]);  
+    });
+    
     /* If @x is string then @x is datatype for stream */
-    if(is.str(x)){
-      stream = new Stream(x, context);
-    }else
-    if(is.fn(x)){
-        stream = new Stream(0, context);
-        stream.context = {}; //maybe we should use just stream as a context object?
-        x.apply(stream.context, [function(expectedData){
-          stream.eval(expectedData);
-        }]);  
-    }else{
-      throw "Unexpected data type at stream";
-    }
+    // if(is.str(x)){
+    //  как было  
+    // }else
+    // if(is.fn(x)){
+      
+    // }
     return stream;
   };
 
   /* Stream class */
-  function Stream(config, context){
+  function Stream(context){
     var drive = [];
 
     this.eval = function(data){
@@ -402,7 +486,8 @@
     };
 
     return this;
-  }/* End: src/modules/Streams.js */
+  }
+/* End: src/modules/Streams.js */
 /* Begin: src/modules/DataBus.js */
   function DataBus(proc){
     var processor = new Processor(proc || [], this), //processor
@@ -411,10 +496,8 @@
     this.id = Math.random()*1000000000 >> 0; //for debugging
     this.parent = null;
     this._ = {
-      history : [],
-      takes : [],
-      fired : 0,
-      taken : 0,
+      fires : new Queue(),
+      takes : new Queue(),
       skipped : 0
     };
 
@@ -442,13 +525,12 @@
       
     this.fire = function(data, context){  
       var self = this;
-      data = data || {};
+      data = exists(data) ? data : {};
       data.$$bus = this;
 
-      this._.fired++;
-      this._.history.push(data);
+      this._.fires.push(data);
       processor.start(data, context, function(result){
-        self._.taken++;
+        self._.takes.push(result);
         self.handler.apply(context, [result]);
       });
     }
@@ -462,19 +544,18 @@
   };
 
   /* Logging event to console or logger */
-  DataBus.prototype.log = function(logger){
-    logger = logger || Warden.log;
+  DataBus.prototype.log = function(){
     return this.listen(function(data){
-      return logger(data);
+      return console.log(data);
     });
-  }
+  };
 
   DataBus.prototype.clone = function() {
     var nbus = new DataBus(this.process().getProcesses());
     nbus.parent = this.parent || this;
     nbus.host(this.host());
     return nbus;
-  }
+  };
 
   /* Filtering event and preventing transmitting through DataBus if @x(event) is false */
   DataBus.prototype.filter = function(x) {
@@ -498,7 +579,7 @@
       case 'string':
         fn = function(e){
           var t = e[x], r = exists(t) ? t : x;
-          this.$host()._.history[this.$host()._.fired-1] = r;
+          this.$host()._.fires.get()[this.$host()._.fires.length()-1] = r;
           return this.$continue(r);
         }
       break;
@@ -541,7 +622,7 @@
             cur = event;
 
         if(init==='-f'){
-          var prev = bus._.takes.get(bus._.takes.length);
+          var prev = bus._.takes.get(bus._.takes.length());
         }
         return this.$continue(fn(prev, next));
       });   
@@ -559,7 +640,7 @@
       return this.process(function(e){
         var bus = this.$host();
         bus._.limit = bus._.limit || x;
-        if(bus._.taken === bus._.limit){
+        if(bus._.takes.length() === bus._.limit){
           return this.$break();
         }else{
           return this.$continue(e);
@@ -574,7 +655,7 @@
     if(is.num(c)){
       return this.process(function(e){
         var bus = this.$host();
-        if(bus._.fired <= c){
+        if(bus._.fires.length() <= c){
           this.$break();
         }else{
           return this.$continue(e);
@@ -627,11 +708,13 @@
   DataBus.prototype.getCollected = function(t){
     if(is.num(t)){
       return this.process(function(e){
-        var self = this, bus = this.$host();
+        var self = this, 
+            bus = this.$host(),
+            fired = bus._.fires.length()-1;
         if(!bus._.timer){
-          bus._.collectionStart = bus._.fired-1;
+          bus._.collectionStart = fired;
           bus._.timer = setTimeout(function(){
-            var collection = bus._.history.slice(bus._.collectionStart, bus._.fired);
+            var collection = bus._.history.slice(bus._.collectionStart, fired);
             delete bus._.timer;
             self.$unlock();
             self.$continue(collection);
@@ -652,6 +735,19 @@
     }).get();
   };
 
+
+  DataBus.prototype.combine = function(bus, fn) {
+    var self = this;
+    return Warden.makeStream(function(emit){
+      self.listen(function(data){
+        emit(fn(data, bus._.fires.get(bus._.fires.length()-1)));
+      });
+      bus.listen(function(data){
+        emit(fn(self._.fires.get(self._.fires.length()-1), data));
+      });
+    }).get();
+    
+  };
 
   DataBus.prototype.sync = function(bus){
     var self = this;
@@ -704,7 +800,21 @@
     Warden.watcher(args)
   };
 
-/* End: src/modules/DataBus.js */
+  DataBus.prototype.once = function(){
+    return this.take(1);
+  };
+
+  DataBus.prototype.unique = function(){
+    return this.process(function(event){
+      var fires = this.$host()._.fires;
+      var takes = this.$host()._.takes;
+      if( (fires.length() > 1 || takes.length() > 0) && (event == fires.get(fires.length()-2) || event == takes.get(takes.length()-1))){      
+        return this.$break();
+      }else{
+        return this.$continue(event);
+      }  
+    });
+  };/* End: src/modules/DataBus.js */
 /* Begin: src/modules/Watcher.js */
   Warden.watcher = function(bus, a, b){
   	var al = arguments.length,

@@ -8,27 +8,38 @@
   else if @x is function, than x's first arg is emitting data function
 */
 
-Warden.makeStream = function(x, context){
-  var stream;
+Warden.makeStream = function(x, context, strong){
+  var stream, xstr;
+  
+  Analyze("Warden", "makeStream", x)._string(function(){
+    stream = new Stream(context);
+  })._function(function(){
+    stream = new Stream(context);
+    xstr = x.toString();
 
+    forEach(["eval", 'pop', 'push', 'get'], function(i){
+      if(xstr.indexOf("this."+i)>=0){
+        console.warn("You have used reserved word '" + i + "' in stream");
+      }
+    });    
+    
+    x.apply(stream, [function(expectedData){
+      stream.eval(expectedData);
+    }]);  
+  });
+  
   /* If @x is string then @x is datatype for stream */
-  if(is.str(x)){
-    stream = new Stream(x, context);
-  }else
-  if(is.fn(x)){
-      stream = new Stream(0, context);
-      stream.context = {}; //maybe we should use just stream as a context object?
-      x.apply(stream.context, [function(expectedData){
-        stream.eval(expectedData);
-      }]);  
-  }else{
-    throw "Unexpected data type at stream";
-  }
+  // if(is.str(x)){
+  //  как было  
+  // }else
+  // if(is.fn(x)){
+    
+  // }
   return stream;
 };
 
 /* Stream class */
-function Stream(config, context){
+function Stream(context){
   var drive = [];
 
   this.eval = function(data){

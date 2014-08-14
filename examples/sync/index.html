@@ -27,10 +27,10 @@
       var btn1Clicks = $("#btn1").stream('click');
       var btn2Clicks = $("#btn2").stream('click');
       var clears = Warden.makeStream(function(trigger){
-        this.start = function(){
+        this.start =function(){
           this.timer = setInterval(trigger, 5000);
         };
-        this.stop = function(){
+        this.stop= function(){
           clearInterval(this.timer);
         }
         this.start();
@@ -39,11 +39,11 @@
       clears.get().listen(function(){
         $(".synced").html("false");
         $(".console").html('Cleared');        
-        clears.context.stop();
+        clears.stop();
       });
       
       btn1Clicks.merge(btn2Clicks).listen(function(e){
-        clears.context.stop();
+        clears.stop();
         $(".synced").html("false");
         $(".console").html('Clicked at link, now asynchronized, waiting for click to second link');
       })
@@ -52,7 +52,7 @@
       btn2Clicks.waitFor(btn1Clicks).listen("Clicked first after second");
 
       var synced = btn1Clicks.sync(btn2Clicks).listen(function(e){
-        clears.context.start();
+        clears.start();
         $(".synced").html("true");
         $(".console").html("Emitted " + e.map(function(t){return new Date(t.timeStamp).toLocaleTimeString();}).join(" and "));
       });

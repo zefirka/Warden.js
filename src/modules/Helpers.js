@@ -28,6 +28,23 @@ var is = {
   },
   exists : function(x){
     return exists(x);
+  },
+  map: {
+    '_function' : function(x){
+      return is.fn(x);
+    },
+    '_number' : function(x){
+      return is.num(x);
+    },
+    '_string' : function(x){
+      return is.str(x);
+    },
+    '_array' : function(x){
+      return is.arr(x);
+    },
+    '_object' : function(x){
+      return is.obj(x);
+    }
   }
 }
 
@@ -105,3 +122,59 @@ var filter = (function(){
     }
   }
 })();
+
+/* 
+  Queue class @arr is Array;
+*/
+function Queue(maxlength, arr){
+  var storage = arr || [],
+      length = (arr && arr.length) || 0,
+      max = maxlength || 16;
+
+  this.length = function(){
+    return length;
+  };
+
+  this.push = function(item){
+    if(length>=maxlength){
+      storage.shift();  
+    }
+    storage.push(item);
+    length = storage.length;
+  };
+
+  this.get = function(index){
+    return exists(index) ? storage[index] : storage;
+  };
+}
+
+/* 
+  Datatype analyzer
+*/
+
+var Analyze = function(className, classMethod, i){
+  var res = {};
+  if(!Analyze.MAP[className][classMethod](typeof i)){
+    throw "TypeError: unexpected type of argument at : " + className + " : " + classMethod;
+  }else{
+    ['number', 'string', 'function', 'object', 'array'].forEach(function(name){
+      res["_" + name] = function(x){
+        if(is.map["_" + name](i)){
+          x();
+        }
+        return res;
+      }
+    });
+
+    return res;
+  }
+}
+
+Analyze.MAP = {
+  Warden : {
+    makeStream: function(type){
+      return type == 'string' || type == 'function';
+    }
+  },
+
+}
