@@ -17,21 +17,44 @@ function handler (req, res) {
   });
 }
 
-io.on('connection', function (socket) {
-  socket.emit('greet', { 
-    type: 'greet',
-    hello: 'world' 
-  });
 
+
+io.on('connection', function (socket) {
   socket.on('response', function (data) {
     console.log(data);
   });
 
-  setInterval(function(){
-    socket.emit('transfer', {
-      type: 'transfer',
-      data : Math.random() * 1000
+  socket.on('step', function(data){
+     sins = (function(){
+        var step = data.value, bef = 0;
+        var s = 400, r = [];
+        while(s--){
+          r.push(Math.sin(bef+=step));
+        }
+        return r;
+      })();
+  });  
+
+  var step = 0,
+      sins = (function(){
+        var step = 0.05, bef = 0;
+        var s = 400, r = [];
+        while(s--){
+          r.push(Math.sin(bef+=step));
+        }
+        return r;
+      })();
+  
+  var timer = setInterval(function(){
+    socket.emit('sink', {
+      type: 'sink',
+      velocity : sins[step],
+      id : step
     });
-  }, 1000);
+    step++;
+    if(step==400){
+      step = 0;
+    }
+  }, 30);
   
 });

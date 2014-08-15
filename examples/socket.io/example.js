@@ -4,12 +4,49 @@ var socket = Warden.extend(io('http://localhost:1991'), {
 });
 
 
-socket.listen('greet', function(greet){
-	console.log(greet);	
-	socket.emit('response', {header: 'OK'})
-});
+$(function(){
+	(function(){
+		var x = $(".ng"), i =0;
+		while(i++<400){
+			x.after(x[0].outerHTML);
+		}
+		$(".ng span").hide();
+	})();
 
-var transferrd = socket.stream('transfer').map('data').listen(function(data){
-	console.log("I've get:" + data);
-	socket.emit('response', {mapped: data >> 0});
+	var ngs = $(".ng");
+
+
+	function draw(data){
+		$('span', $(ngs[data.id])).css('top', 50 + (50 * data.velocity) )   .show();
+	}
+
+	var stream = socket.stream('sink')
+	.map(function(data){
+		return {
+			velocity : data.velocity,
+			id: data.id	}
+	});
+
+	stream
+	.listen(draw);
+
+
+	$(".mapper").click(function(){
+		var value = $("#dist").val()
+		stream.lock();
+		stream.map(function(data){
+			if(50 + (50 * data.velocity)  <= value){
+				data.velocity = (value - 50) / 50;
+			}
+			return data;
+		}).listen(draw)
+	});
+
+	$(".stepper").click(function(){
+		var value = $("#step").val();
+		socket.emit('step', {
+			value : parseFloat(value)
+		});
+	})
+	
 });

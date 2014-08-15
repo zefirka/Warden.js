@@ -8,11 +8,41 @@
     <script src="https://cdn.socket.io/socket.io-1.0.6.js"></script>
     <script src="../../dist/warden.js"></script>
     <script src='example.js'></script>
+    <style type="text/css">
+      .container{
+        display: block;;
+        white-space: nowrap;
+        margin-bottom: 10px;
+      }
+      .ng{
+        width: 2px;
+        position: relative;
+        margin-right: 0px;
+        height: 100px;
+        box-shadow: 1px 1px 1px rgba(0,0,0,0.2);
+        display: inline-block;
+      }
+      .ng span{
+        position: absolute;
+        width: 2px;
+        height: 2px;
+        display: inline-block;
+        border-radius: 6px;
+        background-color: red;
+        top: 50px;
+      }
+    </style>
   </head>
   <body>
-    <div>
-      <textarea></textarea>
+    <div class='container'>
+      <div class="ng"><span></span></div>
     </div>
-    <a href="#" id='btn'>Emit this text to websocket</a>
+    <div>
+      <a href="#" class="mapper" conj='dist'> Distortion</a> <input type="number" pattern="..." id='dist'>
+    </div>
+    <div>
+      <a href="#" class="stepper" conj='dist'> Step</a> <input type="number" pattern="..." id='step'>
+    </div>
+
   </body>
 </html>
