@@ -171,31 +171,15 @@
     Datatype analyzer
   */
 
-  var Analyze = function(className, classMethod, i){
-    var res = {};
-    if(!Analyze.MAP[className][classMethod](typeof i)){
-      throw "TypeError: unexpected type of argument at : " + className + " : " + classMethod;
-    }else{
-      ['number', 'string', 'function', 'object', 'array'].forEach(function(name){
-        res["_" + name] = function(x){
-          if(is.map["_" + name](i)){
-            x();
-          }
-          return res;
-        }
-      });
-
-      return res;
+  var Analyze = function(id, i){
+    var t = Analyze.MAP[id];
+    if(t.indexOf(typeof i)){
+      throw "TypeError: unexpected type of argument at : " + id+ ". Expect: " + t.join(' or ') + ".";
     }
   }
 
   Analyze.MAP = {
-    Warden : {
-      makeStream: function(type){
-        return type == 'string' || type == 'function';
-      }
-    },
-
+    makeStream: ['string', 'function']
   }/* End: src/modules/Helpers.js */
 /* Begin: src/modules/Extend.js */
   /* 
@@ -412,7 +396,7 @@
   /*
     Streams module:
       docs: ./docs/Streams.md
-      version: 0.1.0
+      version: 0.1.1
 
     Creates stream of data.
     If @x is string, that it interprets as datatype
@@ -421,10 +405,10 @@
 
   Warden.makeStream = function(x, context, strong){
     var stream, xstr;
-    
-    Analyze("Warden", "makeStream", x)._string(function(){
+    Analyze("makeStream", x);
+    if(is.str(x)){
       stream = new Stream(context);
-    })._function(function(){
+    }else{
       stream = new Stream(context);
       xstr = x.toString();
 
@@ -437,11 +421,8 @@
       x.apply(stream, [function(expectedData){
         stream.eval(expectedData);
       }]);  
-    });
-    
-    /* If @x is string then @x is datatype for stream */
-                      
-        return stream;
+    }
+    return stream;
   };
 
   /* Stream class */
@@ -473,8 +454,7 @@
     };
 
     return this;
-  }
-/* End: src/modules/Streams.js */
+  }/* End: src/modules/Streams.js */
 /* Begin: src/modules/DataBus.js */
   function DataBus(proc){
     var processor = new Processor(proc || [], this),         host = 0; 
@@ -584,7 +564,7 @@
               t = e[x[prop]];
               res[prop] = exists(t) ? t : x[prop];
             }
-            return this.$continue(prop);
+            return this.$continue(res);
           }
         }
       break;

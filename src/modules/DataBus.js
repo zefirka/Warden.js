@@ -109,7 +109,7 @@ DataBus.prototype.map = function(x) {
             t = e[x[prop]];
             res[prop] = exists(t) ? t : x[prop];
           }
-          return this.$continue(prop);
+          return this.$continue(res);
         }
       }
     break;
