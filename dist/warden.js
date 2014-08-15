@@ -201,7 +201,7 @@
   /* 
     Extend module: 
       docs: ./docs/Extend.md
-      version: v.0.1.1
+      version: v.0.1.2
 
     This methods extends @obj which can be both 
     function or object with Warden.js methods .emit(), 
@@ -242,14 +242,17 @@
     if(typeof inheritor.addEventListener === 'function' || typeof inheritor.attachEvent === 'function'){
       config.listener = config.listener || (typeof inheritor.addEventListener === 'function' ? "addEventListener" : "attachEvent");
     }
-      
+    
+    /* Preventing native 'emit' method override */
+    var emitName = inheritor.emit ? '$emit' : 'emit';
+    
     /* Collections of private handlers */
     /* Developed to incapsulate handlers of every object */
     var handlers = [];
 
     /* Setting new handler @fn of event type @type to @object */
-    handlers.setNewHandler = function(object, type, fn){
-      var handlers = this.getHandlers(object, type);
+    handlers.sH = function(object, type, fn){
+      var handlers = this.gH(object, type);
       if(handlers){
         if(handlers.length < config.max){
           handlers = handlers.push(fn);
@@ -257,7 +260,7 @@
           throw "Maximal handlers count reached";
         }
       }else{
-        var collection = this.getCollection(object);
+        var collection = this.gC(object);
         if(collection){
           collection.handlers[type] = collection.handlers[type] || [];
           collection.handlers[type].push(fn);
@@ -272,7 +275,7 @@
     };
     
     /* Get collections of handlers by types of @object */
-    handlers.getCollection = function(object){
+    handlers.gC = function(object){
       for(var i=this.length-1; i>=0; i--){
         if(this[i].object === object){
           return this[i]
@@ -282,7 +285,7 @@
     };
 
     /* Get handlers of @object by @type */
-    handlers.getHandlers = function(object, type){
+    handlers.gH = function(object, type){
       for(var i=this.length-1; i>=0; i--){
         if(this[i].object === object){
           return this[i].handlers[type];
@@ -292,9 +295,9 @@
     };  
     
     /* Emitter method */
-    inheritor.emit = function(ev){
+    inheritor[emitName] = function(ev){
       var self = this,
-          callbacks = handlers.getHandlers(this, ev.type);
+          callbacks = handlers.gH(this, ev.type || ev);
         
       forEach(callbacks, function(callback){
         callback.call(self, ev);
@@ -306,9 +309,12 @@
     /* Listener function */
     inheritor.listen = function(type, callback, settings){    
       var self = this;
-      handlers.setNewHandler(this, type, callback);    
+      handlers.sH(this, type, callback);    
       if(this[config.listener]){
-        this[config.listener].apply(this, [type, function(event){ self.emit(event)}]);
+        this[config.listener].apply(this, [type, function(event){ 
+          debugger;
+          self[emitName](event)
+        }]);
       }
       return this;
     };
@@ -317,7 +323,7 @@
     inheritor.stream = function(type, cnt) {
       var stream = Warden.makeStream(type, cnt || this);
 
-      handlers.setNewHandler(this, type, function(event){
+      handlers.sH(this, type, function(event){
         stream.eval(event);
       });
 

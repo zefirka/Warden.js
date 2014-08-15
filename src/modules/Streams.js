@@ -1,7 +1,7 @@
 /*
   Streams module:
     docs: ./docs/Streams.md
-    version: 0.1.0
+    version: 0.1.1
 
   Creates stream of data.
   If @x is string, that it interprets as datatype
@@ -10,10 +10,10 @@
 
 Warden.makeStream = function(x, context, strong){
   var stream, xstr;
-  
-  Analyze("Warden", "makeStream", x)._string(function(){
+  Analyze("makeStream", x);
+  if(is.str(x)){
     stream = new Stream(context);
-  })._function(function(){
+  }else{
     stream = new Stream(context);
     xstr = x.toString();
 
@@ -26,15 +26,7 @@ Warden.makeStream = function(x, context, strong){
     x.apply(stream, [function(expectedData){
       stream.eval(expectedData);
     }]);  
-  });
-  
-  /* If @x is string then @x is datatype for stream */
-  // if(is.str(x)){
-  //  как было  
-  // }else
-  // if(is.fn(x)){
-    
-  // }
+  }
   return stream;
 };
 

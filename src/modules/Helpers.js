@@ -152,29 +152,13 @@ function Queue(maxlength, arr){
   Datatype analyzer
 */
 
-var Analyze = function(className, classMethod, i){
-  var res = {};
-  if(!Analyze.MAP[className][classMethod](typeof i)){
-    throw "TypeError: unexpected type of argument at : " + className + " : " + classMethod;
-  }else{
-    ['number', 'string', 'function', 'object', 'array'].forEach(function(name){
-      res["_" + name] = function(x){
-        if(is.map["_" + name](i)){
-          x();
-        }
-        return res;
-      }
-    });
-
-    return res;
+var Analyze = function(id, i){
+  var t = Analyze.MAP[id];
+  if(t.indexOf(typeof i)){
+    throw "TypeError: unexpected type of argument at : " + id+ ". Expect: " + t.join(' or ') + ".";
   }
 }
 
 Analyze.MAP = {
-  Warden : {
-    makeStream: function(type){
-      return type == 'string' || type == 'function';
-    }
-  },
-
+  makeStream: ['string', 'function']
 }
