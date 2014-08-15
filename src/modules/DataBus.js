@@ -5,10 +5,8 @@ function DataBus(proc){
   this.id = Math.random()*1000000000 >> 0; //for debugging
   this.parent = null;
   this._ = {
-    history : [],
-    takes : [],
-    fired : 0,
-    taken : 0,
+    fires : new Queue(),
+    takes : new Queue(),
     skipped : 0
   };
 
@@ -36,13 +34,12 @@ function DataBus(proc){
     
   this.fire = function(data, context){  
     var self = this;
-    data = data || {};
+    data = exists(data) ? data : {};
     data.$$bus = this;
 
-    this._.fired++;
-    this._.history.push(data);
+    this._.fires.push(data);
     processor.start(data, context, function(result){
-      self._.taken++;
+      self._.takes.push(result);
       self.handler.apply(context, [result]);
     });
   }
@@ -56,19 +53,18 @@ DataBus.prototype.listen = function(x){
 };
 
 /* Logging event to console or logger */
-DataBus.prototype.log = function(logger){
-  logger = logger || Warden.log;
+DataBus.prototype.log = function(){
   return this.listen(function(data){
-    return logger(data);
+    return console.log(data);
   });
-}
+};
 
 DataBus.prototype.clone = function() {
   var nbus = new DataBus(this.process().getProcesses());
   nbus.parent = this.parent || this;
   nbus.host(this.host());
   return nbus;
-}
+};
 
 /* Filtering event and preventing transmitting through DataBus if @x(event) is false */
 DataBus.prototype.filter = function(x) {
@@ -92,7 +88,7 @@ DataBus.prototype.map = function(x) {
     case 'string':
       fn = function(e){
         var t = e[x], r = exists(t) ? t : x;
-        this.$host()._.history[this.$host()._.fired-1] = r;
+        this.$host()._.fires.get()[this.$host()._.fires.length()-1] = r;
         return this.$continue(r);
       }
     break;
@@ -135,7 +131,7 @@ DataBus.prototype.reduce = function(init, fn){
           cur = event;
 
       if(init==='-f'){
-        var prev = bus._.takes.get(bus._.takes.length);
+        var prev = bus._.takes.get(bus._.takes.length());
       }
       return this.$continue(fn(prev, next));
     });   
@@ -153,7 +149,7 @@ DataBus.prototype.take = function(x){
     return this.process(function(e){
       var bus = this.$host();
       bus._.limit = bus._.limit || x;
-      if(bus._.taken === bus._.limit){
+      if(bus._.takes.length() === bus._.limit){
         return this.$break();
       }else{
         return this.$continue(e);
@@ -168,7 +164,7 @@ DataBus.prototype.skip = function(c) {
   if(is.num(c)){
     return this.process(function(e){
       var bus = this.$host();
-      if(bus._.fired <= c){
+      if(bus._.fires.length() <= c){
         this.$break();
       }else{
         return this.$continue(e);
@@ -221,11 +217,13 @@ DataBus.prototype.debounce = function(t) {
 DataBus.prototype.getCollected = function(t){
   if(is.num(t)){
     return this.process(function(e){
-      var self = this, bus = this.$host();
+      var self = this, 
+          bus = this.$host(),
+          fired = bus._.fires.length()-1;
       if(!bus._.timer){
-        bus._.collectionStart = bus._.fired-1;
+        bus._.collectionStart = fired;
         bus._.timer = setTimeout(function(){
-          var collection = bus._.history.slice(bus._.collectionStart, bus._.fired);
+          var collection = bus._.history.slice(bus._.collectionStart, fired);
           delete bus._.timer;
           self.$unlock();
           self.$continue(collection);
@@ -246,6 +244,19 @@ DataBus.prototype.merge = function(bus){
   }).get();
 };
 
+
+DataBus.prototype.combine = function(bus, fn) {
+  var self = this;
+  return Warden.makeStream(function(emit){
+    self.listen(function(data){
+      emit(fn(data, bus._.fires.get(bus._.fires.length()-1)));
+    });
+    bus.listen(function(data){
+      emit(fn(self._.fires.get(self._.fires.length()-1), data));
+    });
+  }).get();
+  
+};
 
 DataBus.prototype.sync = function(bus){
   var self = this;
@@ -298,3 +309,18 @@ DataBus.prototype.bindTo = function(a,b){
   Warden.watcher(args)
 };
 
+DataBus.prototype.once = function(){
+  return this.take(1);
+};
+
+DataBus.prototype.unique = function(){
+  return this.process(function(event){
+    var fires = this.$host()._.fires;
+    var takes = this.$host()._.takes;
+    if( (fires.length() > 1 || takes.length() > 0) && (event == fires.get(fires.length()-2) || event == takes.get(takes.length()-1))){      
+      return this.$break();
+    }else{
+      return this.$continue(event);
+    }  
+  });
+};
