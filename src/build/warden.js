@@ -21,7 +21,10 @@
   }
   
 /* Begin: src/modules/Helpers.js */
-  /* Helpers functions */
+  /* 
+    Helpers module
+    v.0.1.0
+  */
 
   /*
     Function exists(@mixed x):
@@ -43,49 +46,30 @@
     str : function (x) {
       return typeof x === 'string';
     },
-    array : function(x){
-      return isArray(x);
-    },
+
+    /*
+      Function isArray(@mixed x):
+      Checks is x param is real array or object (or arguments object)
+    */
+
+    array : (function(){    
+      if(Array.isArray){
+        return function(x){ 
+          return Array.isArray(x); 
+        }
+      }else{
+        return function(x){ 
+          Object.prototype.toString.call(x) === '[object Array]';
+        }
+      }
+    }()),
     obj : function(x){
       return typeof x === 'object';
     },
-    exists : function(x){
-      return exists(x);
-    },
-    map: {
-      '_function' : function(x){
-        return is.fn(x);
-      },
-      '_number' : function(x){
-        return is.num(x);
-      },
-      '_string' : function(x){
-        return is.str(x);
-      },
-      '_array' : function(x){
-        return is.arr(x);
-      },
-      '_object' : function(x){
-        return is.obj(x);
-      }
+    exist : function(x){
+      return typeof x !== 'undefined' && x !== null;
     }
   }
-
-  /*
-    Function isArray(@mixed x):
-    Checks is x param is real array or object (or arguments object)
-  */
-  var isArray = (function(){
-    if(Array.isArray){
-      return function(x){ 
-        return Array.isArray(x); 
-      }
-    }else{
-      return function(x){ 
-        Object.prototype.toString.call(x) === '[object Array]';
-      }
-    }
-  }());
 
 
   /*
@@ -148,8 +132,9 @@
 
   /* 
     Queue class @arr is Array;
+    should to make length not a function
   */
-  function Queue(maxlength, arr){
+  function _Queue(maxlength, arr){
     var storage = arr || [],
         length = (arr && arr.length) || 0,
         max = maxlength || 16;
@@ -171,25 +156,53 @@
     };
   }
 
+  /* Optimized queue */
+  function Queue(maxlength, arr){
+    var storage = arr || [],
+        max = maxlength || 16;
+
+    this.length = (arr && arr.length) || 0;
+
+    this.push = function(item){
+      if(this.length>=max){
+        storage.shift();  
+      }else{
+        this.length++;  
+      }
+      storage.push(item);
+    };
+
+    this.pop = function(){
+      storage.pop();
+      this.length--;
+    }
+
+    this.get = function(index){
+      return is.exist(index) ? storage[index] : storage;
+    };
+
+  }
+
   /* 
     Datatype analyzer
   */
 
   var Analyze = function(id, i){
     var t = Analyze.MAP[id];
-    if(t.indexOf(typeof i)){
+    if(t.indexOf(typeof i)==-1){
       throw "TypeError: unexpected type of argument at : " + id+ ". Expect: " + t.join(' or ') + ".";
     }
   }
 
   Analyze.MAP = {
+    extend : ['object', 'function'],
     makeStream: ['string', 'function']
   }/* End: src/modules/Helpers.js */
 /* Begin: src/modules/Extend.js */
   /* 
     Extend module: 
       docs: ./docs/Extend.md
-      version: v.0.1.2
+      version: v.0.2.0
 
     This methods extends @obj which can be both 
     function or object with Warden.js methods .emit(), 
@@ -197,8 +210,10 @@
   */
 
   Warden.extend = function(obj, conf) {
-    /* Default configuration */
+    /* Arguments type analysis */
+    Analyze('extend', obj);
 
+    /* Default configuration */
     var config = conf || {
       max : 512, // maximal handlers per object
       context : 'this', // context of evaluation
@@ -212,18 +227,13 @@
       use actual object element 
     */
     
-    var ctype = typeof obj, // type of object to extend
-        inheritor = obj, // final object to expand
+    var inheritor = obj, // final object to expand
         isConstructor = true; // is obj is constructor
     
-    switch(ctype){
-      case 'function': // then object is constructor
-        inheritor = obj.prototype;
-        isConstructor = true;
-      break;
-      case 'object': // else its just an js object
-        isConstructor = false;
-      break;
+    if(is.fn(obj)){
+      inheritor = obj.prototype;
+    }else{
+      isConstructor = false;
     }
     
     /* 
@@ -231,13 +241,12 @@
       and emitters  function to not overwrite them 
       and user should do not use that in config 
     */
-
-    if(typeof jQuery !== 'undefined'){
+    if(typeof jQuery!=="undefined"){
       config.emitter = config.emitter || 'trigger';
       config.listener = config.listener || 'on';    
     }else
-    if(typeof inheritor.addEventListener === 'function' || typeof inheritor.attachEvent === 'function'){
-      config.listener = config.listener || (typeof inheritor.addEventListener === 'function' ? "addEventListener" : "attachEvent");
+    if(is.fn(inheritor.addEventListener) || is.fn(inheritor.attachEvent)){
+      config.listener = config.listener || (is.fn(inheritor.addEventListener) ? "addEventListener" : "attachEvent");
     }
     
     /* Preventing native 'emit' method override */
@@ -295,7 +304,7 @@
     inheritor[emitName] = function(ev){
       var self = this,
           callbacks = handlers.gH(this, ev.type || ev);
-        
+      console.log('Что-то эмитировали!');
       forEach(callbacks, function(callback){
         callback.call(self, ev);
       });
@@ -309,13 +318,12 @@
       handlers.sH(this, type, callback);    
       if(this[config.listener]){
         this[config.listener].apply(this, [type, function(event){ 
-          debugger;
           self[emitName](event)
         }]);
       }
       return this;
     };
-      
+
     /* Creates stream */
     inheritor.stream = function(type, cnt) {
       var stream = Warden.makeStream(type, cnt || this);
@@ -325,7 +333,9 @@
       });
 
       if(this[config.listener]){
-        this[config.listener].apply(this, [type, function(event){ stream.eval(event);}]);
+        this[config.listener].apply(this, [type, function(event){     
+          stream.eval(event);      
+        }]);
       }
       
       return stream.get();
@@ -410,72 +420,83 @@
   /*
     Streams module:
       docs: ./docs/Streams.md
-      version: 0.1.1
+      version: 0.2.1
 
     Creates stream of data.
     If @x is string, that it interprets as datatype
     else if @x is function, than x's first arg is emitting data function
   */
 
-  Warden.makeStream = function(x, context, strong){
-    var stream, xstr;
-    Analyze("makeStream", x);
-    if(is.str(x)){
-      stream = new Stream(context);
-    }else{
-      stream = new Stream(context);
-      xstr = x.toString();
+  Warden.makeStream = (function(){
+    /* Stream class */
 
-      forEach(["eval", 'pop', 'push', 'get'], function(i){
-        if(xstr.indexOf("this."+i)>=0){
-          console.warn("You have used reserved word '" + i + "' in stream");
+    function Stream(context){
+      var drive = [];
+      return  {
+        id : Math.random() * 1000 >> 0,
+        eval : function(data){
+          forEach(drive, function(bus){
+            bus.fire(data, context);
+          });
+        },
+        push : function(bus){
+          drive.push(bus);
+        },
+        pop : function(bus){
+          forEach(drive, function(b, i){
+            /* Здесь надо проверить наследование прототипов, и если это сходные объекты, то это одно и то же */
+            if(bus == b){
+              drive = drive.slice(0,i).concat(drive.slice(i+1,drive.length));
+            }
+          });
+        },
+        get : function(){
+          var bus = new DataBus();
+          bus.host(this);
+          return bus;
         }
-      });    
-      
-      x.apply(stream, [function(expectedData){
-        stream.eval(expectedData);
-      }]);  
+      }
     }
-    return stream;
-  };
 
-  /* Stream class */
-  function Stream(context){
-    var drive = [];
+    return function(x, context, strong){
+      var stream, xstr, reserved = [];
 
-    this.eval = function(data){
-      drive.forEach(function(bus){
-        bus.fire(data, context);
-      });
-    };
+      Analyze("makeStream", x);
+      
+      context = context || {};  
+      stream = Stream(context);
 
-    this.push = function(bus){
-      drive.push(bus);
-    };
-    
-    this.pop = function(bus){
-      forEach(drive, function(b, i){
-        if(bus == b){
-          drive = drive.slice(0,i).concat(drive.slice(i+1,drive.length));
+      if(is.fn(x)){
+        xstr = x.toString();
+
+        for(var i in context){
+          if(context.hasOwnPropery(i)){
+            reserved.push(i);
+          }
         }
-      });
-    };
-    
-    this.get = function(){
-      var bus = new DataBus();
-      bus.host(this);
-      return bus;
-    };
 
-    return this;
-  }/* End: src/modules/Streams.js */
+        forEach(reserved, function(i){
+          if(xstr.indexOf("this."+i)>=0){
+            console.warn("You have used reserved word '" + i + "' in stream");
+          }
+        });    
+        
+        x.apply(context, [function(expectedData){
+          stream.eval(expectedData);
+        }]);  
+      }    
+      return stream;
+    };
+  })();/* End: src/modules/Streams.js */
 /* Begin: src/modules/DataBus.js */
   function DataBus(proc){
     var processor = new Processor(proc || [], this), //processor
         host = 0; //hosting stream
 
-    this.id = Math.random()*1000000000 >> 0; //for debugging
+    this.id = Math.random()*10000 >> 0; //for debugging
     this.parent = null;
+    this.children = [];
+
     this._ = {
       fires : new Queue(),
       takes : new Queue(),
@@ -499,14 +520,15 @@
         nprocess.push(p);
         nbus = new DataBus(nprocess);
         nbus.host(this.host());
-        nbus.parent = this.parent || this;
+        nbus.parent = this;
+        this.children.push(nbus);
         return nbus;  
       }
     };
       
     this.fire = function(data, context){  
       var self = this;
-      data = exists(data) ? data : {};
+      data = is.exist(data) ? data : {};
       data.$$bus = this;
 
       this._.fires.push(data);
@@ -534,6 +556,7 @@
   DataBus.prototype.clone = function() {
     var nbus = new DataBus(this.process().getProcesses());
     nbus.parent = this.parent || this;
+    this.children.push(nbus);
     nbus.host(this.host());
     return nbus;
   };
@@ -559,18 +582,18 @@
       break;
       case 'string':
         fn = function(e){
-          var t = e[x], r = exists(t) ? t : x;
-          this.$host()._.fires.get()[this.$host()._.fires.length()-1] = r;
+          var t = e[x], 
+              r = is.exist(t) ? t : x;
           return this.$continue(r);
         }
       break;
       case 'object':
-        if(isArray(x)){
+        if(is.array(x)){
           fn = function(e){
             var res = [];
             forEach(x, function(i){
               var t = e[i];
-              res.push(exists(t) ? t : i);
+              res.push(is.exist(t) ? t : i);
             }); 
             return this.$continue(res);
           }
@@ -579,7 +602,7 @@
             var res = {}, t;
             for(var prop in x){
               t = e[x[prop]];
-              res[prop] = exists(t) ? t : x[prop];
+              res[prop] = is.exist(t) ? t : x[prop];
             }
             return this.$continue(res);
           }
@@ -603,7 +626,7 @@
             cur = event;
 
         if(init==='-f'){
-          var prev = bus._.takes.get(bus._.takes.length());
+          var prev = bus._.takes.get(bus._.takes.length-1);
         }
         return this.$continue(fn(prev, next));
       });   
@@ -621,7 +644,7 @@
       return this.process(function(e){
         var bus = this.$host();
         bus._.limit = bus._.limit || x;
-        if(bus._.takes.length() === bus._.limit){
+        if(bus._.takes.length === bus._.limit){
           return this.$break();
         }else{
           return this.$continue(e);
@@ -636,7 +659,7 @@
     if(is.num(c)){
       return this.process(function(e){
         var bus = this.$host();
-        if(bus._.fires.length() <= c){
+        if(bus._.fires.length <= c){
           this.$break();
         }else{
           return this.$continue(e);
@@ -691,11 +714,11 @@
       return this.process(function(e){
         var self = this, 
             bus = this.$host(),
-            fired = bus._.fires.length()-1;
+            fired = bus._.fires.length-1;
         if(!bus._.timer){
           bus._.collectionStart = fired;
           bus._.timer = setTimeout(function(){
-            var collection = bus._.history.slice(bus._.collectionStart, fired);
+            var collection = bus._.fires.get().slice(bus._.collectionStart, fired);
             delete bus._.timer;
             self.$unlock();
             self.$continue(collection);
@@ -721,10 +744,10 @@
     var self = this;
     return Warden.makeStream(function(emit){
       self.listen(function(data){
-        emit(fn(data, bus._.fires.get(bus._.fires.length()-1)));
+        emit(fn(data, bus._.fires.get(bus._.fires.length-1)));
       });
       bus.listen(function(data){
-        emit(fn(self._.fires.get(self._.fires.length()-1), data));
+        emit(fn(self._.fires.get(self._.fires.length-1), data));
       });
     }).get();
     
@@ -789,13 +812,14 @@
     return this.process(function(event){
       var fires = this.$host()._.fires;
       var takes = this.$host()._.takes;
-      if( (fires.length() > 1 || takes.length() > 0) && (event == fires.get(fires.length()-2) || event == takes.get(takes.length()-1))){      
+      if( (fires.length > 1 || takes.length > 0) && (event == fires.get(fires.length-2) || event == takes.get(takes.length-1))){      
         return this.$break();
       }else{
         return this.$continue(event);
       }  
     });
-  };/* End: src/modules/DataBus.js */
+  };
+/* End: src/modules/DataBus.js */
 /* Begin: src/modules/Watcher.js */
   Warden.watcher = function(bus, a, b){
   	var al = arguments.length,
@@ -833,5 +857,40 @@
 
   	return bus.listen(fn);
   };/* End: src/modules/Watcher.js */
+/* Begin: src/modules/Sampler.js */
+  Warden.Sampler = function Sampler() {
+    var buses = Array.prototype.slice.apply(arguments, [0, arguments.length-1]),
+        resolver = arguments[arguments.length-1];
 
+    var callings = {
+      start: function(){
+        var res = [];
+        for(var i in this){
+          if(i=='start'){continue}
+          var el = this[i];
+          forEach(el.history.get(), function(data){
+            res.push(resolver(data));
+          });
+        }
+      }
+    };
+
+    forEach(buses, function(bus){
+      bus.listen(function(data){
+        var res = callings[bus.id] || {
+          last: null,
+          history: new Queue(32)
+        };
+
+        res.last = data;
+        res.history.push(data);
+        callings[bus.id] = res;
+        callings.start()
+      });
+    });
+
+    return callings;
+  }
+
+/* End: src/modules/Sampler.js */
 }));

@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
   <head>
-    <title>Blocker</title>
+    <title>Socket</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
     <script src="../jquery/jquery/dist/jquery.min.js"></script>
@@ -15,7 +15,7 @@
         margin-bottom: 10px;
       }
       .ng{
-        width: 2px;
+        width: 1px;
         position: relative;
         margin-right: 0px;
         height: 100px;
@@ -24,8 +24,8 @@
       }
       .ng span{
         position: absolute;
-        width: 2px;
-        height: 2px;
+        width: 1px;
+        height: 1px;
         display: inline-block;
         border-radius: 6px;
         background-color: red;
@@ -38,10 +38,10 @@
       <div class="ng"><span></span></div>
     </div>
     <div>
-      <a href="#" class="mapper" conj='dist'> Distortion</a> <input type="number" pattern="..." id='dist'>
+      <a href="#" class="mapper" conj='dist'> Distortion</a> <input type="number" placeholder="0 to 100" id='dist'>
     </div>
     <div>
-      <a href="#" class="stepper" conj='dist'> Step</a> <input type="number" pattern="..." id='step'>
+      <a href="#" class="stepper" conj='dist'> Step</a> <input type="number" placeholder="0 to 1" id='step'>
     </div>
 
   </body>

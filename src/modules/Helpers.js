@@ -1,4 +1,7 @@
-/* Helpers functions */
+/* 
+  Helpers module
+  v.0.1.0
+*/
 
 /*
   Function exists(@mixed x):
@@ -20,49 +23,30 @@ var is = {
   str : function (x) {
     return typeof x === 'string';
   },
-  array : function(x){
-    return isArray(x);
-  },
+
+  /*
+    Function isArray(@mixed x):
+    Checks is x param is real array or object (or arguments object)
+  */
+
+  array : (function(){    
+    if(Array.isArray){
+      return function(x){ 
+        return Array.isArray(x); 
+      }
+    }else{
+      return function(x){ 
+        Object.prototype.toString.call(x) === '[object Array]';
+      }
+    }
+  }()),
   obj : function(x){
     return typeof x === 'object';
   },
-  exists : function(x){
-    return exists(x);
-  },
-  map: {
-    '_function' : function(x){
-      return is.fn(x);
-    },
-    '_number' : function(x){
-      return is.num(x);
-    },
-    '_string' : function(x){
-      return is.str(x);
-    },
-    '_array' : function(x){
-      return is.arr(x);
-    },
-    '_object' : function(x){
-      return is.obj(x);
-    }
+  exist : function(x){
+    return typeof x !== 'undefined' && x !== null;
   }
 }
-
-/*
-  Function isArray(@mixed x):
-  Checks is x param is real array or object (or arguments object)
-*/
-var isArray = (function(){
-  if(Array.isArray){
-    return function(x){ 
-      return Array.isArray(x); 
-    }
-  }else{
-    return function(x){ 
-      Object.prototype.toString.call(x) === '[object Array]';
-    }
-  }
-}());
 
 
 /*
@@ -124,28 +108,32 @@ var filter = (function(){
 })();
 
 /* 
-  Queue class @arr is Array;
+  Queue class @arr is Array, @maxlength is Number
 */
 function Queue(maxlength, arr){
   var storage = arr || [],
-      length = (arr && arr.length) || 0,
       max = maxlength || 16;
 
-  this.length = function(){
-    return length;
-  };
+  this.length = (arr && arr.length) || 0;
 
   this.push = function(item){
-    if(length>=maxlength){
+    if(this.length>=max){
       storage.shift();  
+    }else{
+      this.length++;  
     }
     storage.push(item);
-    length = storage.length;
   };
 
+  this.pop = function(){
+    storage.pop();
+    this.length--;
+  }
+
   this.get = function(index){
-    return exists(index) ? storage[index] : storage;
+    return is.exist(index) ? storage[index] : storage;
   };
+
 }
 
 /* 
@@ -154,11 +142,12 @@ function Queue(maxlength, arr){
 
 var Analyze = function(id, i){
   var t = Analyze.MAP[id];
-  if(t.indexOf(typeof i)){
+  if(t.indexOf(typeof i)==-1){
     throw "TypeError: unexpected type of argument at : " + id+ ". Expect: " + t.join(' or ') + ".";
   }
 }
 
 Analyze.MAP = {
+  extend : ['object', 'function'],
   makeStream: ['string', 'function']
 }

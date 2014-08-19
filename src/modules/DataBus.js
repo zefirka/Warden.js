@@ -2,8 +2,10 @@ function DataBus(proc){
   var processor = new Processor(proc || [], this), //processor
       host = 0; //hosting stream
 
-  this.id = Math.random()*1000000000 >> 0; //for debugging
+  this.id = Math.random()*10000 >> 0; //for debugging
   this.parent = null;
+  this.children = [];
+
   this._ = {
     fires : new Queue(),
     takes : new Queue(),
@@ -27,14 +29,15 @@ function DataBus(proc){
       nprocess.push(p);
       nbus = new DataBus(nprocess);
       nbus.host(this.host());
-      nbus.parent = this.parent || this;
+      nbus.parent = this;
+      this.children.push(nbus);
       return nbus;  
     }
   };
     
   this.fire = function(data, context){  
     var self = this;
-    data = exists(data) ? data : {};
+    data = is.exist(data) ? data : {};
     data.$$bus = this;
 
     this._.fires.push(data);
@@ -62,6 +65,7 @@ DataBus.prototype.log = function(){
 DataBus.prototype.clone = function() {
   var nbus = new DataBus(this.process().getProcesses());
   nbus.parent = this.parent || this;
+  this.children.push(nbus);
   nbus.host(this.host());
   return nbus;
 };
@@ -87,18 +91,18 @@ DataBus.prototype.map = function(x) {
     break;
     case 'string':
       fn = function(e){
-        var t = e[x], r = exists(t) ? t : x;
-        this.$host()._.fires.get()[this.$host()._.fires.length()-1] = r;
+        var t = e[x], 
+            r = is.exist(t) ? t : x;
         return this.$continue(r);
       }
     break;
     case 'object':
-      if(isArray(x)){
+      if(is.array(x)){
         fn = function(e){
           var res = [];
           forEach(x, function(i){
             var t = e[i];
-            res.push(exists(t) ? t : i);
+            res.push(is.exist(t) ? t : i);
           }); 
           return this.$continue(res);
         }
@@ -107,7 +111,7 @@ DataBus.prototype.map = function(x) {
           var res = {}, t;
           for(var prop in x){
             t = e[x[prop]];
-            res[prop] = exists(t) ? t : x[prop];
+            res[prop] = is.exist(t) ? t : x[prop];
           }
           return this.$continue(res);
         }
@@ -131,7 +135,7 @@ DataBus.prototype.reduce = function(init, fn){
           cur = event;
 
       if(init==='-f'){
-        var prev = bus._.takes.get(bus._.takes.length());
+        var prev = bus._.takes.get(bus._.takes.length-1);
       }
       return this.$continue(fn(prev, next));
     });   
@@ -149,7 +153,7 @@ DataBus.prototype.take = function(x){
     return this.process(function(e){
       var bus = this.$host();
       bus._.limit = bus._.limit || x;
-      if(bus._.takes.length() === bus._.limit){
+      if(bus._.takes.length === bus._.limit){
         return this.$break();
       }else{
         return this.$continue(e);
@@ -164,7 +168,7 @@ DataBus.prototype.skip = function(c) {
   if(is.num(c)){
     return this.process(function(e){
       var bus = this.$host();
-      if(bus._.fires.length() <= c){
+      if(bus._.fires.length <= c){
         this.$break();
       }else{
         return this.$continue(e);
@@ -219,11 +223,11 @@ DataBus.prototype.getCollected = function(t){
     return this.process(function(e){
       var self = this, 
           bus = this.$host(),
-          fired = bus._.fires.length()-1;
+          fired = bus._.fires.length-1;
       if(!bus._.timer){
         bus._.collectionStart = fired;
         bus._.timer = setTimeout(function(){
-          var collection = bus._.history.slice(bus._.collectionStart, fired);
+          var collection = bus._.fires.get().slice(bus._.collectionStart, fired);
           delete bus._.timer;
           self.$unlock();
           self.$continue(collection);
@@ -249,10 +253,10 @@ DataBus.prototype.combine = function(bus, fn) {
   var self = this;
   return Warden.makeStream(function(emit){
     self.listen(function(data){
-      emit(fn(data, bus._.fires.get(bus._.fires.length()-1)));
+      emit(fn(data, bus._.fires.get(bus._.fires.length-1)));
     });
     bus.listen(function(data){
-      emit(fn(self._.fires.get(self._.fires.length()-1), data));
+      emit(fn(self._.fires.get(self._.fires.length-1), data));
     });
   }).get();
   
@@ -317,7 +321,7 @@ DataBus.prototype.unique = function(){
   return this.process(function(event){
     var fires = this.$host()._.fires;
     var takes = this.$host()._.takes;
-    if( (fires.length() > 1 || takes.length() > 0) && (event == fires.get(fires.length()-2) || event == takes.get(takes.length()-1))){      
+    if( (fires.length > 1 || takes.length > 0) && (event == fires.get(fires.length-2) || event == takes.get(takes.length-1))){      
       return this.$break();
     }else{
       return this.$continue(event);

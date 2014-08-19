@@ -65,6 +65,12 @@
 
       pulse.log();
 
+      keyups = $(document).stream('keyup');
+      clicks = $(document).stream('click')
+      Warden.Sampler(clicks.map('clientX'), keyups.map('keyCode'), function(x){ 
+        debugger;
+      });
+
     });
   </script>
   </body>

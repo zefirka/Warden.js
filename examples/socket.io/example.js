@@ -7,12 +7,11 @@ var socket = Warden.extend(io('http://localhost:1991'), {
 $(function(){
 	(function(){
 		var x = $(".ng"), i =0;
-		while(i++<400){
+		while(i++<1000){
 			x.after(x[0].outerHTML);
 		}
 		$(".ng span").hide();
 	})();
-
 	var ngs = $(".ng");
 
 
@@ -21,20 +20,14 @@ $(function(){
 	}
 
 	var stream = socket.stream('sink')
-	.map(function(data){
-		return {
-			velocity : data.velocity,
-			id: data.id	}
-	});
-
-	stream
-	.listen(draw);
+	
+	stream.listen(draw);
 
 
 	$(".mapper").click(function(){
 		var value = $("#dist").val()
 		stream.lock();
-		stream.map(function(data){
+		stream = stream.map(function(data){
 			if(50 + (50 * data.velocity)  <= value){
 				data.velocity = (value - 50) / 50;
 			}
