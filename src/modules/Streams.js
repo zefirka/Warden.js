@@ -1,62 +1,75 @@
 /*
   Streams module:
     docs: ./docs/Streams.md
-    version: 0.1.1
+    version: 0.2.1
 
   Creates stream of data.
   If @x is string, that it interprets as datatype
   else if @x is function, than x's first arg is emitting data function
 */
 
-Warden.makeStream = function(x, context, strong){
-  var stream, xstr;
-  Analyze("makeStream", x);
-  if(is.str(x)){
-    stream = new Stream(context);
-  }else{
-    stream = new Stream(context);
-    xstr = x.toString();
+Warden.makeStream = (function(){
+  /* Stream class */
 
-    forEach(["eval", 'pop', 'push', 'get'], function(i){
-      if(xstr.indexOf("this."+i)>=0){
-        console.warn("You have used reserved word '" + i + "' in stream");
+  function Stream(context){
+    var drive = [];
+    return  {
+      id : Math.random() * 1000 >> 0,
+      eval : function(data){
+        forEach(drive, function(bus){
+          bus.fire(data, context);
+        });
+      },
+      push : function(bus){
+        drive.push(bus);
+      },
+      pop : function(bus){
+        forEach(drive, function(b, i){
+          /* Здесь надо проверить наследование прототипов, и если это сходные объекты, то это одно и то же */
+          if(bus == b){
+            drive = drive.slice(0,i).concat(drive.slice(i+1,drive.length));
+          }
+        });
+      },
+      get : function(){
+        var bus = new DataBus();
+        bus.host(this);
+        return bus;
       }
-    });    
-    
-    x.apply(stream, [function(expectedData){
-      stream.eval(expectedData);
-    }]);  
+    }
   }
-  return stream;
-};
 
-/* Stream class */
-function Stream(context){
-  var drive = [];
+  return function(x, context, strict){
+    var stream, xstr, reserved = [];
 
-  this.eval = function(data){
-    drive.forEach(function(bus){
-      bus.fire(data, context);
-    });
-  };
+    Analyze("makeStream", x);
+    
+    context = context || {};  
+    stream = Stream(context);
 
-  this.push = function(bus){
-    drive.push(bus);
-  };
-  
-  this.pop = function(bus){
-    forEach(drive, function(b, i){
-      if(bus == b){
-        drive = drive.slice(0,i).concat(drive.slice(i+1,drive.length));
+    if(is.fn(x)){
+
+      /* If we strict in context */
+      if(is.exist(strict)){
+        xstr = x.toString();
+
+        for(var i in context){
+          if(context.hasOwnPropery(i)){
+            reserved.push(i);
+          }
+        }
+
+        forEach(reserved, function(i){
+          if(xstr.indexOf("this."+i)>=0){
+            console.warn("You have used reserved word '" + i + "' in stream");
+          }
+        });    
       }
-    });
-  };
-  
-  this.get = function(){
-    var bus = new DataBus();
-    bus.host(this);
-    return bus;
-  };
 
-  return this;
-}
+      x.apply(context, [function(expectedData){
+        stream.eval(expectedData);
+      }]);  
+    }    
+    return stream;
+  };
+})();

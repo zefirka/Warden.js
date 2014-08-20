@@ -27,7 +27,7 @@ io.on('connection', function (socket) {
   socket.on('step', function(data){
      sins = (function(){
         var step = data.value, bef = 0;
-        var s = 400, r = [];
+        var s = 1000, r = [];
         while(s--){
           r.push(Math.sin(bef+=step));
         }
@@ -38,7 +38,7 @@ io.on('connection', function (socket) {
   var step = 0,
       sins = (function(){
         var step = 0.05, bef = 0;
-        var s = 400, r = [];
+        var s = 1000, r = [];
         while(s--){
           r.push(Math.sin(bef+=step));
         }
@@ -52,9 +52,9 @@ io.on('connection', function (socket) {
       id : step
     });
     step++;
-    if(step==400){
+    if(step==1000){
       step = 0;
     }
-  }, 30);
+  }, 4);
   
 });

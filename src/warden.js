@@ -26,5 +26,5 @@
   include "Streams.js"
   include "DataBus.js"
   include "Watcher.js"
-
+  include "Sampler.js"
 }));

@@ -1,7 +1,7 @@
 /* 
   Extend module: 
     docs: ./docs/Extend.md
-    version: v.0.1.2
+    version: v.0.2.0
 
   This methods extends @obj which can be both 
   function or object with Warden.js methods .emit(), 
@@ -9,8 +9,10 @@
 */
 
 Warden.extend = function(obj, conf) {
-  /* Default configuration */
+  /* Arguments type analysis */
+  Analyze('extend', obj);
 
+  /* Default configuration */
   var config = conf || {
     max : 512, // maximal handlers per object
     context : 'this', // context of evaluation
@@ -24,18 +26,13 @@ Warden.extend = function(obj, conf) {
     use actual object element 
   */
   
-  var ctype = typeof obj, // type of object to extend
-      inheritor = obj, // final object to expand
+  var inheritor = obj, // final object to expand
       isConstructor = true; // is obj is constructor
   
-  switch(ctype){
-    case 'function': // then object is constructor
-      inheritor = obj.prototype;
-      isConstructor = true;
-    break;
-    case 'object': // else its just an js object
-      isConstructor = false;
-    break;
+  if(is.fn(obj)){
+    inheritor = obj.prototype;
+  }else{
+    isConstructor = false;
   }
   
   /* 
@@ -43,13 +40,12 @@ Warden.extend = function(obj, conf) {
     and emitters  function to not overwrite them 
     and user should do not use that in config 
   */
-
-  if(typeof jQuery !== 'undefined'){
+  if(typeof jQuery!=="undefined"){
     config.emitter = config.emitter || 'trigger';
     config.listener = config.listener || 'on';    
   }else
-  if(typeof inheritor.addEventListener === 'function' || typeof inheritor.attachEvent === 'function'){
-    config.listener = config.listener || (typeof inheritor.addEventListener === 'function' ? "addEventListener" : "attachEvent");
+  if(is.fn(inheritor.addEventListener) || is.fn(inheritor.attachEvent)){
+    config.listener = config.listener || (is.fn(inheritor.addEventListener) ? "addEventListener" : "attachEvent");
   }
   
   /* Preventing native 'emit' method override */
@@ -107,7 +103,7 @@ Warden.extend = function(obj, conf) {
   inheritor[emitName] = function(ev){
     var self = this,
         callbacks = handlers.gH(this, ev.type || ev);
-      
+    console.log('Что-то эмитировали!');
     forEach(callbacks, function(callback){
       callback.call(self, ev);
     });
@@ -121,13 +117,12 @@ Warden.extend = function(obj, conf) {
     handlers.sH(this, type, callback);    
     if(this[config.listener]){
       this[config.listener].apply(this, [type, function(event){ 
-        debugger;
         self[emitName](event)
       }]);
     }
     return this;
   };
-    
+
   /* Creates stream */
   inheritor.stream = function(type, cnt) {
     var stream = Warden.makeStream(type, cnt || this);
@@ -137,7 +132,9 @@ Warden.extend = function(obj, conf) {
     });
 
     if(this[config.listener]){
-      this[config.listener].apply(this, [type, function(event){ stream.eval(event);}]);
+      this[config.listener].apply(this, [type, function(event){     
+        stream.eval(event);      
+      }]);
     }
     
     return stream.get();

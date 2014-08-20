@@ -1,13 +1,7 @@
-/* Helpers functions */
-
-/*
-  Function exists(@mixed x):
-  Returns true is x exists and not equal null.
+/* 
+  Helpers module
+  v.0.2.0
 */
-var exists = function(x){
-  return typeof x !== 'undefined' && x !== null;
-}
-
 
 /* Typeof methods */
 var is = {
@@ -20,71 +14,54 @@ var is = {
   str : function (x) {
     return typeof x === 'string';
   },
-  array : function(x){
-    return isArray(x);
-  },
   obj : function(x){
-    return typeof x === 'object';
+    return typeof x === 'object' && !this.array(x);
   },
-  exists : function(x){
-    return exists(x);
-  },
-  map: {
-    '_function' : function(x){
-      return is.fn(x);
-    },
-    '_number' : function(x){
-      return is.num(x);
-    },
-    '_string' : function(x){
-      return is.str(x);
-    },
-    '_array' : function(x){
-      return is.arr(x);
-    },
-    '_object' : function(x){
-      return is.obj(x);
-    }
-  }
-}
 
-/*
-  Function isArray(@mixed x):
-  Checks is x param is real array or object (or arguments object)
-*/
-var isArray = (function(){
-  if(Array.isArray){
-    return function(x){ 
-      return Array.isArray(x); 
+  /*
+    Function isArray(@mixed x):
+    Checks is x param is real array or object (or arguments object)
+  */
+  array : (function(){    
+    if(Array.isArray){
+      return function(x){ 
+        return Array.isArray(x); 
+      }
+    }else{
+      return function(x){ 
+        Object.prototype.toString.call(x) === '[object Array]';
+      }
     }
-  }else{
-    return function(x){ 
-      Object.prototype.toString.call(x) === '[object Array]';
-    }
-  }
-}());
+  }()),
 
+  /*
+    Function exists(@mixed x):
+    Returns true is x exists and not equal null.
+  */
+  exist : function(x){
+    return typeof x !== 'undefined' && x !== null;
+  }
+},
 
 /*
   Function forWhilte(@array arr, @function fn, @mixed preventVal, @mixed preventRet):
   Applyies @fn to each element of arr while result of applying doesn't equal @preventVal
   Then returns @preventRet or false if @preventRet is not defined
 */
-var forWhile = function(arr, fn, preventVal, preventRet){
+forWhile = function(arr, fn, preventVal, preventRet){
   for(var i=0, l=arr.length; i<l; i++){
     if(fn(arr[i], i) === preventVal){
       return preventRet && false; 
       break;
     }
   }
-};
-
+},
 
 /* 
   Function forEach(@array arr, @function fn):
   Applies @fn for each item from array @arr usage: forEach([1,2], function(item){...})
 */
-var forEach = (function(){
+forEach = (function(){
   if(Array.prototype.forEach){
     return function(arr, fn){ 
       return arr ? arr.forEach(fn) : null;
@@ -96,15 +73,14 @@ var forEach = (function(){
       }
     }
   }
-}());
-
+}()),
 
 /*
   Function filter(@array, @function)
   Filtering @array by @function and returns only mathcing as @function(item) === true  elements
   TODO: Should we keep it here?
 */
-var filter = (function(){
+filter = (function(){
   if(Array.prototype.filter){
     return function(arr, fn){
       return arr ? arr.filter(fn) : null;
@@ -124,28 +100,32 @@ var filter = (function(){
 })();
 
 /* 
-  Queue class @arr is Array;
+  Queue class @arr is Array, @maxlength is Number
 */
 function Queue(maxlength, arr){
-  var storage = arr || [],
-      length = (arr && arr.length) || 0,
-      max = maxlength || 16;
+  var max = maxlength || 16, 
+      storage = arr.slice(0, max) || [];
 
-  this.length = function(){
-    return length;
-  };
+  this.length = (arr && arr.length) || 0;
 
   this.push = function(item){
-    if(length>=maxlength){
+    if(this.length>=max){
       storage.shift();  
+    }else{
+      this.length++;  
     }
     storage.push(item);
-    length = storage.length;
   };
 
+  this.pop = function(){
+    storage.pop();
+    this.length--;
+  }
+
   this.get = function(index){
-    return exists(index) ? storage[index] : storage;
+    return is.exist(index) ? storage[index] : storage;
   };
+
 }
 
 /* 
@@ -154,11 +134,12 @@ function Queue(maxlength, arr){
 
 var Analyze = function(id, i){
   var t = Analyze.MAP[id];
-  if(t.indexOf(typeof i)){
+  if(t.indexOf(typeof i)==-1){
     throw "TypeError: unexpected type of argument at : " + id+ ". Expect: " + t.join(' or ') + ".";
   }
 }
 
 Analyze.MAP = {
+  extend : ['object', 'function'],
   makeStream: ['string', 'function']
 }
