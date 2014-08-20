@@ -39,7 +39,7 @@ Warden.makeStream = (function(){
     }
   }
 
-  return function(x, context, strong){
+  return function(x, context, strict){
     var stream, xstr, reserved = [];
 
     Analyze("makeStream", x);
@@ -48,20 +48,24 @@ Warden.makeStream = (function(){
     stream = Stream(context);
 
     if(is.fn(x)){
-      xstr = x.toString();
 
-      for(var i in context){
-        if(context.hasOwnPropery(i)){
-          reserved.push(i);
+      /* If we strict in context */
+      if(is.exist(strict)){
+        xstr = x.toString();
+
+        for(var i in context){
+          if(context.hasOwnPropery(i)){
+            reserved.push(i);
+          }
         }
+
+        forEach(reserved, function(i){
+          if(xstr.indexOf("this."+i)>=0){
+            console.warn("You have used reserved word '" + i + "' in stream");
+          }
+        });    
       }
 
-      forEach(reserved, function(i){
-        if(xstr.indexOf("this."+i)>=0){
-          console.warn("You have used reserved word '" + i + "' in stream");
-        }
-      });    
-      
       x.apply(context, [function(expectedData){
         stream.eval(expectedData);
       }]);  
