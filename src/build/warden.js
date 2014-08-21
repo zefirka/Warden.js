@@ -15,7 +15,7 @@
 })(this, function(Warden){
   
   'use strict';
-  Warden.version = "0.0.3.1"; 
+  Warden.version = "0.0.4"; 
   Warden.log = function(x){
     console.log(x);
   }
@@ -23,19 +23,13 @@
 /* Begin: src/modules/Helpers.js */
   /* 
     Helpers module
-    v.0.1.0
+    v.0.2.0
   */
 
-  /*
-    Function exists(@mixed x):
-    Returns true is x exists and not equal null.
+
+  /* 
+    Data type checking methods
   */
-  var exists = function(x){
-    return typeof x !== 'undefined' && x !== null;
-  }
-
-
-  /* Typeof methods */
   var is = {
     fn : function (x) {
       return typeof x === 'function';
@@ -46,12 +40,14 @@
     str : function (x) {
       return typeof x === 'string';
     },
+    obj : function(x){
+      return typeof x === 'object' && !this.array(x);
+    },
 
     /*
       Function isArray(@mixed x):
       Checks is x param is real array or object (or arguments object)
     */
-
     array : (function(){    
       if(Array.isArray){
         return function(x){ 
@@ -63,35 +59,35 @@
         }
       }
     }()),
-    obj : function(x){
-      return typeof x === 'object';
-    },
+
+    /*
+      Function exists(@mixed x):
+      Returns true is x exists and not equal null.
+    */
     exist : function(x){
       return typeof x !== 'undefined' && x !== null;
     }
-  }
-
+  },
 
   /*
     Function forWhilte(@array arr, @function fn, @mixed preventVal, @mixed preventRet):
     Applyies @fn to each element of arr while result of applying doesn't equal @preventVal
     Then returns @preventRet or false if @preventRet is not defined
   */
-  var forWhile = function(arr, fn, preventVal, preventRet){
+  forWhile = function(arr, fn, preventVal, preventRet){
     for(var i=0, l=arr.length; i<l; i++){
       if(fn(arr[i], i) === preventVal){
         return preventRet && false; 
         break;
       }
     }
-  };
-
+  },
 
   /* 
     Function forEach(@array arr, @function fn):
     Applies @fn for each item from array @arr usage: forEach([1,2], function(item){...})
   */
-  var forEach = (function(){
+  forEach = (function(){
     if(Array.prototype.forEach){
       return function(arr, fn){ 
         return arr ? arr.forEach(fn) : null;
@@ -103,15 +99,14 @@
         }
       }
     }
-  }());
-
+  }()),
 
   /*
     Function filter(@array, @function)
     Filtering @array by @function and returns only mathcing as @function(item) === true  elements
     TODO: Should we keep it here?
   */
-  var filter = (function(){
+  filter = (function(){
     if(Array.prototype.filter){
       return function(arr, fn){
         return arr ? arr.filter(fn) : null;
@@ -128,38 +123,18 @@
         return filtered;
       }
     }
-  })();
+  })(),
+
+  /* Extends flat objects */
+
+  extend = ($ && $.extend) ? $.extend : function (){var a,b,c,d,e,f,g=arguments[0]||{},h=1,i=arguments.length,j=!1;for("boolean"==typeof g&&(j=g,g=arguments[h]||{},h++),"object"==typeof g||m.isFunction(g)||(g={}),h===i&&(g=this,h--);i>h;h++)if(null!=(e=arguments[h]))for(d in e)a=g[d],c=e[d],g!==c&&(j&&c&&(m.isPlainObject(c)||(b=m.isArray(c)))?(b?(b=!1,f=a&&m.isArray(a)?a:[]):f=a&&m.isPlainObject(a)?a:{},g[d]=m.extend(j,f,c)):void 0!==c&&(g[d]=c));return g}
+
 
   /* 
-    Queue class @arr is Array;
-    should to make length not a function
+    Queue class @arr is Array, @maxlength is Number
   */
-  function _Queue(maxlength, arr){
-    var storage = arr || [],
-        length = (arr && arr.length) || 0,
-        max = maxlength || 16;
-
-    this.length = function(){
-      return length;
-    };
-
-    this.push = function(item){
-      if(length>=maxlength){
-        storage.shift();  
-      }
-      storage.push(item);
-      length = storage.length;
-    };
-
-    this.get = function(index){
-      return exists(index) ? storage[index] : storage;
-    };
-  }
-
-  /* Optimized queue */
   function Queue(maxlength, arr){
-    var storage = arr || [],
-        max = maxlength || 16;
+    var max = maxlength || 16, storage = (arr && arr.slice(0, max)) || [];
 
     this.length = (arr && arr.length) || 0;
 
@@ -183,43 +158,55 @@
 
   }
 
+
+
+
   /* 
     Datatype analyzer
   */
 
   var Analyze = function(id, i){
-    var t = Analyze.MAP[id];
-    if(t.indexOf(typeof i)==-1){
-      throw "TypeError: unexpected type of argument at : " + id+ ". Expect: " + t.join(' or ') + ".";
+    var t = Analyze.MAP[id], yt = typeof i;
+    if(t && t.indexOf(yt)==-1){
+      throw "TypeError: unexpected type of argument at : " + id+ ". Expect: " + t.join(' or ') + ". Your argument is type of: " + yt;
     }
   }
 
-  Analyze.MAP = {
-    extend : ['object', 'function'],
-    makeStream: ['string', 'function']
-  }/* End: src/modules/Helpers.js */
+  Analyze.MAP = (function(){
+    var o = 'object', s = 'string', f = 'function', n = 'number';
+    return {
+      extend : [o,f],
+      makeStream: [s,f],
+      debounce : [n],
+      getCollected : [n],
+      warn : function(i, context){
+        console.log("Coincidence: property: '" + i + "' is already defined in stream context!", context);
+      }
+    }
+  })();/* End: src/modules/Helpers.js */
 /* Begin: src/modules/Extend.js */
   /* 
     Extend module: 
       docs: ./docs/Extend.md
-      version: v.0.2.0
+      version: v.0.2.2
 
     This methods extends @obj which can be both 
     function or object with Warden.js methods .emit(), 
     .listen() and .stream() 
   */
 
+
   Warden.extend = function(obj, conf) {
     /* Arguments type analysis */
     Analyze('extend', obj);
 
     /* Default configuration */
-    var config = conf || {
+    var config = extend(conf, {
       max : 512, // maximal handlers per object
       context : 'this', // context of evaluation
       emitter : null, // custom event emitter if exists
       listener : null // custrom event listener if exists
-    };
+    });
     
     /* 
       Choose object to extend,
@@ -420,7 +407,7 @@
   /*
     Streams module:
       docs: ./docs/Streams.md
-      version: 0.2.1
+      version: 0.2.2
 
     Creates stream of data.
     If @x is string, that it interprets as datatype
@@ -428,28 +415,48 @@
   */
 
   Warden.makeStream = (function(){
-    /* Stream class */
-
+    
+    /* Stream constructor */
     function Stream(context){
       var drive = [];
       return  {
-        id : Math.random() * 1000 >> 0,
+        /*
+          For debugging:
+        */
+        $$id : Math.random() * 1000 >> 0, 
+
+        /* 
+          Evaluating the stream with @data 
+        */
         eval : function(data){
           forEach(drive, function(bus){
             bus.fire(data, context);
           });
         },
+        
+        /* 
+          Push into executable drive @bus.
+          Bus is DataBus object.
+        */
         push : function(bus){
           drive.push(bus);
         },
+
+        /* 
+          Removes from executable drive @bus.
+          Bus must be DataBus object.
+        */
         pop : function(bus){
           forEach(drive, function(b, i){
-            /* Здесь надо проверить наследование прототипов, и если это сходные объекты, то это одно и то же */
             if(bus == b){
               drive = drive.slice(0,i).concat(drive.slice(i+1,drive.length));
             }
           });
         },
+
+        /*
+          Creates empty DataBus object and hoist it to the current stream
+        */
         get : function(){
           var bus = new DataBus();
           bus.host(this);
@@ -458,7 +465,13 @@
       }
     }
 
-    return function(x, context, strong){
+
+    /* 
+      Creates stream of @x on context @context;
+      If @strict argument is truly, than it warns about the coincidence 
+      in the context to prevent overwriting;
+    */
+    return function(x, context, strict){
       var stream, xstr, reserved = [];
 
       Analyze("makeStream", x);
@@ -467,20 +480,25 @@
       stream = Stream(context);
 
       if(is.fn(x)){
-        xstr = x.toString();
 
-        for(var i in context){
-          if(context.hasOwnPropery(i)){
-            reserved.push(i);
+        /* If we strict in context */
+        if(is.exist(strict)){
+          xstr = x.toString();
+
+          for(var i in context){
+            if(context.hasOwnPropery(i)){
+              reserved.push(i);
+            }
           }
+
+          forEach(reserved, function(prop){
+            if(xstr.indexOf("this."+prop)>=0){
+              /* If there is a coincidence, we warn about it */
+              Analyze.MAP.warn(prop, context);
+            }
+          });    
         }
 
-        forEach(reserved, function(i){
-          if(xstr.indexOf("this."+i)>=0){
-            console.warn("You have used reserved word '" + i + "' in stream");
-          }
-        });    
-        
         x.apply(context, [function(expectedData){
           stream.eval(expectedData);
         }]);  
@@ -567,7 +585,7 @@
       throw "TypeError: filter argument mus be a function";
     }
     return this.process(function(e){
-      return x(e) === true ? this.$continue(e) : this.$break();
+      return x.apply(this, [e]) === true ? this.$continue(e) : this.$break();
     });
   };
 
@@ -625,10 +643,10 @@
             prev = init,
             cur = event;
 
-        if(init==='-f'){
-          var prev = bus._.takes.get(bus._.takes.length-1);
+        if(bus._.takes.length >= 1){
+          prev = bus._.takes.get(bus._.takes.length-1);
         }
-        return this.$continue(fn(prev, next));
+        return this.$continue(fn(prev, cur));
       });   
     }else{
       throw "TypeError: second argument must be a function";
@@ -693,42 +711,51 @@
   };
 
   DataBus.prototype.debounce = function(t) {
-    if(is.num(t)){
-      return this.process(function(e){
-        var self = this, bus = this.$host();
-        clearTimeout(bus._.dbtimer);
-        bus._.dbtimer = setTimeout(function(){
-          delete bus._.dbtimer;
-          self.$unlock();
-          self.$continue(e);
-        }, t);      
-        this.$lock();
-      });
-    }else{
-      throw "TypeError: argument of debounce must be a number of ms.";
-    }
+    Analyze('debounce', t)
+    return this.process(function(e){
+      var self = this, bus = this.$host();
+      var $unlock = self.$unlock,
+          $continue = self.$continue,
+          $lock = self.$lock;
+      clearTimeout(bus._.dbtimer);
+      bus._.dbtimer = setTimeout(function(){
+        delete bus._.dbtimer;
+        $unlock();
+        $continue(e);
+      }, t);      
+      $lock();
+    });
   };
 
   DataBus.prototype.getCollected = function(t){
-    if(is.num(t)){
-      return this.process(function(e){
-        var self = this, 
-            bus = this.$host(),
-            fired = bus._.fires.length-1;
-        if(!bus._.timer){
-          bus._.collectionStart = fired;
-          bus._.timer = setTimeout(function(){
-            var collection = bus._.fires.get().slice(bus._.collectionStart, fired);
-            delete bus._.timer;
-            self.$unlock();
-            self.$continue(collection);
-          }, t);
-          this.$lock();
-        }
-      })
-    }else{
-      throw "TypeError: getCollected of debounce must be a number of ms.";
-    }
+    Analyze('getCollected', t);
+    return this.process(function(e){
+      var self = this, 
+          bus = this.$host(),
+          fired = bus._.fires.length-1;
+      var $unlock = self.$unlock,
+          $continue = self.$continue,
+          $lock = self.$lock;
+
+      bus._.tmpCollection = bus._.tmpCollection || [];
+      bus._.tmpCollection.push(e);
+
+      if(!bus._.timer){
+        bus._.timer = setTimeout(function(){
+          var collection = bus._.tmpCollection;
+
+          clearTimeout(bus._.timer);
+          delete bus._.timer;
+          delete bus._.tmpCollection
+          
+          $unlock();
+          $continue(collection);
+        }, t);
+        $lock();
+      }else{
+        $lock();
+      }
+    });
   };
 
   DataBus.prototype.merge = function(bus){
@@ -742,12 +769,20 @@
 
   DataBus.prototype.combine = function(bus, fn) {
     var self = this;
+    var a, b;
+    bus.listen(function(event){
+      b = event;
+    });
+    this.listen(function(event){
+      a = event;
+    })
+
     return Warden.makeStream(function(emit){
       self.listen(function(data){
-        emit(fn(data, bus._.fires.get(bus._.fires.length-1)));
+        emit(fn(a,b));
       });
       bus.listen(function(data){
-        emit(fn(self._.fires.get(self._.fires.length-1), data));
+        emit(fn(a,b));
       });
     }).get();
     
@@ -798,10 +833,7 @@
   }
 
   DataBus.prototype.bindTo = function(a,b){
-    var args = arguments;
-    var concat = Array.prototype.concat;
-    unshift.apply(args, [this]);
-    Warden.watcher(args)
+    Warden.watcher(this, a, b);
   };
 
   DataBus.prototype.once = function(){
@@ -822,75 +854,48 @@
 /* End: src/modules/DataBus.js */
 /* Begin: src/modules/Watcher.js */
   Warden.watcher = function(bus, a, b){
-  	var al = arguments.length,
-  		fn = null;
-  	if(al==3){
-  		if(is.fn(b)){
-  			if(is.obj(a)){
-  				fn = function(e){
-  					return a = b(e);
-  				}
-  			}else{
-  				throw "Wrong";
+  	var ta = typeof a,
+  		tb = typeof b,
+  		terr = "TypeError",
+  		fn;
+
+  	if(!is.exist(b) && is.exist(a)){
+  		if(ta == 'string'){
+  			fn = function(event){
+  				return this[a] = event;
   			}
   		}else
-  		if(is.str(b)){
-  			if(is.obj(a)){
-  				fn = function(e){
-  					return a[b] = e;
-  				}
-  			}else{
-  				throw "Wrong";
+  		if(ta == 'function'){
+  			fn = function(event){
+  				return a(event);
   			}
   		}else{
-  			throw "Wrong"
+  			throw terr;
   		}
   	}else
-  	if(al==2){
-  		fn = function(e){
-  			a = e;
+
+  	if(is.exist(b)){
+  		if(ta == 'object' && tb == 'string'){
+  			fn = function(event){
+  				return a[b] = event;
+  			}
+  		}else
+
+  		if(ta == 'object' && tb == 'function'){
+  			fn = function(event){
+  				return a = b(event);
+  			}
+  		}else
+  		{
+  			throw terr;
   		}
-  	}else
-  	if(al==1){
-  		throw "Wrong"
+  	} else
+
+  	{
+  		throw "Arg Error"
   	}
+
 
   	return bus.listen(fn);
   };/* End: src/modules/Watcher.js */
-/* Begin: src/modules/Sampler.js */
-  Warden.Sampler = function Sampler() {
-    var buses = Array.prototype.slice.apply(arguments, [0, arguments.length-1]),
-        resolver = arguments[arguments.length-1];
-
-    var callings = {
-      start: function(){
-        var res = [];
-        for(var i in this){
-          if(i=='start'){continue}
-          var el = this[i];
-          forEach(el.history.get(), function(data){
-            res.push(resolver(data));
-          });
-        }
-      }
-    };
-
-    forEach(buses, function(bus){
-      bus.listen(function(data){
-        var res = callings[bus.id] || {
-          last: null,
-          history: new Queue(32)
-        };
-
-        res.last = data;
-        res.history.push(data);
-        callings[bus.id] = res;
-        callings.start()
-      });
-    });
-
-    return callings;
-  }
-
-/* End: src/modules/Sampler.js */
 }));

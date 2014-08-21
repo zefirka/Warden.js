@@ -1,0 +1,96 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Blocker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <script src="jquery/dist/jquery.min.js"></script>
+    <script src="../../dist/warden.js"></script>
+    <script src="script.js"></script>
+  </head>
+
+    
+  <body>
+  
+  <div class="left-col">
+    <div class='field l'></div>
+
+    <div id='mapx' class='line'>
+      <div class='title'>.map('clientX')</div>
+      <div class='box'></div>
+    </div>
+
+     <div id='mapxfilter' class='line'>
+      <div class='title'>.map('clientX').filter(x > 50%)</div>
+      <div class='box'></div>
+    </div>
+
+    <div id='mapvalue' class='line'>
+      <div class='title'>.map('value')</div>
+      <div class='box'></div>
+    </div>
+
+    <div id='skiptake' class='line'>
+      <div class='title'>.skip(3).take(3)</div>
+      <div class='box'></div>
+    </div>
+
+    <div id='reducesum' class='line'>
+      <div class='title'>.map('clientX').reduce(x1 + x2)</div>
+      <div class='box'></div>
+    </div>
+
+  </div>
+
+  <div class="right-col">
+    <div class='field r'></div>
+    
+    <div id='originalr' class='line'>
+      <div class='title'>Original event</div>
+      <div class='box'></div>
+    </div>
+
+    <div id='getcollected' class='line'>
+      <div class='title'>.map('clientY').getCollected(2000)</div>
+      <div class='box'></div>
+    </div> 
+
+    <div id='unique' class='line'>
+      <div class='title'>.map('clientY').unique()</div>
+      <div class='box'></div>
+    </div>
+
+    <div id='debounce' class='line'>
+      <div class='title'>.debounce(1000)</div>
+      <div class='box'></div>
+    </div>
+
+    <div id='mask' class='line'>
+      <div class='title'>.mask("X:{{clientX}}, Y:{{clientY}}")</div>
+      <div class='box'></div>
+    </div>   
+  </div>
+
+  <div class="full-col">
+    <div id='merge' class='line'>
+      <div class='title'>red.merge(blue)</div>
+      <div class='box'></div>
+    </div>
+    <div id='sync' class='line'>
+      <div class='title'>red.map(0).sync(blue.map(1))</div>
+      <div class='box'></div>
+    </div>
+    <div id='wait' class='line'>
+      <div class='title'>red.map(0).waitFor(blue)</div>
+      <div class='box'></div>
+    </div>
+    <div id='combine' class='line'>
+      <div class='title'>blue.map(0).combine(blue.map(1), resolver</div>
+      <div class='box'></div>
+    </div>
+
+  </div>
+
+  </body>
+</html>
