@@ -76,7 +76,7 @@ DataBus.prototype.filter = function(x) {
     throw "TypeError: filter argument mus be a function";
   }
   return this.process(function(e){
-    return x(e) === true ? this.$continue(e) : this.$break();
+    return x.apply(this, [e]) === true ? this.$continue(e) : this.$break();
   });
 };
 
@@ -134,10 +134,10 @@ DataBus.prototype.reduce = function(init, fn){
           prev = init,
           cur = event;
 
-      if(init==='-f'){
-        var prev = bus._.takes.get(bus._.takes.length-1);
+      if(bus._.takes.length >= 1){
+        prev = bus._.takes.get(bus._.takes.length-1);
       }
-      return this.$continue(fn(prev, next));
+      return this.$continue(fn(prev, cur));
     });   
   }else{
     throw "TypeError: second argument must be a function";
@@ -202,42 +202,51 @@ DataBus.prototype.mask = function(s){
 };
 
 DataBus.prototype.debounce = function(t) {
-  if(is.num(t)){
-    return this.process(function(e){
-      var self = this, bus = this.$host();
-      clearTimeout(bus._.dbtimer);
-      bus._.dbtimer = setTimeout(function(){
-        delete bus._.dbtimer;
-        self.$unlock();
-        self.$continue(e);
-      }, t);      
-      this.$lock();
-    });
-  }else{
-    throw "TypeError: argument of debounce must be a number of ms.";
-  }
+  Analyze('debounce', t)
+  return this.process(function(e){
+    var self = this, bus = this.$host();
+    var $unlock = self.$unlock,
+        $continue = self.$continue,
+        $lock = self.$lock;
+    clearTimeout(bus._.dbtimer);
+    bus._.dbtimer = setTimeout(function(){
+      delete bus._.dbtimer;
+      $unlock();
+      $continue(e);
+    }, t);      
+    $lock();
+  });
 };
 
 DataBus.prototype.getCollected = function(t){
-  if(is.num(t)){
-    return this.process(function(e){
-      var self = this, 
-          bus = this.$host(),
-          fired = bus._.fires.length-1;
-      if(!bus._.timer){
-        bus._.collectionStart = fired;
-        bus._.timer = setTimeout(function(){
-          var collection = bus._.fires.get().slice(bus._.collectionStart, fired);
-          delete bus._.timer;
-          self.$unlock();
-          self.$continue(collection);
-        }, t);
-        this.$lock();
-      }
-    })
-  }else{
-    throw "TypeError: getCollected of debounce must be a number of ms.";
-  }
+  Analyze('getCollected', t);
+  return this.process(function(e){
+    var self = this, 
+        bus = this.$host(),
+        fired = bus._.fires.length-1;
+    var $unlock = self.$unlock,
+        $continue = self.$continue,
+        $lock = self.$lock;
+
+    bus._.tmpCollection = bus._.tmpCollection || [];
+    bus._.tmpCollection.push(e);
+
+    if(!bus._.timer){
+      bus._.timer = setTimeout(function(){
+        var collection = bus._.tmpCollection;
+
+        clearTimeout(bus._.timer);
+        delete bus._.timer;
+        delete bus._.tmpCollection
+        
+        $unlock();
+        $continue(collection);
+      }, t);
+      $lock();
+    }else{
+      $lock();
+    }
+  });
 };
 
 DataBus.prototype.merge = function(bus){
@@ -251,12 +260,20 @@ DataBus.prototype.merge = function(bus){
 
 DataBus.prototype.combine = function(bus, fn) {
   var self = this;
+  var a, b;
+  bus.listen(function(event){
+    b = event;
+  });
+  this.listen(function(event){
+    a = event;
+  })
+
   return Warden.makeStream(function(emit){
     self.listen(function(data){
-      emit(fn(data, bus._.fires.get(bus._.fires.length-1)));
+      emit(fn(a,b));
     });
     bus.listen(function(data){
-      emit(fn(self._.fires.get(self._.fires.length-1), data));
+      emit(fn(a,b));
     });
   }).get();
   
@@ -307,10 +324,7 @@ DataBus.prototype.unlock = function(){
 }
 
 DataBus.prototype.bindTo = function(a,b){
-  var args = arguments;
-  var concat = Array.prototype.concat;
-  unshift.apply(args, [this]);
-  Warden.watcher(args)
+  Warden.watcher(this, a, b);
 };
 
 DataBus.prototype.once = function(){

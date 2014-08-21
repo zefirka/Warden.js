@@ -3,7 +3,10 @@
   v.0.2.0
 */
 
-/* Typeof methods */
+
+/* 
+  Data type checking methods
+*/
 var is = {
   fn : function (x) {
     return typeof x === 'function';
@@ -97,14 +100,18 @@ filter = (function(){
       return filtered;
     }
   }
-})();
+})(),
+
+/* Extends flat objects */
+
+extend = ($ && $.extend) ? $.extend : function (){var a,b,c,d,e,f,g=arguments[0]||{},h=1,i=arguments.length,j=!1;for("boolean"==typeof g&&(j=g,g=arguments[h]||{},h++),"object"==typeof g||m.isFunction(g)||(g={}),h===i&&(g=this,h--);i>h;h++)if(null!=(e=arguments[h]))for(d in e)a=g[d],c=e[d],g!==c&&(j&&c&&(m.isPlainObject(c)||(b=m.isArray(c)))?(b?(b=!1,f=a&&m.isArray(a)?a:[]):f=a&&m.isPlainObject(a)?a:{},g[d]=m.extend(j,f,c)):void 0!==c&&(g[d]=c));return g}
+
 
 /* 
   Queue class @arr is Array, @maxlength is Number
 */
 function Queue(maxlength, arr){
-  var max = maxlength || 16, 
-      storage = arr.slice(0, max) || [];
+  var max = maxlength || 16, storage = (arr && arr.slice(0, max)) || [];
 
   this.length = (arr && arr.length) || 0;
 
@@ -128,18 +135,29 @@ function Queue(maxlength, arr){
 
 }
 
+
+
+
 /* 
   Datatype analyzer
 */
 
 var Analyze = function(id, i){
-  var t = Analyze.MAP[id];
-  if(t.indexOf(typeof i)==-1){
-    throw "TypeError: unexpected type of argument at : " + id+ ". Expect: " + t.join(' or ') + ".";
+  var t = Analyze.MAP[id], yt = typeof i;
+  if(t && t.indexOf(yt)==-1){
+    throw "TypeError: unexpected type of argument at : " + id+ ". Expect: " + t.join(' or ') + ". Your argument is type of: " + yt;
   }
 }
 
-Analyze.MAP = {
-  extend : ['object', 'function'],
-  makeStream: ['string', 'function']
-}
+Analyze.MAP = (function(){
+  var o = 'object', s = 'string', f = 'function', n = 'number';
+  return {
+    extend : [o,f],
+    makeStream: [s,f],
+    debounce : [n],
+    getCollected : [n],
+    warn : function(i, context){
+      console.log("Coincidence: property: '" + i + "' is already defined in stream context!", context);
+    }
+  }
+})();

@@ -1,7 +1,7 @@
 /*
   Streams module:
     docs: ./docs/Streams.md
-    version: 0.2.1
+    version: 0.2.2
 
   Creates stream of data.
   If @x is string, that it interprets as datatype
@@ -9,28 +9,48 @@
 */
 
 Warden.makeStream = (function(){
-  /* Stream class */
-
+  
+  /* Stream constructor */
   function Stream(context){
     var drive = [];
     return  {
-      id : Math.random() * 1000 >> 0,
+      /*
+        For debugging:
+      */
+      $$id : Math.random() * 1000 >> 0, 
+
+      /* 
+        Evaluating the stream with @data 
+      */
       eval : function(data){
         forEach(drive, function(bus){
           bus.fire(data, context);
         });
       },
+      
+      /* 
+        Push into executable drive @bus.
+        Bus is DataBus object.
+      */
       push : function(bus){
         drive.push(bus);
       },
+
+      /* 
+        Removes from executable drive @bus.
+        Bus must be DataBus object.
+      */
       pop : function(bus){
         forEach(drive, function(b, i){
-          /* Здесь надо проверить наследование прототипов, и если это сходные объекты, то это одно и то же */
           if(bus == b){
             drive = drive.slice(0,i).concat(drive.slice(i+1,drive.length));
           }
         });
       },
+
+      /*
+        Creates empty DataBus object and hoist it to the current stream
+      */
       get : function(){
         var bus = new DataBus();
         bus.host(this);
@@ -39,6 +59,12 @@ Warden.makeStream = (function(){
     }
   }
 
+
+  /* 
+    Creates stream of @x on context @context;
+    If @strict argument is truly, than it warns about the coincidence 
+    in the context to prevent overwriting;
+  */
   return function(x, context, strict){
     var stream, xstr, reserved = [];
 
@@ -59,9 +85,10 @@ Warden.makeStream = (function(){
           }
         }
 
-        forEach(reserved, function(i){
-          if(xstr.indexOf("this."+i)>=0){
-            console.warn("You have used reserved word '" + i + "' in stream");
+        forEach(reserved, function(prop){
+          if(xstr.indexOf("this."+prop)>=0){
+            /* If there is a coincidence, we warn about it */
+            Analyze.MAP.warn(prop, context);
           }
         });    
       }

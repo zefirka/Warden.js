@@ -1,36 +1,45 @@
 Warden.watcher = function(bus, a, b){
-	var al = arguments.length,
-		fn = null;
-	if(al==3){
-		if(is.fn(b)){
-			if(is.obj(a)){
-				fn = function(e){
-					return a = b(e);
-				}
-			}else{
-				throw "Wrong";
+	var ta = typeof a,
+		tb = typeof b,
+		terr = "TypeError",
+		fn;
+
+	if(!is.exist(b) && is.exist(a)){
+		if(ta == 'string'){
+			fn = function(event){
+				return this[a] = event;
 			}
 		}else
-		if(is.str(b)){
-			if(is.obj(a)){
-				fn = function(e){
-					return a[b] = e;
-				}
-			}else{
-				throw "Wrong";
+		if(ta == 'function'){
+			fn = function(event){
+				return a(event);
 			}
 		}else{
-			throw "Wrong"
+			throw terr;
 		}
 	}else
-	if(al==2){
-		fn = function(e){
-			a = e;
+
+	if(is.exist(b)){
+		if(ta == 'object' && tb == 'string'){
+			fn = function(event){
+				return a[b] = event;
+			}
+		}else
+
+		if(ta == 'object' && tb == 'function'){
+			fn = function(event){
+				return a = b(event);
+			}
+		}else
+		{
+			throw terr;
 		}
-	}else
-	if(al==1){
-		throw "Wrong"
+	} else
+
+	{
+		throw "Arg Error"
 	}
+
 
 	return bus.listen(fn);
 };
