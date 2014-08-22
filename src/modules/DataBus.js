@@ -1,29 +1,32 @@
+/*
+  DataBus module.
+  Version: v0.1.0
+*/
+
 function DataBus(proc){
   var processor = new Processor(proc || [], this), //processor
       host = 0; //hosting stream
 
-  this.id = Math.random()*10000 >> 0; //for debugging
+  this.id = Math.random()*10000 >> 0; // for debugging
   this.parent = null;
-  this.children = [];
+  this.children = []; 
 
   this._ = {
     fires : new Queue(),
-    takes : new Queue(),
-    skipped : 0
+    takes : new Queue()
   };
 
   this.host = function(h){
     return host = h || host;
   }
 
-  /* It will be good change all addProcessor to process(fn) */
   this.process = function(p){
     var nprocess, nbus;
     if(!p){
       return processor;
     }else{
       nprocess = [];
-      forEach(processor.getProcesses(), function(i){
+      forEach(processor.process(), function(i){
         nprocess.push(i);
       });
       nprocess.push(p);
@@ -63,7 +66,7 @@ DataBus.prototype.log = function(){
 };
 
 DataBus.prototype.clone = function() {
-  var nbus = new DataBus(this.process().getProcesses());
+  var nbus = new DataBus(this.process().process());
   nbus.parent = this.parent || this;
   this.children.push(nbus);
   nbus.host(this.host());
@@ -72,11 +75,9 @@ DataBus.prototype.clone = function() {
 
 /* Filtering event and preventing transmitting through DataBus if @x(event) is false */
 DataBus.prototype.filter = function(x) {
-  if(!is.fn(x)){
-    throw "TypeError: filter argument mus be a function";
-  }
-  return this.process(function(e){
-    return x.apply(this, [e]) === true ? this.$continue(e) : this.$break();
+  Analyze('filter', x);
+  return this.process(function(e, drive){
+    return x.apply(this, [e]) === true ? drive.$continue(e) : drive.$break();
   });
 };
 
@@ -85,41 +86,41 @@ DataBus.prototype.map = function(x) {
   var fn, ctype = typeof x, res;
   switch(ctype){
     case 'function':
-      fn = function(e){
-        return this.$continue(x.apply(this, [e]));
+      fn = function(e, drive){
+        return drive.$continue(x.apply(this, [e]));
       }
     break;
     case 'string':
-      fn = function(e){
+      fn = function(e, drive){
         var t = e[x], 
             r = is.exist(t) ? t : x;
-        return this.$continue(r);
+        return drive.$continue(r);
       }
     break;
     case 'object':
       if(is.array(x)){
-        fn = function(e){
+        fn = function(e, drive){
           var res = [];
           forEach(x, function(i){
             var t = e[i];
             res.push(is.exist(t) ? t : i);
           }); 
-          return this.$continue(res);
+          return drive.$continue(res);
         }
       }else{
-        fn = function(e){
+        fn = function(e, drive){
           var res = {}, t;
           for(var prop in x){
             t = e[x[prop]];
             res[prop] = is.exist(t) ? t : x[prop];
           }
-          return this.$continue(res);
+          return drive.$continue(res);
         }
       }
     break;
     default:
-      fn = function(e){
-        return this.$continue(x);
+      fn = function(e, drive){
+        return drive.$continue(x);
       }
     break;
   }
@@ -128,109 +129,106 @@ DataBus.prototype.map = function(x) {
 
 
 DataBus.prototype.reduce = function(init, fn){
-  if(is.fn(fn)){
-    return this.process(function(event){
-      var bus = this.$host(),
-          prev = init,
-          cur = event;
+  Analyze('reduce', fn);
+  return this.process(function(event, drive){
+    var bus = drive.$host(),
+        prev = init,
+        cur = event;
 
-      if(bus._.takes.length >= 1){
-        prev = bus._.takes.get(bus._.takes.length-1);
-      }
-      return this.$continue(fn(prev, cur));
-    });   
-  }else{
-    throw "TypeError: second argument must be a function";
-  }
+    if(bus._.takes.length >= 1){
+      prev = bus._.takes.get(bus._.takes.length-1);
+    }
+    return drive.$continue(fn(prev, cur));
+  });   
 };
 
 /* Take only x count or x(event) == true events */
 DataBus.prototype.take = function(x){
+  Analyze('take', x);
   if(is.fn(x)){
     return this.filter(x);
-  }else
-  if(is.num(x)){
-    return this.process(function(e){
-      var bus = this.$host();
+  }else{
+    return this.process(function(e, drive){
+      var bus = drive.$host();
       bus._.limit = bus._.limit || x;
       if(bus._.takes.length === bus._.limit){
-        return this.$break();
+        return drive.$break();
       }else{
-        return this.$continue(e);
+        return drive.$continue(e);
       }
     });
-  }else{
-    throw "TypeError: take argument must be function or number"
   }
 };
 
 DataBus.prototype.skip = function(c) {
-  if(is.num(c)){
-    return this.process(function(e){
-      var bus = this.$host();
-      if(bus._.fires.length <= c){
-        this.$break();
-      }else{
-        return this.$continue(e);
-      }
-    });
-  }else{
-    throw "TypeError: skip argument must be only number";
-  }
+  Analyze('skip', c);
+  return this.process(function(e, drive){
+    var bus = drive.$host();
+    if(bus._.fires.length <= c){
+      drive.$break();
+    }else{
+      return drive.$continue(e);
+    }
+  });  
 };
 
 DataBus.prototype.waitFor = function(bus){
-  return this.process(function(e){
-    var self = this;
-    this.$lock();
-    return bus.listen(function(){
-      self.$unlock && self.$unlock();
-      return self.$continue && self.$continue(e);
+  var self = this;
+  return Warden.makeStream(function(emit){
+    var exec = false, val,         
+        clear = function(){
+          val = null; 
+          exec = false;
+        };
+
+    bus.listen(function(data){
+      if(exec){
+        emit(val);
+        clear();
+      }
     });
-  });
+
+    self.listen(function(data){
+      val = data;
+      exec = true;
+    });
+
+  }).get();
 };
 
 DataBus.prototype.mask = function(s){
   if(!is.str(s)){
     return this.map(s);
   }else{
-    return this.process(function(event){
+    return this.process(function(event, drive){
       var regex = /{{\s*[\w\.]+\s*}}/g;
-      return this.$continue(s.replace(regex, function(i){return event[i.slice(2,-2)]}));
+      return drive.$continue(s.replace(regex, function(i){return event[i.slice(2,-2)]}));
     })
   }
 };
 
 DataBus.prototype.debounce = function(t) {
   Analyze('debounce', t)
-  return this.process(function(e){
-    var self = this, bus = this.$host();
-    var $unlock = self.$unlock,
-        $continue = self.$continue,
-        $lock = self.$lock;
+  return this.process(function(e, drive){
+    var self = this, bus = drive.$host();
     clearTimeout(bus._.dbtimer);
     bus._.dbtimer = setTimeout(function(){
       delete bus._.dbtimer;
-      $unlock();
-      $continue(e);
+      drive.$unlock();
+      drive.$continue(e);
     }, t);      
-    $lock();
+    drive.$lock();
   });
 };
 
 DataBus.prototype.getCollected = function(t){
   Analyze('getCollected', t);
-  return this.process(function(e){
+  return this.process(function(e, drive){
     var self = this, 
-        bus = this.$host(),
+        bus = drive.$host(),
         fired = bus._.fires.length-1;
-    var $unlock = self.$unlock,
-        $continue = self.$continue,
-        $lock = self.$lock;
-
     bus._.tmpCollection = bus._.tmpCollection || [];
     bus._.tmpCollection.push(e);
-
     if(!bus._.timer){
       bus._.timer = setTimeout(function(){
         var collection = bus._.tmpCollection;
@@ -239,12 +237,12 @@ DataBus.prototype.getCollected = function(t){
         delete bus._.timer;
         delete bus._.tmpCollection
         
-        $unlock();
-        $continue(collection);
+        drive.$unlock();
+        drive.$continue(collection);
       }, t);
-      $lock();
+      drive.$lock();
     }else{
-      $lock();
+      drive.$lock();
     }
   });
 };
@@ -332,13 +330,13 @@ DataBus.prototype.once = function(){
 };
 
 DataBus.prototype.unique = function(){
-  return this.process(function(event){
-    var fires = this.$host()._.fires;
-    var takes = this.$host()._.takes;
+  return this.process(function(event, drive){
+    var fires = drive.$host()._.fires;
+    var takes = drive.$host()._.takes;
     if( (fires.length > 1 || takes.length > 0) && (event == fires.get(fires.length-2) || event == takes.get(takes.length-1))){      
-      return this.$break();
+      return drive.$break();
     }else{
-      return this.$continue(event);
+      return drive.$continue(event);
     }  
   });
 };

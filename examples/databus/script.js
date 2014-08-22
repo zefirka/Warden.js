@@ -34,23 +34,24 @@ $(function () {
 
 	var lines = {},
 		buses = {
+			originall : lc,
 			originalr : rc,
 			mapx : lc.map('clientX'),
 			mapxfilter : lc.map('clientX').filter(function(x){
 				return x > this.width()/2				
-			;}),
+			;}).map('blue'),
 			mapy : rc.map('y'),
 			mapvalue : lc.map('Value'),
-			skiptake : lc.skip(3).take(3),
+			skiptake : lc.skip(3).take(3).map('blue'),
 			reducesum : lc.map('clientX').reduce(0, function(prev, cur){ return prev + cur}),
-			debounce : rc.debounce(1000),
+			debounce : rc.map('red').debounce(1000),
 			getcollected : rc.map('clientY').getCollected(2000),
 			unique : rc.map('clientY').unique(),
 			mask : rc.mask("X:{{clientX}}, Y:{{clientY}}"),
 			merge : rc.merge(lc),
 			sync : lc.map(0).sync(rc.map(1)),
 			wait : rc.map(0).waitFor(lc),
-			combine : lc.map('timeStamp').combine(rc.map('timeStamp'), function(blue, red){
+			combine : lc.map('timeStamp').map(function(e){return (e+"").slice(-6);}).combine(rc.map('timeStamp').map(function(e){return (e+"").slice(-6);}), function(blue, red){
 				return "B:" + blue + "\nR:" + red;
 			})
 		};
@@ -62,7 +63,8 @@ $(function () {
 			line.create(event);
 		});
 		bus.locked = false;
-		linet.muteBtn.click(function(){
+		linet.muteBtn.click(function(e){
+			e.preventDefault();
 			linet.muteBtn.text(bus.locked ? 'Mute' : 'Unmute');
 			bus[bus.locked ? 'unlock' : 'lock']();
 			bus.locked = !bus.locked;
