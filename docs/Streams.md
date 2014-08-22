@@ -2,15 +2,13 @@ Streams
 =========
 
 Module at: 
-	- `./src/module/Streams.js` : Streams module
-
-	- `./src/module/DataBus.js` : DataBus module
+ - `./src/module/Streams.js` : Streams module
+ - `./src/module/DataBus.js` : DataBus module
 
 
 Usage : 
-	- `object.stream(type, [context])` - Create an event stream,
-
-	- `Warden.makeStream(creator)` - Create custom data stream
+ - `object.stream(type, [context])` - Create an event stream,
+ - `Warden.makeStream(creator)` - Create custom data stream
 
 
 ##Event streams##
@@ -28,6 +26,7 @@ or, if you prefer jQuery:
 Warden.extend($);
 var clicks = $(document).stream('click');
 clicks.listen('User clicked at document');
+```
 
 or, withour any DOM:
 
