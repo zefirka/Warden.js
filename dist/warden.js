@@ -123,7 +123,7 @@
 
   /* Extends flat objects */
 
-  extend = ($ && $.extend) ? $.extend : function (){var a,b,c,d,e,f,g=arguments[0]||{},h=1,i=arguments.length,j=!1;for("boolean"==typeof g&&(j=g,g=arguments[h]||{},h++),"object"==typeof g||m.isFunction(g)||(g={}),h===i&&(g=this,h--);i>h;h++)if(null!=(e=arguments[h]))for(d in e)a=g[d],c=e[d],g!==c&&(j&&c&&(m.isPlainObject(c)||(b=m.isArray(c)))?(b?(b=!1,f=a&&m.isArray(a)?a:[]):f=a&&m.isPlainObject(a)?a:{},g[d]=m.extend(j,f,c)):void 0!==c&&(g[d]=c));return g}
+  extend = (typeof $ !== 'undefined' && $.extend) ? $.extend : function (){var a,b,c,d,e,f,g=arguments[0]||{},h=1,i=arguments.length,j=!1;for("boolean"==typeof g&&(j=g,g=arguments[h]||{},h++),"object"==typeof g||m.isFunction(g)||(g={}),h===i&&(g=this,h--);i>h;h++)if(null!=(e=arguments[h]))for(d in e)a=g[d],c=e[d],g!==c&&(j&&c&&(m.isPlainObject(c)||(b=m.isArray(c)))?(b?(b=!1,f=a&&m.isArray(a)?a:[]):f=a&&m.isPlainObject(a)?a:{},g[d]=m.extend(j,f,c)):void 0!==c&&(g[d]=c));return g}
 
 
   /* 
@@ -498,15 +498,20 @@
     };
   })();/* End: src/modules/Streams.js */
 /* Begin: src/modules/DataBus.js */
+  /*
+    DataBus module.
+    Version: v0.1.0
+  */
+
   function DataBus(proc){
     var processor = new Processor(proc || [], this),         host = 0; 
     this.id = Math.random()*10000 >> 0;     this.parent = null;
-    this.children = [];
+    this.children = []; 
 
     this._ = {
       fires : new Queue(),
-      takes : new Queue(),
-          };
+      takes : new Queue()
+    };
 
     this.host = function(h){
       return host = h || host;

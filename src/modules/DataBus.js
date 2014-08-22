@@ -1,10 +1,15 @@
+/*
+  DataBus module.
+  Version: v0.1.0
+*/
+
 function DataBus(proc){
   var processor = new Processor(proc || [], this), //processor
       host = 0; //hosting stream
 
-  this.id = Math.random()*10000 >> 0; //for debugging
+  this.id = Math.random()*10000 >> 0; // for debugging
   this.parent = null;
-  this.children = [];
+  this.children = []; 
 
   this._ = {
     fires : new Queue(),

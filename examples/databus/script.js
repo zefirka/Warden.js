@@ -51,7 +51,7 @@ $(function () {
 			merge : rc.merge(lc),
 			sync : lc.map(0).sync(rc.map(1)),
 			wait : rc.map(0).waitFor(lc),
-			combine : lc.map('timeStamp').combine(rc.map('timeStamp'), function(blue, red){
+			combine : lc.map('timeStamp').map(function(e){return (e+"").slice(-6);}).combine(rc.map('timeStamp').map(function(e){return (e+"").slice(-6);}), function(blue, red){
 				return "B:" + blue + "\nR:" + red;
 			})
 		};
