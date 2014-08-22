@@ -153,6 +153,10 @@ Analyze.MAP = (function(){
   var o = 'object', s = 'string', f = 'function', n = 'number';
   return {
     extend : [o,f],
+    reduce : [f],
+    take : [f,n],
+    filter : [f],
+    skip : [n],
     makeStream: [s,f],
     debounce : [n],
     getCollected : [n],

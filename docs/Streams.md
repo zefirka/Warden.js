@@ -3,15 +3,18 @@ Streams
 
 Module at: 
 	- `./src/module/Streams.js` : Streams module
+
 	- `./src/module/DataBus.js` : DataBus module
+
 
 Usage : 
 	- `object.stream(type, [context])` - Create an event stream,
+
 	- `Warden.makeStream(creator)` - Create custom data stream
 
 
-##Streams of events##
-Потоки событий создаются из пользовательских событий или кастомных событий, созданных разработчиком, но так или иначе эмитированных напрямую либо через .emit(), либо косвенно, - через нативные триггеры. Это могут быть как DOM события, так и кастомные события извещающие о каких-то действиях в стандартно паттерне Pub/Sub.
+##Event streams##
+Event streams creates from standart DOM API events or custom events in Warden Pub/Sub wrapper (from .emit()).  
 
 ```js
 Warden.extend(document);
@@ -19,30 +22,93 @@ var clicks = document.stream('click');
 clicks.listen('User clicked at document'); // logging that into console
 ```
 
-##Creating custom data streams##
-Кроме пользовательских данных можно создавать потоки любых данных. Такая нотация позволяет оформить практические любые изменения состояния системы как передачу данных. Неважно синхронно ли это происходит, или асинхронно. 
+or, if you prefer jQuery:
 
 ```js
-var pulse = Warden.makeStream(function(emit){
-	var timer = 0;
-	this.start = function(){
-		timer = setInterval(function(){
-			emit("PULSE!); 
-		}, 1000);
-	};
-	this.stop = function(){
-		clearInterval(timer);
+Warden.extend($);
+var clicks = $(document).stream('click');
+clicks.listen('User clicked at document');
+
+or, withour any DOM:
+
+```js
+var module = Warden.extend({
+	sync: function(data){
+		this.emit({
+			type: 'someType',
+			data: data
+		});
 	}
-	this.start();
-}).get();
+});
 
-pulse.log(); // will log to console PULSE! every second
+var someTypeStream = module.stream('someType');
+someTypeStream.listen(function(event){
+	console.log(event.data);
+})
 
-// pulse.context.stop() - will stop pulsing
-// pulse.context.start() - will start pulsing
+module.sync("Hellow world!");
+```
+
+##Creating custom data streams##
+You can create not only event streams. Streams can contain data of any type. These notation allows you to wrap all changes in system's state as data transmissionm (synchronious or not), so you can manipulate your system easy with pure function without any side effects. 
+General method to create custom data streams is [`Warden.makeStream`](#Warden.makeStream)
+
+```js
+var pulse = {},
+	pulser = Warden.makeStream(function(emit){
+		var timer = 0;
+		this.start = function(){
+			clearInterval(timer);
+			timer = setInterval(function(){
+				emit("PULSE!); 
+			}, 1000);
+		};
+		this.stop = function(){
+			clearInterval(timer);
+		}
+		this.start();
+	}, pulse).get();
+
+pulser.log(); // will log to console PULSE! every second
+
+// pulse.stop() - will stop pulsing
+// pulse.start() - will start pulsing
 ```
 
 ###Usage###
-####Extend objects with Warden.extend()###
+####Warden.extend####
+`Warden.extend` creates a Pub/Sub wrapper around your object or constructor function. So all objects will have method `.stream(@type)` which listens all events of `@type` and evaluates all streams that you want to process (as DataBuses). Is you will use much DOM API events or custom events use Warden.extend.
+####Warden.makeStream####
+`Warden.makeStream(creator, [context], [strict])`
+Returns: Stream object.
+Descriptions: creates stream. If type of `@creator` is not `function`, then just creates stream, else it executes @creator, when first argument is Stream evaluation function. `context` is a context of all stream processing methods and final callback. If `@strict` argument is truly, than it checks the text of `@creator` and warns about the coincidence in properties name with `@context` properties.
 
+**Usage**
+```js
+var stream = Warden.makeStream(function(trigger){
+	setTimeout(trigger, 2000); 
+});
+var dataBus = stream.get();
+```
 
+```js
+var server = (function(){
+	var res = {};
+
+	res.successes = Warden.makeStream('success', res);
+	res.errors = Warden.makeStream('error', res);
+
+	res.get = function(options){
+		return $.ajax($.extend(options, {
+			success : function(data){
+				res.successes.eval(data);
+			},
+			error : function(msg){
+				res.errors.eval(msg);
+			}
+		}));	
+	}
+
+	return res;	
+})();
+```

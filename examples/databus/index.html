@@ -14,63 +14,63 @@
   <body>
   
   <div class="left-col">
-    <div class='field l'></div>
+    <div class='field l'>$blue</div>
+
+    <div id='originall' class='line'>
+      <div class='title'>blue = $blue.stream('click')</div>
+      <div class='box'></div>
+    </div>
 
     <div id='mapx' class='line'>
-      <div class='title'>.map('clientX')</div>
+      <div class='title'>blue.map('clientX')</div>
       <div class='box'></div>
     </div>
-
+ 
      <div id='mapxfilter' class='line'>
-      <div class='title'>.map('clientX').filter(x > 50%)</div>
-      <div class='box'></div>
-    </div>
-
-    <div id='mapvalue' class='line'>
-      <div class='title'>.map('value')</div>
+      <div class='title'>blue.map('clientX').filter(x > 50%).map('blue')</div>
       <div class='box'></div>
     </div>
 
     <div id='skiptake' class='line'>
-      <div class='title'>.skip(3).take(3)</div>
+      <div class='title'>blue.skip(3).take(3).map('blue')</div>
       <div class='box'></div>
     </div>
 
     <div id='reducesum' class='line'>
-      <div class='title'>.map('clientX').reduce(x1 + x2)</div>
+      <div class='title'>blue.map('clientX').reduce(x1 + x2)</div>
       <div class='box'></div>
     </div>
 
   </div>
 
   <div class="right-col">
-    <div class='field r'></div>
+    <div class='field r'>$red</div>
     
     <div id='originalr' class='line'>
-      <div class='title'>Original event</div>
+      <div class='title'>red = $red.stream('click')</div>
       <div class='box'></div>
     </div>
 
     <div id='getcollected' class='line'>
-      <div class='title'>.map('clientY').getCollected(2000)</div>
+      <div class='title'>red.map('clientY').getCollected(2000)</div>
       <div class='box'></div>
     </div> 
 
     <div id='unique' class='line'>
-      <div class='title'>.map('clientY').unique()</div>
+      <div class='title'>red.map('clientY').unique()</div>
       <div class='box'></div>
     </div>
 
     <div id='debounce' class='line'>
-      <div class='title'>.debounce(1000)</div>
+      <div class='title'>red.map('red').debounce(1000)</div>
       <div class='box'></div>
     </div>
 
     <div id='mask' class='line'>
-      <div class='title'>.mask("X:{{clientX}}, Y:{{clientY}}")</div>
+      <div class='title'>red.mask("X:{{clientX}}, Y:{{clientY}}")</div>
       <div class='box'></div>
     </div>   
-  </div>
+  </div> 
 
   <div class="full-col">
     <div id='merge' class='line'>
@@ -86,10 +86,10 @@
       <div class='box'></div>
     </div>
     <div id='combine' class='line'>
-      <div class='title'>blue.map(0).combine(blue.map(1), resolver</div>
+      <div class='title'>blue.map('timeStamp').combine(blue.map('timeStamp'), resolver</div>
       <div class='box'></div>
     </div>
-
+ 
   </div>
 
   </body>

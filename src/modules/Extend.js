@@ -104,7 +104,6 @@ Warden.extend = function(obj, conf) {
   inheritor[emitName] = function(ev){
     var self = this,
         callbacks = handlers.gH(this, ev.type || ev);
-    console.log('Что-то эмитировали!');
     forEach(callbacks, function(callback){
       callback.call(self, ev);
     });
