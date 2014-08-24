@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
   <head>
-    <title>Blocker</title>
+    <title>Warden.js :: async methods</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
     <script src="jquery/dist/jquery.min.js"></script>
@@ -64,13 +64,6 @@
       }).get();
 
       pulse.log();
-
-      keyups = $(document).stream('keyup');
-      clicks = $(document).stream('click')
-      Warden.Sampler(clicks.map('clientX'), keyups.map('keyCode'), function(x){ 
-        debugger;
-      });
-
     });
   </script>
   </body>
