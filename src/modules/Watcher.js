@@ -5,7 +5,7 @@ Warden.watcher = function(bus, a, b){
 		fn;
 
 	if(!is.exist(b) && is.exist(a)){
-		if(ta == 'string'){
+		if(ta == 'string' || ta == 'object'){
 			fn = function(event){
 				return this[a] = event;
 			}
@@ -39,7 +39,6 @@ Warden.watcher = function(bus, a, b){
 	{
 		throw "Arg Error"
 	}
-
 
 	return bus.listen(fn);
 };

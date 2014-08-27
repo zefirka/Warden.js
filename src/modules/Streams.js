@@ -13,11 +13,12 @@ Warden.makeStream = (function(){
   /* Stream constructor */
   function Stream(context){
     var drive = [];
-    return  {
+    var self = new (function Stream(){});
+    return  extend(self, {
       /*
         For debugging:
       */
-      $$id : Math.random() * 1000 >> 0, 
+      $$id : $Warden.set('s'),
 
       /* 
         Evaluating the stream with @data 
@@ -41,11 +42,34 @@ Warden.makeStream = (function(){
         Bus must be DataBus object.
       */
       pop : function(bus){
+        var match;
         forEach(drive, function(b, i){
-          if(bus == b){
+          if(bus.$$id == b.$$id){
             drive = drive.slice(0,i).concat(drive.slice(i+1,drive.length));
+            match = b;
           }
         });
+        return match;
+      },
+
+      /* 
+        Removes from executable drive @bus and all @bus children;
+        @bus must be DataBus object.
+      */
+      popAllDown : function(bus){
+        var match = this.pop(bus);
+        forEach(match.children, this.pop);
+      },
+
+      /* 
+        Removes from executable drive @bus, @bus.parent and @bus.parent.parent etc
+        @bus must be DataBus object
+      */
+      popAllUp : function(bus){
+        var match = this.pop(bus);
+        if(is.exists(match.parent)){
+          this.popAllUp(match.parent);
+        }
       },
 
       /*
@@ -55,8 +79,8 @@ Warden.makeStream = (function(){
         var bus = new DataBus();
         bus.host(this);
         return bus;
-      }
-    }
+      },
+    });
   }
 
 

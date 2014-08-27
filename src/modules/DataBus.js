@@ -1,23 +1,36 @@
 /*
   DataBus module.
   Version: v0.1.0
+  Implements data processing through stream. 
 */
 
 function DataBus(proc){
   var processor = new Processor(proc || [], this), //processor
-      host = 0; //hosting stream
+      host = 0,
+      setup = function(x){
+        return x
+      }; //hosting stream
 
-  this.id = Math.random()*10000 >> 0; // for debugging
+  this.$$id = $Warden.set('d'), //for debugging
+  
   this.parent = null;
   this.children = []; 
+  this.handlers = [];
 
   this._ = {
     fires : new Queue(),
     takes : new Queue()
   };
 
+  /* Return hoisting stream if @h doesn't exists or setting up new host */
   this.host = function(h){
     return host = h || host;
+  }
+
+  /* This function sets up current data */
+  this.setup = function(fn){
+    Analyze('setup', fn);
+    setup = fn;
   }
 
   this.process = function(p){
@@ -25,6 +38,7 @@ function DataBus(proc){
     if(!p){
       return processor;
     }else{
+      /* Copying process */
       nprocess = [];
       forEach(processor.process(), function(i){
         nprocess.push(i);
@@ -37,25 +51,26 @@ function DataBus(proc){
       return nbus;  
     }
   };
-    
-  this.fire = function(data, context){  
-    var self = this;
-    data = is.exist(data) ? data : {};
-    data.$$bus = this;
 
+  this.fire = function(data, context){
+    var self = this;
+    data = is.exist(data) ? setup(data) : setup({});
     this._.fires.push(data);
     processor.start(data, context, function(result){
       self._.takes.push(result);
-      self.handler.apply(context, [result]);
+      forEach(self.handlers, function(handler){
+        handler.apply(context, [result]);
+      });
     });
   }
 }
 
 DataBus.prototype.listen = function(x){
-  var nb = this.clone();
-  nb.handler = is.fn(x) ? x : function(){console.log(x)}  
-  this.host().push(nb);
-  return nb;
+  this.handlers.push(is.fn(x) ? x : function(){console.log(x)});
+  if(this.handlers.length<=1){
+    this.host().push(this);
+  }
+  return this;
 };
 
 /* Logging event to console or logger */
@@ -66,10 +81,17 @@ DataBus.prototype.log = function(){
 };
 
 DataBus.prototype.clone = function() {
-  var nbus = new DataBus(this.process().process());
-  nbus.parent = this.parent || this;
-  this.children.push(nbus);
+  var nprocess = [];
+  forEach(this.process().process(), function(i){
+    nprocess.push(i);
+  });
+
+  var nbus = new DataBus(nprocess);
+  nbus.handlers = this.handlers;
+  nbus.parent = this.parent;
+  this.children = this.children;
   nbus.host(this.host());
+  nbus.$$id = this.$$id;
   return nbus;
 };
 
@@ -127,7 +149,6 @@ DataBus.prototype.map = function(x) {
   return this.process(fn);
 };
 
-
 DataBus.prototype.reduce = function(init, fn){
   Analyze('reduce', fn);
   return this.process(function(event, drive){
@@ -136,7 +157,7 @@ DataBus.prototype.reduce = function(init, fn){
         cur = event;
 
     if(bus._.takes.length >= 1){
-      prev = bus._.takes.get(bus._.takes.length-1);
+      prev = bus._.takes[bus._.takes.length-1];
     }
     return drive.$continue(fn(prev, cur));
   });   
@@ -172,6 +193,22 @@ DataBus.prototype.skip = function(c) {
   });  
 };
 
+DataBus.prototype.after = function(bus, flush){
+  var busExecuted = false;
+  bus.listen(function(){
+    busExecuted = true;
+  });
+  return this.process(function(event, drive){
+    if(busExecuted){
+      busExecuted = flush === true ? false : true;
+      drive.$unlock();
+      drive.$continue(event);
+    }else{
+      drive.$lock();
+    }
+  });
+};
+
 DataBus.prototype.waitFor = function(bus){
   var self = this;
   return Warden.makeStream(function(emit){
@@ -205,6 +242,28 @@ DataBus.prototype.mask = function(s){
       return drive.$continue(s.replace(regex, function(i){return event[i.slice(2,-2)]}));
     })
   }
+};
+
+DataBus.prototype.interpolate = function(o){
+  Analyze('interpolate', o);
+  return this.process(function(event, drive){
+    var regex = /{{\s*[\w\.]+\s*}}/g;
+    return drive.$continue(event.replace(regex, function(i){
+      return o[i.slice(2,-2)];
+    }));
+  });
+};
+
+DataBus.prototype.unique = function(){
+  return this.process(function(event, drive){
+    var fires = drive.$host()._.fires;
+    var takes = drive.$host()._.takes;
+    if( (fires.length > 1 || takes.length > 0) && (event == fires[fires.length-2] || event == takes[takes.length-1])){      
+      return drive.$break();
+    }else{
+      return drive.$continue(event);
+    }  
+  });
 };
 
 DataBus.prototype.debounce = function(t) {
@@ -256,7 +315,17 @@ DataBus.prototype.merge = function(bus){
 };
 
 
-DataBus.prototype.combine = function(bus, fn) {
+DataBus.prototype.produceWith = function(bus, fn) {
+  var self = this; 
+  return Warden.makeStream(function(emit){
+    self.sync(bus).listen(function(data){
+      var d1 = data[0], d2 = data[1];
+      emit(fn(d1, d2));
+    });
+  }).get();
+};
+
+DataBus.prototype.combine = function(bus, fn){
   var self = this;
   var a, b;
   bus.listen(function(event){
@@ -274,7 +343,6 @@ DataBus.prototype.combine = function(bus, fn) {
       emit(fn(a,b));
     });
   }).get();
-  
 };
 
 DataBus.prototype.sync = function(bus){
@@ -315,28 +383,20 @@ DataBus.prototype.sync = function(bus){
 
 DataBus.prototype.lock = function(){
   this.host().pop(this);
-}
+};
+
+DataBus.prototype.lockChildren = function() {
+  this.host().popAllDown(this);
+};
+
+DataBus.prototype.lockParent = function() {
+  this.host().popAllUp(this);
+};
 
 DataBus.prototype.unlock = function(){
   this.host().push(this);
-}
+};
 
 DataBus.prototype.bindTo = function(a,b){
   Warden.watcher(this, a, b);
-};
-
-DataBus.prototype.once = function(){
-  return this.take(1);
-};
-
-DataBus.prototype.unique = function(){
-  return this.process(function(event, drive){
-    var fires = drive.$host()._.fires;
-    var takes = drive.$host()._.takes;
-    if( (fires.length > 1 || takes.length > 0) && (event == fires.get(fires.length-2) || event == takes.get(takes.length-1))){      
-      return drive.$break();
-    }else{
-      return drive.$continue(event);
-    }  
-  });
 };

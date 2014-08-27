@@ -3,7 +3,6 @@
   v.0.2.0
 */
 
-
 /* 
   Data type checking methods
 */
@@ -46,19 +45,6 @@ var is = {
   }
 },
 
-/*
-  Function forWhilte(@array arr, @function fn, @mixed preventVal, @mixed preventRet):
-  Applyies @fn to each element of arr while result of applying doesn't equal @preventVal
-  Then returns @preventRet or false if @preventRet is not defined
-*/
-forWhile = function(arr, fn, preventVal, preventRet){
-  for(var i=0, l=arr.length; i<l; i++){
-    if(fn(arr[i], i) === preventVal){
-      return preventRet && false; 
-      break;
-    }
-  }
-},
 
 /* 
   Function forEach(@array arr, @function fn):
@@ -78,65 +64,35 @@ forEach = (function(){
   }
 }()),
 
-/*
-  Function filter(@array, @function)
-  Filtering @array by @function and returns only mathcing as @function(item) === true  elements
-  TODO: Should we keep it here?
-*/
-filter = (function(){
-  if(Array.prototype.filter){
-    return function(arr, fn){
-      return arr ? arr.filter(fn) : null;
-    }
-  }else{
-    return function(arr, fn){
-      var filtered = [];
-      for(var i=0, l=arr.length; i<l; i++){
-        var res = fn(arr[i]);
-        if(res === true){
-          filtered.push(res);
-        }
-      }
-      return filtered;
-    }
-  }
-})(),
-
 /* Extends flat objects */
-
 extend = (typeof $ !== 'undefined' && $.extend) ? $.extend : function (){var a,b,c,d,e,f,g=arguments[0]||{},h=1,i=arguments.length,j=!1;for("boolean"==typeof g&&(j=g,g=arguments[h]||{},h++),"object"==typeof g||m.isFunction(g)||(g={}),h===i&&(g=this,h--);i>h;h++)if(null!=(e=arguments[h]))for(d in e)a=g[d],c=e[d],g!==c&&(j&&c&&(m.isPlainObject(c)||(b=m.isArray(c)))?(b?(b=!1,f=a&&m.isArray(a)?a:[]):f=a&&m.isPlainObject(a)?a:{},g[d]=m.extend(j,f,c)):void 0!==c&&(g[d]=c));return g}
 
 
 /* 
   Queue class @arr is Array, @maxlength is Number
 */
-function Queue(maxlength, arr){
-  var max = maxlength || 16, storage = (arr && arr.slice(0, max)) || [];
+function Queue(max, arr){
+  var res = arr || [],
+      max = max || 16,
+      oldpush = res.push;
 
-  this.length = (arr && arr.length) || 0;
-
-  this.push = function(item){
+  res.push = function(x){
     if(this.length>=max){
-      storage.shift();  
-    }else{
-      this.length++;  
+      this.shift();
     }
-    storage.push(item);
-  };
-
-  this.pop = function(){
-    storage.pop();
-    this.length--;
+    return oldpush.apply(res, [x]);
   }
-
-  this.get = function(index){
-    return is.exist(index) ? storage[index] : storage;
-  };
-
+  return res;
 }
 
-
-
+var $Warden = {
+  s : 0, //streams
+  d : 0, //databuses
+  set : function(i){
+    var current = parseInt($Warden[i], 16);
+    return $Warden[i] = (current+1) . toString(16);
+  }
+};
 
 /* 
   Datatype analyzer
@@ -157,11 +113,21 @@ Analyze.MAP = (function(){
     take : [f,n],
     filter : [f],
     skip : [n],
+    setup : [f],
     makeStream: [s,f],
     debounce : [n],
     getCollected : [n],
+    interpolate : [o],
     warn : function(i, context){
-      console.log("Coincidence: property: '" + i + "' is already defined in stream context!", context);
+      console.warn("Coincidence: property: '" + i + "' is already defined in stream context!", context);
     }
   }
 })();
+
+Warden.utils = {
+  is: is,
+  extend : extend,
+  each : forEach,
+  analyzer : Analyze,
+  Queue : Queue,
+}
