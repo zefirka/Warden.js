@@ -88,14 +88,19 @@ var Utils = (function(){
     return res;
   }
 
-  utils.$hash = {
-    s : 0, //streams
-    d : 0, //databuses
-    set : function(i){
-      var current = parseInt(this[i], 16);
-      return this[i] = (current+1) . toString(16);
+  utils.$hash = (function(){
+    var hash = {};
+    return {
+      get : function(n){
+        return hash[n];
+      },
+      set : function(i){
+        var current = parseInt(hash[i], 16) || 0;      
+        return hash[i] = (current+1) . toString(16);
+      }
     }
-  };
+  })();
+
 
   /* 
     Datatype analyzer

@@ -123,7 +123,7 @@ var DataBus = (function(){
     });
   };
 
-  /* 
+  /*
     Mapping recieved data and transmit mapped to the next processor 
     If @x is string:
       and data[x] exists : result = data[x],
