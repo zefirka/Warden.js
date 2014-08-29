@@ -1,8 +1,9 @@
-Warden.watcher = function(bus, a, b){
+Warden.watcher = function(bus, a, b){      
 	var ta = typeof a,
 		tb = typeof b,
 		terr = "TypeError",
-		fn;
+		fn, 
+		is = Utils.is;
 
 	if(!is.exist(b) && is.exist(a)){
 		if(ta == 'string' || ta == 'object'){

@@ -34,7 +34,7 @@ function Processor(proc, host){
   var self = {
     /* Add process if @p exists or return all processes of this Processor */
     process : function(p){
-      return is.exist(p) ? processes.push(p) : processes;
+      return Utils.is.exist(p) ? processes.push(p) : processes;
     },
 
     /* Start processing */

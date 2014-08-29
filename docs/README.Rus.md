@@ -62,5 +62,5 @@ module.stream('custom').log();
 $(".cssClass").stream('mouseover').log();
 ```
 
-##Streams##
-Stream is representing Bus class object.
+###Warden.makeStream###
+Модуль [`.makeStream`](#) позволяет создавать потоки данных,

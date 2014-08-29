@@ -9,16 +9,16 @@
 */
 
 Warden.makeStream = (function(){
-  
+  var forEach = Utils.forEach, is = Utils.is;
+
   /* Stream constructor */
   function Stream(context){
-    var drive = [];
-    var self = new (function Stream(){});
-    return  extend(self, {
+    var drive = [], self = {};
+    return  Utils.extend(self, {
       /*
         For debugging:
       */
-      $$id : $Warden.set('s'),
+      $$id : Utils.$hash.set('s'),
 
       /* 
         Evaluating the stream with @data 
@@ -57,8 +57,7 @@ Warden.makeStream = (function(){
         @bus must be DataBus object.
       */
       popAllDown : function(bus){
-        var match = this.pop(bus);
-        forEach(match.children, this.pop);
+        forEach(this.pop(bus).children, this.pop);
       },
 
       /* 
@@ -83,16 +82,15 @@ Warden.makeStream = (function(){
     });
   }
 
-
   /* 
     Creates stream of @x on context @context;
     If @strict argument is truly, than it warns about the coincidence 
     in the context to prevent overwriting;
   */
   return function(x, context, strict){
-    var stream, xstr, reserved = [];
+    var stream, xstr, reserved = [], i;
 
-    Analyze("makeStream", x);
+    Utils.Analyze("makeStream", x);
     
     context = context || {};  
     stream = Stream(context);
@@ -103,7 +101,7 @@ Warden.makeStream = (function(){
       if(is.exist(strict)){
         xstr = x.toString();
 
-        for(var i in context){
+        for(i in context){
           if(context.hasOwnPropery(i)){
             reserved.push(i);
           }
@@ -112,15 +110,15 @@ Warden.makeStream = (function(){
         forEach(reserved, function(prop){
           if(xstr.indexOf("this."+prop)>=0){
             /* If there is a coincidence, we warn about it */
-            Analyze.MAP.warn(prop, context);
+            Utils.analyzer.MAP.warn(prop, context);
           }
         });    
       }
 
-      x.apply(context, [function(expectedData){
+      x.call(context, function(expectedData){
         stream.eval(expectedData);
-      }]);  
-    }    
+      });  
+    }
     return stream;
   };
 })();

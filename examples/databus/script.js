@@ -47,7 +47,7 @@ $(function () {
 			debounce : rc.map('red').debounce(1000),
 			getcollected : rc.map('clientY').getCollected(2000),
 			unique : rc.map('clientY').unique(),
-			mask : rc.mask("X:{{clientX}}, Y:{{clientY}}"),
+			interpolate : rc.interpolate("X:{{clientX}}, Y:{{clientY}}"),
 			merge : rc.merge(lc),
 			sync : lc.map(0).sync(rc.map(1)),
 			wait : rc.map(0).waitFor(lc),
