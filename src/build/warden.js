@@ -15,11 +15,15 @@
 })(this, function(Warden){
   
   'use strict';
-  Warden.version = "0.0.4"; 
+  Warden.version = "0.1.0"; 
   Warden.log = function(x){
     console.log(x);
   }
   
+  /* 
+    Globals: 
+      Utils
+  */
 /* Begin: src/modules/Helpers.js */
   /* 
     Helpers module
@@ -52,14 +56,8 @@
         Checks is x param is real array or object (or arguments object)
       */
       array : (function(){    
-        if(Array.isArray){
-          return function(x){ 
-            return Array.isArray(x); 
-          }
-        }else{
-          return function(x){ 
-            Object.prototype.toString.call(x) === '[object Array]';
-          }
+        return Array.isArray ? Array.isArray : function(x){
+          return Object.prototype.toString.call(x) === '[object Array]';
         }
       }()),
 
@@ -158,11 +156,16 @@
 
     return utils;
   })();/* End: src/modules/Helpers.js */
+
+  /*
+    Globals:
+      Warden.extend
+  */
 /* Begin: src/modules/Extend.js */
   /* 
     Extend module: 
       docs: ./docs/Extend.md
-      version: v.0.3.0
+      version: v.0.3.1
 
     This methods extends @obj which can be both 
     function or object with Warden.js methods .emit(), 
@@ -188,7 +191,6 @@
       var config = extend(defaultConfig, conf || {}), // default configuration 
           inheritor = obj, // final object to expand
           isConstructor = true; // is obj is constructor
-
       /* 
         Choose object to extend,
         if fn is constructor function, then that's prototype, else
@@ -198,6 +200,13 @@
         inheritor = obj.prototype;
       }else{
         isConstructor = false;
+      }
+
+      var overwrite = inheritor.emit || inheritor.listen || inheritor.stream;
+
+      /* Checking free namespace */
+      if(is.exist(overwrite)){
+        throw "Can't overwrite property:" + (overwrite.name ? overwrite.name : overwrite) + " of object";
       }
       
       /* 
@@ -213,12 +222,9 @@
         config.listener = config.listener || (is.fn(inheritor.addEventListener) ? "addEventListener" : "attachEvent");
       }
       
-      /* Preventing native 'emit' method override */
-      var emitName = inheritor.emit ? '$emit' : 'emit',
-
-        /* Collections of private handlers */
-        /* Developed to incapsulate handlers of every object */
-      handlers = [];
+      /* Collections of private handlers */
+      /* Developed to incapsulate handlers of every object */
+      var handlers = [];
 
       /* Get handlers of @object by @type */
       handlers.get = function(object, type){
@@ -266,9 +272,10 @@
       };
       
       /* Emitter method */
-      inheritor[emitName] = function(ev){
+      inheritor.emit = function(ev){
         var self = this,
             callbacks = handlers.get(this, ev.type || ev);
+        
         forEach(callbacks, function(callback){
           callback.call(self, ev);
         });
@@ -309,11 +316,16 @@
     };
 
   })();/* End: src/modules/Extend.js */
+
+  /* 
+    Globals:
+      Processor
+  */
 /* Begin: src/modules/Processor.js */
   /*
     Processor module: 
     Implements interface to processing all databus methods.
-    Version: v0.1.0;
+    Version: v0.1.1;
   */
 
   function Processor(proc, host){
@@ -336,6 +348,9 @@
           /* Unlocks DataBus evaluation */
           $unlock: function(){
             return locked = 0;
+          },
+          $update: function(){
+            host.update();
           },
           /* Returns current DataBus */
           $host: function(){
@@ -375,16 +390,32 @@
           return self.fin(event);
         }
         i++
-        processes[i-1].apply(self.ctx, [event, fns]);
+        
+        try{
+          processes[i-1].apply(self.ctx, [event, fns]);
+        }catch(err){
+          console.error(err);
+        }
       }
     }
     return self;
   }/* End: src/modules/Processor.js */
+
+  /*
+    Globals:
+      Warden.makeStream
+  */
 /* Begin: src/modules/Streams.js */
   /*
     Streams module:
       docs: ./docs/Streams.md
       version: 0.2.2
+    
+    -- v0.3.0 --
+      - Stream strict checking argument now must be only boolean true
+      
+    -- v0.2.0 -- 
+      Added @popAllDown and @popAllUp methods;
 
     Creates stream of data.
     If @x is string, that it interprets as datatype
@@ -449,7 +480,7 @@
         */
         popAllUp : function(bus){
           var match = this.pop(bus);
-          if(is.exists(match.parent)){
+          if(is.exist(match.parent)){
             this.popAllUp(match.parent);
           }
         },
@@ -481,11 +512,11 @@
       if(is.fn(x)){
 
         /* If we strict in context */
-        if(is.exist(strict)){
+        if(strict===true){
           xstr = x.toString();
 
           for(i in context){
-            if(context.hasOwnPropery(i)){
+            if(context.hasOwnProperty(i)){
               reserved.push(i);
             }
           }
@@ -493,7 +524,7 @@
           forEach(reserved, function(prop){
             if(xstr.indexOf("this."+prop)>=0){
               /* If there is a coincidence, we warn about it */
-              Utils.analyzer.MAP.warn(prop, context);
+              Utils.Analyze.MAP.warn(prop, context);
             }
           });    
         }
@@ -502,22 +533,29 @@
           stream.eval(expectedData);
         });  
       }
+
       return stream;
     };
   })();/* End: src/modules/Streams.js */
+
+  /*
+    Globals:
+      DataBus
+  */
 /* Begin: src/modules/DataBus.js */
   /*
     DataBus module.
-    Version: v0.1.0
+    Version: v0.1.1
     Implements data processing through stream. 
   */
 
   var DataBus = (function(){
     var forEach = Utils.forEach, is = Utils.is, Analyze = Utils.Analyze;      
-
+    
     function DataBus(proc){
       var processor = new Processor(proc || [], this), //processor
-          host = 0, //hoster stream
+          host = 0, //hoster stream,
+          binding = null,
           setup = function(x){
             return x
           }; 
@@ -533,6 +571,10 @@
         takes : new Utils.Queue()
       };
 
+      this.update = function(){
+        binding.update(this._.takes[this._.takes.length-1]);
+      }
+
       /* Return hoisting stream if @h doesn't exists or setting up new host */
       this.host = function(h){
         return host = h || host;
@@ -543,6 +585,10 @@
         Analyze('setup', fn);
         setup = fn;
       }
+
+      this.bindTo = function(a,b){
+        binding = Warden.watcher(this, a, b);
+      };
 
       this.process = function(p){
         var nprocess, nbus;
@@ -729,7 +775,7 @@
     };
 
     /*
-      Skips data @c times
+      Skips data [Integer] @c times
     */
     DataBus.prototype.skip = function(c) {
       Analyze('skip', c);
@@ -743,29 +789,45 @@
       });  
     };
 
-    DataBus.prototype.interpolate = function(s){
+    /*
+      Interpolates to the [String] @s data from bus (all matches of [RegExp] @reg or {{match}}-style regex)
+    */
+    DataBus.prototype.interpolate = function(s, reg){
       Analyze('interpolate', s);
       return this.process(function(event, drive){
-        var regex = /{{\s*[\w\.]+\s*}}/g;
+        var regex = reg || /{{\s*[\w\.]+\s*}}/g;
         return drive.$continue(s.replace(regex, function(i){return event[i.slice(2,-2)]}));
       })
     };
 
-    DataBus.prototype.mask = function(o){
+    /*
+      Masking data from bus with [Object] @o (all matches of [RegExp] @reg or {{match}}-style regex)
+    */
+    DataBus.prototype.mask = function(o, reg){
       Analyze('mask', o);
       return this.process(function(event, drive){
-        var regex = /{{\s*[\w\.]+\s*}}/g;
+        var regex = reg || /{{\s*[\w\.]+\s*}}/g;
         return drive.$continue(event.replace(regex, function(i){
           return o[i.slice(2,-2)];
         }));
       });
     };
 
-    DataBus.prototype.unique = function(){
+    /* 
+      Transfers only unique datas through bus. 
+      [Function] @cmp - is comparing method that returns 
+      [Boolean] 'true' if first argument of @cmp is equals to second argument
+
+      By default: @cmp compares arguments with === operator
+    */
+    DataBus.prototype.unique = function(cmp){
+      cmp = is.fn(cmp) ? cmp : function(a,b){
+        return a===b;    
+      }
       return this.process(function(event, drive){
         var fires = drive.$host()._.fires;
         var takes = drive.$host()._.takes;
-        if( (fires.length > 1 || takes.length > 0) && (event == fires[fires.length-2] || event == takes[takes.length-1])){      
+        if( (fires.length > 1 || takes.length > 0) && (cmp(event, fires[fires.length-2]) || cmp(event, takes[takes.length-1])) ){      
           return drive.$break();
         }else{
           return drive.$continue(event);
@@ -773,6 +835,9 @@
       });
     };
 
+    /*
+      Debounce data bus on [Integer] @t miliseconds
+    */
     DataBus.prototype.debounce = function(t) {
       Analyze('debounce', t)
       return this.process(function(e, drive){
@@ -788,7 +853,7 @@
     };
 
     /* 
-      Collecting events for @t miliseconds and after it transmitting an array of them 
+      Collecting events for [Integer] @t miliseconds and after it transmitting an array of them 
     */
     DataBus.prototype.getCollected = function(t){
       Analyze('getCollected', t);
@@ -856,7 +921,9 @@
       }).get();
     };
 
-
+    /* 
+      Merges with @bus 
+    */
     DataBus.prototype.merge = function(bus){
       var self = this;
       return Warden.makeStream(function(emit){
@@ -866,7 +933,7 @@
     };
 
 
-    DataBus.prototype.produceWith = function(bus, fn) {
+    DataBus.prototype.resolveWith = function(bus, fn) {
       var self = this; 
       return Warden.makeStream(function(emit){
         self.sync(bus).listen(function(data){
@@ -948,14 +1015,15 @@
       this.host().push(this);
     };
 
-    DataBus.prototype.bindTo = function(a,b){
-      Warden.watcher(this, a, b);
-    };
-
     return DataBus;
   })();
 
 /* End: src/modules/DataBus.js */
+
+  /*
+    Globals:
+      Warden.watcher
+  */
 /* Begin: src/modules/Watcher.js */
   Warden.watcher = function(bus, a, b){      
   	var ta = typeof a,
@@ -1000,6 +1068,19 @@
   		throw "Arg Error"
   	}
 
-  	return bus.listen(fn);
+  	bus.listen(fn);
+
+  	var stack = {};
+
+  	return {
+  		update : fn,
+  		unbind : function(){
+  			stack.fn = fn;
+  			fn = function(){};
+  		},
+  		bind : function(){
+  			fn = stack.fn;
+  		}
+  	}
   };/* End: src/modules/Watcher.js */
 }));

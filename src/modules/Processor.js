@@ -1,7 +1,7 @@
 /*
   Processor module: 
   Implements interface to processing all databus methods.
-  Version: v0.1.0;
+  Version: v0.1.1;
 */
 
 function Processor(proc, host){
@@ -24,6 +24,9 @@ function Processor(proc, host){
         /* Unlocks DataBus evaluation */
         $unlock: function(){
           return locked = 0;
+        },
+        $update: function(){
+          host.update();
         },
         /* Returns current DataBus */
         $host: function(){
@@ -63,7 +66,12 @@ function Processor(proc, host){
         return self.fin(event);
       }
       i++
-      processes[i-1].apply(self.ctx, [event, fns]);
+      
+      try{
+        processes[i-1].apply(self.ctx, [event, fns]);
+      }catch(err){
+        console.error(err);
+      }
     }
   }
   return self;

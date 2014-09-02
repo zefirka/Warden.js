@@ -29,14 +29,8 @@ var Utils = (function(){
       Checks is x param is real array or object (or arguments object)
     */
     array : (function(){    
-      if(Array.isArray){
-        return function(x){ 
-          return Array.isArray(x); 
-        }
-      }else{
-        return function(x){ 
-          Object.prototype.toString.call(x) === '[object Array]';
-        }
+      return Array.isArray ? Array.isArray : function(x){
+        return Object.prototype.toString.call(x) === '[object Array]';
       }
     }()),
 

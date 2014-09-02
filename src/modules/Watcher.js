@@ -41,5 +41,18 @@ Warden.watcher = function(bus, a, b){
 		throw "Arg Error"
 	}
 
-	return bus.listen(fn);
+	bus.listen(fn);
+
+	var stack = {};
+
+	return {
+		update : fn,
+		unbind : function(){
+			stack.fn = fn;
+			fn = function(){};
+		},
+		bind : function(){
+			fn = stack.fn;
+		}
+	}
 };

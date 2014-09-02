@@ -1,15 +1,16 @@
 /*
   DataBus module.
-  Version: v0.1.0
+  Version: v0.1.1
   Implements data processing through stream. 
 */
 
 var DataBus = (function(){
   var forEach = Utils.forEach, is = Utils.is, Analyze = Utils.Analyze;      
-
+  
   function DataBus(proc){
     var processor = new Processor(proc || [], this), //processor
-        host = 0, //hoster stream
+        host = 0, //hoster stream,
+        binding = null,
         setup = function(x){
           return x
         }; 
@@ -25,6 +26,10 @@ var DataBus = (function(){
       takes : new Utils.Queue()
     };
 
+    this.update = function(){
+      binding.update(this._.takes[this._.takes.length-1]);
+    }
+
     /* Return hoisting stream if @h doesn't exists or setting up new host */
     this.host = function(h){
       return host = h || host;
@@ -35,6 +40,10 @@ var DataBus = (function(){
       Analyze('setup', fn);
       setup = fn;
     }
+
+    this.bindTo = function(a,b){
+      binding = Warden.watcher(this, a, b);
+    };
 
     this.process = function(p){
       var nprocess, nbus;
@@ -221,7 +230,7 @@ var DataBus = (function(){
   };
 
   /*
-    Skips data @c times
+    Skips data [Integer] @c times
   */
   DataBus.prototype.skip = function(c) {
     Analyze('skip', c);
@@ -235,29 +244,45 @@ var DataBus = (function(){
     });  
   };
 
-  DataBus.prototype.interpolate = function(s){
+  /*
+    Interpolates to the [String] @s data from bus (all matches of [RegExp] @reg or {{match}}-style regex)
+  */
+  DataBus.prototype.interpolate = function(s, reg){
     Analyze('interpolate', s);
     return this.process(function(event, drive){
-      var regex = /{{\s*[\w\.]+\s*}}/g;
+      var regex = reg || /{{\s*[\w\.]+\s*}}/g;
       return drive.$continue(s.replace(regex, function(i){return event[i.slice(2,-2)]}));
     })
   };
 
-  DataBus.prototype.mask = function(o){
+  /*
+    Masking data from bus with [Object] @o (all matches of [RegExp] @reg or {{match}}-style regex)
+  */
+  DataBus.prototype.mask = function(o, reg){
     Analyze('mask', o);
     return this.process(function(event, drive){
-      var regex = /{{\s*[\w\.]+\s*}}/g;
+      var regex = reg || /{{\s*[\w\.]+\s*}}/g;
       return drive.$continue(event.replace(regex, function(i){
         return o[i.slice(2,-2)];
       }));
     });
   };
 
-  DataBus.prototype.unique = function(){
+  /* 
+    Transfers only unique datas through bus. 
+    [Function] @cmp - is comparing method that returns 
+    [Boolean] 'true' if first argument of @cmp is equals to second argument
+
+    By default: @cmp compares arguments with === operator
+  */
+  DataBus.prototype.unique = function(cmp){
+    cmp = is.fn(cmp) ? cmp : function(a,b){
+      return a===b;    
+    }
     return this.process(function(event, drive){
       var fires = drive.$host()._.fires;
       var takes = drive.$host()._.takes;
-      if( (fires.length > 1 || takes.length > 0) && (event == fires[fires.length-2] || event == takes[takes.length-1])){      
+      if( (fires.length > 1 || takes.length > 0) && (cmp(event, fires[fires.length-2]) || cmp(event, takes[takes.length-1])) ){      
         return drive.$break();
       }else{
         return drive.$continue(event);
@@ -265,6 +290,9 @@ var DataBus = (function(){
     });
   };
 
+  /*
+    Debounce data bus on [Integer] @t miliseconds
+  */
   DataBus.prototype.debounce = function(t) {
     Analyze('debounce', t)
     return this.process(function(e, drive){
@@ -280,7 +308,7 @@ var DataBus = (function(){
   };
 
   /* 
-    Collecting events for @t miliseconds and after it transmitting an array of them 
+    Collecting events for [Integer] @t miliseconds and after it transmitting an array of them 
   */
   DataBus.prototype.getCollected = function(t){
     Analyze('getCollected', t);
@@ -348,7 +376,9 @@ var DataBus = (function(){
     }).get();
   };
 
-
+  /* 
+    Merges with @bus 
+  */
   DataBus.prototype.merge = function(bus){
     var self = this;
     return Warden.makeStream(function(emit){
@@ -358,7 +388,7 @@ var DataBus = (function(){
   };
 
 
-  DataBus.prototype.produceWith = function(bus, fn) {
+  DataBus.prototype.resolveWith = function(bus, fn) {
     var self = this; 
     return Warden.makeStream(function(emit){
       self.sync(bus).listen(function(data){
@@ -438,10 +468,6 @@ var DataBus = (function(){
 
   DataBus.prototype.unlock = function(){
     this.host().push(this);
-  };
-
-  DataBus.prototype.bindTo = function(a,b){
-    Warden.watcher(this, a, b);
   };
 
   return DataBus;

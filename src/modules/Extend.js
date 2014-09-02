@@ -1,7 +1,7 @@
 /* 
   Extend module: 
     docs: ./docs/Extend.md
-    version: v.0.3.0
+    version: v.0.3.1
 
   This methods extends @obj which can be both 
   function or object with Warden.js methods .emit(), 
@@ -27,7 +27,6 @@ Warden.extend = (function(){
     var config = extend(defaultConfig, conf || {}), // default configuration 
         inheritor = obj, // final object to expand
         isConstructor = true; // is obj is constructor
-
     /* 
       Choose object to extend,
       if fn is constructor function, then that's prototype, else
@@ -37,6 +36,13 @@ Warden.extend = (function(){
       inheritor = obj.prototype;
     }else{
       isConstructor = false;
+    }
+
+    var overwrite = inheritor.emit || inheritor.listen || inheritor.stream;
+
+    /* Checking free namespace */
+    if(is.exist(overwrite)){
+      throw "Can't overwrite property:" + (overwrite.name ? overwrite.name : overwrite) + " of object";
     }
     
     /* 
@@ -52,12 +58,9 @@ Warden.extend = (function(){
       config.listener = config.listener || (is.fn(inheritor.addEventListener) ? "addEventListener" : "attachEvent");
     }
     
-    /* Preventing native 'emit' method override */
-    var emitName = inheritor.emit ? '$emit' : 'emit',
-
-      /* Collections of private handlers */
-      /* Developed to incapsulate handlers of every object */
-    handlers = [];
+    /* Collections of private handlers */
+    /* Developed to incapsulate handlers of every object */
+    var handlers = [];
 
     /* Get handlers of @object by @type */
     handlers.get = function(object, type){
@@ -105,9 +108,10 @@ Warden.extend = (function(){
     };
     
     /* Emitter method */
-    inheritor[emitName] = function(ev){
+    inheritor.emit = function(ev){
       var self = this,
           callbacks = handlers.get(this, ev.type || ev);
+      
       forEach(callbacks, function(callback){
         callback.call(self, ev);
       });

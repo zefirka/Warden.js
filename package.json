@@ -1,6 +1,6 @@
 {
   "name": "Warden",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "description": "Event-driven development library",
   "main": "warden.js",
   "scripts": {

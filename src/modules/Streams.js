@@ -2,6 +2,12 @@
   Streams module:
     docs: ./docs/Streams.md
     version: 0.2.2
+  
+  -- v0.3.0 --
+    - Stream strict checking argument now must be only boolean true
+    
+  -- v0.2.0 -- 
+    Added @popAllDown and @popAllUp methods;
 
   Creates stream of data.
   If @x is string, that it interprets as datatype
@@ -66,7 +72,7 @@ Warden.makeStream = (function(){
       */
       popAllUp : function(bus){
         var match = this.pop(bus);
-        if(is.exists(match.parent)){
+        if(is.exist(match.parent)){
           this.popAllUp(match.parent);
         }
       },
@@ -98,11 +104,11 @@ Warden.makeStream = (function(){
     if(is.fn(x)){
 
       /* If we strict in context */
-      if(is.exist(strict)){
+      if(strict===true){
         xstr = x.toString();
 
         for(i in context){
-          if(context.hasOwnPropery(i)){
+          if(context.hasOwnProperty(i)){
             reserved.push(i);
           }
         }
@@ -110,7 +116,7 @@ Warden.makeStream = (function(){
         forEach(reserved, function(prop){
           if(xstr.indexOf("this."+prop)>=0){
             /* If there is a coincidence, we warn about it */
-            Utils.analyzer.MAP.warn(prop, context);
+            Utils.Analyze.MAP.warn(prop, context);
           }
         });    
       }
@@ -119,6 +125,7 @@ Warden.makeStream = (function(){
         stream.eval(expectedData);
       });  
     }
+
     return stream;
   };
 })();
