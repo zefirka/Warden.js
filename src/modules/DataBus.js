@@ -5,8 +5,13 @@
 */
 
 var DataBus = (function(){
-  var forEach = Utils.forEach, is = Utils.is, Analyze = Utils.Analyze;      
-  
+  var forEach = Utils.forEach, is = Utils.is;
+
+  function inheritFrom(child, parent){
+    child.parent = parent;
+    parent.children.push(child);
+  }
+
   function DataBus(proc){
     var processor = new Processor(proc || [], this), //processor
         host = 0, //hoster stream,
@@ -380,11 +385,13 @@ var DataBus = (function(){
     Merges with @bus 
   */
   DataBus.prototype.merge = function(bus){
-    var self = this;
-    return Warden.makeStream(function(emit){
+    var self = this,
+    nbus = Warden.makeStream(function(emit){
       bus.listen(emit);
       self.listen(emit);
     }).get();
+    inheritFrom(nbus, this);
+    return nbus;
   };
 
 
@@ -419,12 +426,9 @@ var DataBus = (function(){
   };
 
   DataBus.prototype.sync = function(bus){
-    var self = this;
-    return Warden.makeStream(function(emit){
-      var exec1 = false, 
-          exec2 = false,
-          val1, 
-          val2,
+    var self = this,
+    bus = Warden.makeStream(function(emit){
+      var exec1 = false, exec2 = false, val1, val2,
           clear = function(){
             val1 = null; 
             val2 = null;
@@ -452,20 +456,32 @@ var DataBus = (function(){
         }
       })
     }).get();
+    inheritFrom(bus, this);
+    return bus;
   };
 
+  /*
+    Locking evaluation of current bus
+  */
   DataBus.prototype.lock = function(){
     this.host().pop(this);
   };
 
+  /*
+    Locking evaluation of current bus and all of his children buses
+  */
   DataBus.prototype.lockChildren = function() {
     this.host().popAllDown(this);
   };
 
+  /*
+    Locking evaluation of current bus' parent
+  */
   DataBus.prototype.lockParent = function() {
     this.host().popAllUp(this);
   };
 
+  /* Unlocks current bus */
   DataBus.prototype.unlock = function(){
     this.host().push(this);
   };

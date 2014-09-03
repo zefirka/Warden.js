@@ -96,7 +96,7 @@ Warden.makeStream = (function(){
   return function(x, context, strict){
     var stream, xstr, reserved = [], i;
 
-    Utils.Analyze("makeStream", x);
+    Analyze("makeStream", x);
     
     context = context || {};  
     stream = Stream(context);
@@ -116,7 +116,7 @@ Warden.makeStream = (function(){
         forEach(reserved, function(prop){
           if(xstr.indexOf("this."+prop)>=0){
             /* If there is a coincidence, we warn about it */
-            Utils.Analyze.MAP.warn(prop, context);
+            Analyze.MAP.warn(prop, context);
           }
         });    
       }

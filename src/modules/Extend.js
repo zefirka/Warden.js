@@ -12,7 +12,8 @@ Warden.extend = (function(){
   var forEach = Utils.forEach, 
     is = Utils.is,
     extend = Utils.extend,
-    Analyze = Utils.Analyze,
+    nativeListener = "addEventListener",
+    alternativeListener = "attachEvent",
 
     defaultConfig = {
       max : 512, // maximal handlers per object
@@ -26,7 +27,7 @@ Warden.extend = (function(){
 
     var config = extend(defaultConfig, conf || {}), // default configuration 
         inheritor = obj, // final object to expand
-        isConstructor = true; // is obj is constructor
+        isConstructor = true; //obj is constructor
     /* 
       Choose object to extend,
       if fn is constructor function, then that's prototype, else
@@ -42,7 +43,7 @@ Warden.extend = (function(){
 
     /* Checking free namespace */
     if(is.exist(overwrite)){
-      throw "Can't overwrite property:" + (overwrite.name ? overwrite.name : overwrite) + " of object";
+      throw "Can't overwrite: " + (overwrite.name ? overwrite.name : overwrite) + " of object";
     }
     
     /* 
@@ -54,8 +55,8 @@ Warden.extend = (function(){
       config.emitter = config.emitter || 'trigger';
       config.listener = config.listener || 'on';    
     }else
-    if(is.fn(inheritor.addEventListener) || is.fn(inheritor.attachEvent)){
-      config.listener = config.listener || (is.fn(inheritor.addEventListener) ? "addEventListener" : "attachEvent");
+    if(is.fn(inheritor[nativeListener]) || is.fn(inheritor[alternativeListener])){
+      config.listener = config.listener || (is.fn(inheritor[nativeListener]) ? nativeListener : alternativeListener);
     }
     
     /* Collections of private handlers */
@@ -97,6 +98,21 @@ Warden.extend = (function(){
       }
     };
     
+    handlers.removeHandler = function(object, type, name){
+      var handlers = this.get(object, type), index = false;
+      if(handlers){
+
+        forEach(handlers, function(h, i){
+          h.name === name;
+          index = i;
+        });
+
+        if(index!==false){
+          handlers = handelrs.slice(0, index).concat(handlers.slice(index+1, handlers.length));
+        }
+      }
+    };
+
     /* Get collections of handlers by types of @object */
     handlers.getCollection = function(object){
       for(var i=this.length-1; i>=0; i--){
@@ -125,9 +141,17 @@ Warden.extend = (function(){
       handlers.set(this, type, callback);    
       if(this[config.listener]){
         this[config.listener].apply(this, [type, function(event){ 
-          self[emitName](event)
+          self.emit(event)
         }]);
       }
+      return this;
+    };
+
+    inheritor.mute = function(type, name){
+      if(is.fn(name)){
+        name = name.name;
+      }
+      handlers.removeHandler(this, type, name);
       return this;
     };
 

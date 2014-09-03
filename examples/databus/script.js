@@ -52,7 +52,7 @@ $(function () {
 			sync : lc.map(0).sync(rc.map(1)),
 			wait : rc.map(0).waitFor(lc),
 			after : rc.map(0).after(lc),
-			produce : rc.map(['timeStamp', 'red']).produceWith(lc.map(['timeStamp', 'blue']), function(a,b){
+			produce : rc.map(['timeStamp', 'red']).resolveWith(lc.map(['timeStamp', 'blue']), function(a,b){
 				return a[0] < b[0] ? b[1] : a[1];
 			}),
 			combine : lc.map('timeStamp').map(function(e){return (e+"").slice(-6);}).combine(rc.map('timeStamp').map(function(e){return (e+"").slice(-6);}), function(blue, red){

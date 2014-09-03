@@ -29,7 +29,7 @@ Warden.watcher = function(bus, a, b){
 
 		if(ta == 'object' && tb == 'function'){
 			fn = function(event){
-				return a = b(event);
+				return b.call(a, event);
 			}
 		}else
 		{
@@ -56,3 +56,40 @@ Warden.watcher = function(bus, a, b){
 		}
 	}
 };
+
+
+// Warden.Watcher = function(){      
+// 	var fn, bus;
+
+// 	if(arguments.length<2){
+// 		throw "Unexpected arguments count"
+// 	}
+
+// 	bus = arguments[0];
+
+
+// 	return {
+// 		update : fn,
+// 		unbind : function(){
+// 			stack.fn = fn;
+// 			fn = function(){};
+// 		},
+// 		bind : function(){
+// 			fn = stack.fn;
+// 		}
+// 	}
+// };
+
+
+
+/* 
+
+	bus, object 			-> object = new;
+	bus, object string 		-> object[string] = new
+	bus, string 			-> this[string] = new
+	bus, object, fn 		-> object = fn(new)
+	bus, object, string, fn -> object[string] = fn(new)
+	bus, fn 				-> fn(new)
+	bus, fn, ... 			-> fn(new, 1 , 2, 3, 4)
+	bus, object, fn, ...	-> object.fn(.., new)
+*/

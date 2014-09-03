@@ -67,11 +67,9 @@ function Processor(proc, host){
       }
       i++
       
-      try{
+      
         processes[i-1].apply(self.ctx, [event, fns]);
-      }catch(err){
-        console.error(err);
-      }
+      
     }
   }
   return self;

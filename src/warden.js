@@ -23,6 +23,7 @@
   /* 
     Globals: 
       Utils
+      Analyze
   */
   include "Helpers.js"
 

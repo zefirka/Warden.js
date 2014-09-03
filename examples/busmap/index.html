@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Blocker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+
+    <link rel="stylesheet" type="text/css" href="main.css">    
+    <script src="jquery/dist/jquery.min.js"></script>
+    <script src="../../dist/warden.js"></script>
+    <script type="text/javascript" src="script.js"></script>
+  </head>
+
+    
+  <body>
+  <div class='row'>
+    <div id='$$1' class='bus' conjucted='{ "parentOf" : ["$$2", "$$3", "$$4"] }'><b>1</b> -> [2,3,4]</div>
+  </div>
+  <div class='row'>
+    <div id='$$2' class='bus' conjuncted='{ "parentOf" : ["$$5"], "childOf" : "$$1" }'> 1 -> <b>2</b> -> 5 </div>
+    <div id='$$3' class='bus' conjuncted='{ "childOf" : "$$1" }'> 1 -> <b>3</b></div>
+    <div id='$$4' class='bus' conjuncted='{ "childOf" : "$$1" }'> 1 -> <b>4</b></div>
+  </div>
+  <div class='row'>
+    <div id='$$5' class='bus' conjucted='{ "childOf" : "$$2" }'>2 -> <b>5</b></div>
+  </div>
+  </body>
+</html>

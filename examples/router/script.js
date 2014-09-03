@@ -1,6 +1,6 @@
 $(function() {
 
-		var app = {};
+	var app = {};
 
 	app.defaults = {
 		home : 'home'
