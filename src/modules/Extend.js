@@ -58,78 +58,16 @@ Warden.extend = (function(){
     if(is.fn(inheritor[nativeListener]) || is.fn(inheritor[alternativeListener])){
       config.listener = config.listener || (is.fn(inheritor[nativeListener]) ? nativeListener : alternativeListener);
     }
-    
-    /* Collections of private handlers */
-    /* Developed to incapsulate handlers of every object */
-    var handlers = [];
-
-    /* Get handlers of @object by @type */
-    handlers.get = function(object, type){
-      for(var i=this.length-1; i>=0; i--){
-        if(this[i].o === object){
-          return this[i].h[type];
-        }
-      }
-      return false;
-    };  
-
-    /* Setting new handler @fn of event type @type to @object */
-    handlers.set = function(object, type, fn){
-      var handlers = this.get(object, type), collection;
-      if(handlers){
-        if(handlers.length < config.max){
-          handlers.push(fn);
-        }else{
-          throw "Maximal handlers count reached";
-        }
-      }else{
-        collection = this.getCollection(object);
-        if(collection){
-          collection.h[type] = collection.h[type] || [];
-          collection.h[type].push(fn);
-        }else{ 
-          collection = {
-            o : object,
-            h : {}
-          };
-          collection.h[type] = [fn];
-          this.push(collection);
-        }
-      }
-    };
-    
-    handlers.removeHandler = function(object, type, name){
-      var handlers = this.get(object, type), index = false;
-      if(handlers){
-
-        forEach(handlers, function(h, i){
-          h.name === name;
-          index = i;
-        });
-
-        if(index!==false){
-          handlers = handelrs.slice(0, index).concat(handlers.slice(index+1, handlers.length));
-        }
-      }
-    };
-
-    /* Get collections of handlers by types of @object */
-    handlers.getCollection = function(object){
-      for(var i=this.length-1; i>=0; i--){
-        if(this[i].o === object){
-          return this[i]
-        }
-      }
-      return false;
-    };
-    
+        
     /* Emitter method */
     inheritor.emit = function(ev){
       var self = this,
-          callbacks = handlers.get(this, ev.type || ev);
+          callbacks = this['$$handlers'].filter(function(i){
+            return i.type == ev || i.type == ev.type            
+          });
       
       forEach(callbacks, function(callback){
-        callback.call(self, ev);
+        callback.callback.call(self, ev);
       });
         
       return this;
@@ -138,20 +76,39 @@ Warden.extend = (function(){
     /* Listener function */
     inheritor.listen = function(type, callback){
       var self = this;
-      handlers.set(this, type, callback);    
-      if(this[config.listener]){
-        this[config.listener].apply(this, [type, function(event){ 
-          self.emit(event)
-        }]);
+      //handlers.set(this, type, callback);    
+      var handlers = this['$$handlers'] = this['$$handlers'] || [];
+
+      if(!handlers.filter(function(i){return i.type == type;}).length){
+        if(this[config.listener]){
+          this[config.listener].apply(this, [type, function(event){ 
+            self.emit(event)
+          }]);
+        }
       }
+
+      this['$$handlers'].push({
+        type: type,
+        callback: callback
+      });      
+
       return this;
     };
 
     inheritor.mute = function(type, name){
-      if(is.fn(name)){
-        name = name.name;
+      var self = this;
+      name = name.name || name;
+      if(self['$$handlers']){
+        var indexes = [];
+        forEach(self['$$handlers'], function(i, index){
+          if(i.callback.name == name){
+            indexes.push(index);
+          }
+        });
+        forEach(indexes, function(i){
+          self['$$handlers'].splice(i,1);
+        });
       }
-      handlers.removeHandler(this, type, name);
       return this;
     };
 
@@ -159,16 +116,23 @@ Warden.extend = (function(){
     inheritor.stream = function(type, cnt) {
       var stream = Warden.makeStream(type, cnt || this);
 
-      handlers.set(this, type, function(event){
-        stream.eval(event);
+      var handlers = this['$$handlers'] = this['$$handlers'] || [];
+         
+      if(!handlers.filter(function(i){return i.type == type;}).length){
+        if(this[config.listener]){
+          this[config.listener].apply(this, [type, function(event){     
+            stream.eval(event);      
+          }]);
+        }
+      }
+
+      this['$$handlers'].push({
+        type: type,
+        callback: function(event){
+          stream.eval(event);
+        }
       });
 
-      if(this[config.listener]){
-        this[config.listener].apply(this, [type, function(event){     
-          stream.eval(event);      
-        }]);
-      }
-      
       return stream.get();
     };
 

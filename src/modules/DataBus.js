@@ -120,10 +120,9 @@ var DataBus = (function(){
   };
 
   /* Logging recieved data to console or logger */
-  DataBus.prototype.log = function(x){
-    var logger = is.exist(x) ? x : console.log;
+  DataBus.prototype.log = function(){
     return this.listen(function(data){
-      return logger(data);
+      return console.log(data);
     });
   };
 
