@@ -249,7 +249,7 @@
         return this;
       };
 
-      inheritor.mute = function(type, name){
+      inheritor.unlisten = function(type, name){
         var self = this;
         name = name.name || name;
         if(self['$$handlers']){
@@ -367,10 +367,9 @@
           i = 0;
           return self.fin(event);
         }
-        i++
-        
-        
-          processes[i-1].apply(self.ctx, [event, fns]);
+
+        i++;      
+        processes[i-1].apply(self.ctx, [event, fns]);
         
       }
     }
@@ -425,6 +424,14 @@
         */
         push : function(bus){
           drive.push(bus);
+          return bus;
+        },
+
+        pushAllUp : function(bus){
+          var self = this;
+          forEach(drive.push(bus).children, function(child){
+            self.pushAllUp(child);
+          });
         },
 
         /* 
@@ -432,14 +439,12 @@
           Bus must be DataBus object.
         */
         pop : function(bus){
-          var match;
           forEach(drive, function(b, i){
             if(bus.$$id == b.$$id){
               drive = drive.slice(0,i).concat(drive.slice(i+1,drive.length));
-              match = b;
             }
           });
-          return match;
+          return bus;
         },
 
         /* 
@@ -447,7 +452,10 @@
           @bus must be DataBus object.
         */
         popAllDown : function(bus){
-          forEach(this.pop(bus).children, this.pop);
+          var self = this;
+          forEach(self.pop(bus).children, function(e){
+            self.popAllDown(e);
+          });
         },
 
         /* 
@@ -525,6 +533,8 @@
     Implements data processing through stream. 
   */
 
+
+
   var DataBus = (function(){
     var forEach = Utils.forEach, is = Utils.is;
 
@@ -551,7 +561,7 @@
       };
 
       this.update = function(){
-        binding.update(this._.takes[this._.takes.length-1]);
+        return binding && binding.update(this._.takes[this._.takes.length-1]);
       }
 
       /* Return hoisting stream if @h doesn't exists or setting up new host */
@@ -566,7 +576,9 @@
       }
 
       this.bindTo = function(a,b){
-        binding = Warden.watcher(this, a, b);
+        if(binding){
+          binding = Warden.watcher(this, a, b);
+        }
       };
 
       this.process = function(p){
@@ -591,10 +603,10 @@
       this.fire = function(data, context){
         var self = this;
         
-        data = is.exist(data) ? setup(data) : setup({}); 
+        data = setup(is.exist(data) ? data : {}); 
         this._.fires.push(data); 
         processor.start(data, context, function(result){
-          self._.takes.push(result); 
+          self._.takes.push(result);           self.update(result);
           /* Executing all handlers of this DataBus */
           forEach(self.handlers, function(handler){
             handler.apply(context, [result]);
@@ -939,6 +951,8 @@
         });
       }).get();
     };
+
+    /* Synchronizes two buses */
 
     DataBus.prototype.sync = function(bus){
       var self = this,

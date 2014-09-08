@@ -41,6 +41,14 @@ Warden.makeStream = (function(){
       */
       push : function(bus){
         drive.push(bus);
+        return bus;
+      },
+
+      pushAllUp : function(bus){
+        var self = this;
+        forEach(drive.push(bus).children, function(child){
+          self.pushAllUp(child);
+        });
       },
 
       /* 
@@ -48,14 +56,12 @@ Warden.makeStream = (function(){
         Bus must be DataBus object.
       */
       pop : function(bus){
-        var match;
         forEach(drive, function(b, i){
           if(bus.$$id == b.$$id){
             drive = drive.slice(0,i).concat(drive.slice(i+1,drive.length));
-            match = b;
           }
         });
-        return match;
+        return bus;
       },
 
       /* 
@@ -63,7 +69,10 @@ Warden.makeStream = (function(){
         @bus must be DataBus object.
       */
       popAllDown : function(bus){
-        forEach(this.pop(bus).children, this.pop);
+        var self = this;
+        forEach(self.pop(bus).children, function(e){
+          self.popAllDown(e);
+        });
       },
 
       /* 

@@ -1,38 +1,33 @@
 describe('Warden DataBus methods', function () {  
-
 	var sync = {}, 
 		value = 0, 
 		mapped = {}, 
 		filtered = {},
 		reduced = {},
-		taken = 0;
-
-	var _clear = function(){
-		value = 0;
-		mapped = {};
-		filtered = {};
-		reduced = {};
-		taken = 0;
-	}
-
-	var bus = Warden.makeStream(function(trigger){
-		this.transmit = function(val){
-			trigger(val);
-		}
-	}, sync).get()
+		taken = 0,
+		_clear = function(){
+			value = 0;
+			mapped = {};
+			filtered = {};
+			reduced = {};
+			taken = 0;
+		},
+		bus = Warden.makeStream(function(trigger){
+			this.transmit = function(val){
+				trigger(val);
+			}
+		}, sync).get();
 
 	/* Simple */
 	bus.listen(function(data){
 		value = data;
 	});
 
-	it('Simple', function (done) {      
+	it('Simple', function (done) {
 		sync.transmit(1);
-    	expect(value).toBe(1); 
-    	done();
-	});  
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
+		expect(value).toBe(1); 
+		done();
+	});
 	describe('.map()', function () {  
 	    /* Mappings: integer */
 		var mp = 10;
@@ -110,8 +105,6 @@ describe('Warden DataBus methods', function () {
 		    done();
 	    }); 
 	});
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
 	describe('.filter()', function () {  
 		bus.filter(function(x){
 			return x > 100;
@@ -125,7 +118,7 @@ describe('Warden DataBus methods', function () {
 			filtered.passed = false;
 		});
 
- 		it('-- passed', function (done) {     
+			it('-- passed', function (done) {     
 			sync.transmit(101);
 		    expect(filtered.passed).toBe(true);
 		    done();
@@ -149,7 +142,6 @@ describe('Warden DataBus methods', function () {
 	    });
 	});
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
 	describe('.reduce()', function () {  
 		_clear();
 
@@ -158,7 +150,6 @@ describe('Warden DataBus methods', function () {
 		}
 
 		var asReduce = bus.filter(isInReduce).map('val')
-
 
 		asReduce
 		.reduce(0, function(a,b){
@@ -221,8 +212,6 @@ describe('Warden DataBus methods', function () {
 			done();
 	    });
 	});
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
 	describe('.take()', function () {  
 		bus.take(2).listen(function(){
 			taken ++;
@@ -260,11 +249,8 @@ describe('Warden DataBus methods', function () {
 			done();
 	    });
 	});
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
 	describe('.skip()', function () {  
-		var emitted = 0;
-		
+		var emitted = 0;	
 		
 		it('-- integer', function (done) {     			
 			bus.skip(2).listen(function(){
@@ -289,8 +275,6 @@ describe('Warden DataBus methods', function () {
 			done();
 	    });
 	});
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
 	describe('.interpolate() and .mask()', function () {  		
 		it('-- interpolate', function (done) {
 			var res = "", str = "Hello, {{val}}!";     			
@@ -305,7 +289,7 @@ describe('Warden DataBus methods', function () {
 		    expect(res).toBe("Hello, world!");
 		    done();
 	    });
-	
+
 		it('-- mask', function (done) {
 			var res = "", str = "Hello, {{val}}!";     			
 			var b = bus.mask({
@@ -321,8 +305,6 @@ describe('Warden DataBus methods', function () {
 		    done();
 	    });
 	});
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
 	describe('.unique()', function () {  		
 		it('-- no function', function (done) {
 			var res = "";
@@ -384,7 +366,6 @@ describe('Warden DataBus methods', function () {
 	    });
 	});
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
 	describe('Time methods ', function () {  		
 		it('-- debounce (200 ms)', function (done) {
 			var res = 0;
@@ -694,5 +675,67 @@ describe('Warden DataBus methods', function () {
 		});
 
 		
+		it('-- locking all children', function (done) { 
+			var parent = Stream.get(),
+					child1 = parent.map('c1'),
+					child2 = parent.map('c2'),
+					childChild1 = child1.map('cc1');
+
+			var p = 0, c1 = 0, c2 = 0, cc1 = 0;
+
+			var clear = function(){p = 0, c1 = 0, c2 = 0, cc1 = 0;}
+
+			parent.listen(function(x){p=x;});
+			child1.listen(function(x){c1 = x;});
+			child2.listen(function(x){c2 = x;});
+			childChild1.listen(function(x){cc1 = x;});
+
+			Context.sync(666);
+
+			expect(p).toBe(666);
+			expect(c1).toBe('c1');
+			expect(c2).toBe('c2');
+			expect(cc1).toBe('cc1');
+
+			clear();
+
+			expect(p).toBe(0);
+			expect(c1).toBe(0);
+			expect(c2).toBe(0);
+			expect(cc1).toBe(0);
+
+			parent.lock();
+
+			Context.sync(666);
+
+			expect(p).toBe(0);
+			expect(c1).toBe('c1');
+			expect(c2).toBe('c2');
+			expect(cc1).toBe('cc1');
+
+			clear();
+
+			parent.lockChildren();
+
+			Context.sync(666);
+
+			expect(p).toBe(0);
+			expect(c1).toBe(0);
+			expect(c2).toBe(0);
+			expect(cc1).toBe(0);
+
+			clear();
+
+			parent.unlock();
+
+			Context.sync(666);
+
+			expect(p).toBe(666);
+			expect(c1).toBe(0);
+			expect(c2).toBe(0);
+			expect(cc1).toBe(0);			
+
+			done();
+		});
 	});
 });

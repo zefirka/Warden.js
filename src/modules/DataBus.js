@@ -4,6 +4,8 @@
   Implements data processing through stream. 
 */
 
+
+
 var DataBus = (function(){
   var forEach = Utils.forEach, is = Utils.is;
 
@@ -32,7 +34,7 @@ var DataBus = (function(){
     };
 
     this.update = function(){
-      binding.update(this._.takes[this._.takes.length-1]);
+      return binding && binding.update(this._.takes[this._.takes.length-1]);
     }
 
     /* Return hoisting stream if @h doesn't exists or setting up new host */
@@ -47,7 +49,9 @@ var DataBus = (function(){
     }
 
     this.bindTo = function(a,b){
-      binding = Warden.watcher(this, a, b);
+      if(binding){
+        binding = Warden.watcher(this, a, b);
+      }
     };
 
     this.process = function(p){
@@ -72,13 +76,13 @@ var DataBus = (function(){
     this.fire = function(data, context){
       var self = this;
       
-      data = is.exist(data) ? setup(data) : setup({}); //setting up data
+      data = setup(is.exist(data) ? data : {}); //setting up data
 
       this._.fires.push(data); // pushing fired data to @fires queue
 
       processor.start(data, context, function(result){
         self._.takes.push(result); // pushing taked data to @takes queue 
-
+        self.update(result);
         /* Executing all handlers of this DataBus */
         forEach(self.handlers, function(handler){
           handler.apply(context, [result]);
@@ -423,6 +427,8 @@ var DataBus = (function(){
       });
     }).get();
   };
+
+  /* Synchronizes two buses */
 
   DataBus.prototype.sync = function(bus){
     var self = this,

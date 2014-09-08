@@ -95,7 +95,7 @@ Warden.extend = (function(){
       return this;
     };
 
-    inheritor.mute = function(type, name){
+    inheritor.unlisten = function(type, name){
       var self = this;
       name = name.name || name;
       if(self['$$handlers']){

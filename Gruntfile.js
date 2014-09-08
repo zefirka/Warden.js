@@ -22,14 +22,24 @@ module.exports = function(grunt){
     includes: {
       build: {
         cwd: './src',
-        src: './warden.js',
+        src: './wardens.js',
         dest: './src/build/',
         options: {
           duplicates: false,
-          debug: true,
+          debug: false,
           includePath: './src/modules'
         }        
       },
+      test: {
+        cwd: "./test/src",
+        src: "./*.js",
+        dest: "./test/specs",
+        options:{
+          duplicates: true,
+          debug: false,
+          includePath : './test/src/specs'
+        }
+      }
     },
 
     // Jasmine test
@@ -100,20 +110,22 @@ module.exports = function(grunt){
   grunt.loadNpmTasks('grunt-devtools');
 
   grunt.registerTask('test', [
+    "includes:test",
     "jasmine"
   ]);
   
   grunt.registerTask('build', [
     "coffee",
-    "includes",
+    "includes:build",
     "copy",
     "comments",
     "uglify",
     "jasmine"
   ]);
+  
   grunt.registerTask('default', [
     "coffee",
-    "includes",
+    "includes:build",
     "copy",
     "comments",
     "uglify",

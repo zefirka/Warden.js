@@ -65,10 +65,9 @@ function Processor(proc, host){
         i = 0;
         return self.fin(event);
       }
-      i++
-      
-      
-        processes[i-1].apply(self.ctx, [event, fns]);
+
+      i++;      
+      processes[i-1].apply(self.ctx, [event, fns]);
       
     }
   }
