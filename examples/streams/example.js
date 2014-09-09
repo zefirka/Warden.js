@@ -45,7 +45,7 @@ var mid = Warden.extend(document.getElementById('middle')),
 
 var mouseMoves = mid.stream('mousemove');
 
-mouseMoves.mask("Mouse now on x:{{x}}, y:{{y}}").listen(function(e){
+mouseMoves.interpolate("Mouse now on x:{{x}}, y:{{y}}").listen(function(e){
   c3.innerHTML = e;
 });
 

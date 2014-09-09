@@ -32,8 +32,8 @@ $(function () {
 
 	var lc = $('.field.l').stream('click'), rc = $('.field.r').stream('click');
 
-	var lines = {},
-		buses = {
+	var lines = {};
+	var buses = {
 			originall : lc,
 			originalr : rc,
 			mapx : lc.map('clientX'),
@@ -47,10 +47,14 @@ $(function () {
 			debounce : rc.map('red').debounce(1000),
 			getcollected : rc.map('clientY').getCollected(2000),
 			unique : rc.map('clientY').unique(),
-			mask : rc.mask("X:{{clientX}}, Y:{{clientY}}"),
+			interpolate : rc.interpolate("X:{{clientX}}, Y:{{clientY}}"),
 			merge : rc.merge(lc),
 			sync : lc.map(0).sync(rc.map(1)),
 			wait : rc.map(0).waitFor(lc),
+			after : rc.map(0).after(lc),
+			produce : rc.map(['timeStamp', 'red']).resolveWith(lc.map(['timeStamp', 'blue']), function(a,b){
+				return a[0] < b[0] ? b[1] : a[1];
+			}),
 			combine : lc.map('timeStamp').map(function(e){return (e+"").slice(-6);}).combine(rc.map('timeStamp').map(function(e){return (e+"").slice(-6);}), function(blue, red){
 				return "B:" + blue + "\nR:" + red;
 			})

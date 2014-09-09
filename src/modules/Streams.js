@@ -1,7 +1,16 @@
 /*
   Streams module:
     docs: ./docs/Streams.md
-    version: 0.2.2
+    version: 0.3.1
+  
+  -- v0.3.2 --
+    - Fixed mistakes in pop and push down and up
+
+  -- v0.3.0 --
+    - Stream strict checking argument now must be only boolean true
+    
+  -- v0.2.0 -- 
+    Added @popAllDown and @popAllUp methods;
 
   Creates stream of data.
   If @x is string, that it interprets as datatype
@@ -9,15 +18,19 @@
 */
 
 Warden.makeStream = (function(){
-  
+  var forEach = Utils.forEach, 
+      is = Utils.is;
+
   /* Stream constructor */
   function Stream(context){
-    var drive = [];
-    return  {
+    var drive = [], 
+        self = new (function DataStream(){})();
+
+    return  Utils.extend(self, {
       /*
         For debugging:
       */
-      $$id : Math.random() * 1000 >> 0, 
+      $$id : Utils.$hash.set('s'),
 
       /* 
         Evaluating the stream with @data 
@@ -34,6 +47,14 @@ Warden.makeStream = (function(){
       */
       push : function(bus){
         drive.push(bus);
+        return bus;
+      },
+
+      pushAllUp : function(bus){
+        var self = this;
+        forEach( drive.push(bus).children, function(child){
+          self.pushAllUp(child);
+        });
       },
 
       /* 
@@ -42,10 +63,33 @@ Warden.makeStream = (function(){
       */
       pop : function(bus){
         forEach(drive, function(b, i){
-          if(bus == b){
+          if(bus.$$id == b.$$id){
             drive = drive.slice(0,i).concat(drive.slice(i+1,drive.length));
           }
         });
+        return bus;
+      },
+
+      /* 
+        Removes from executable drive @bus and all @bus children;
+        @bus must be DataBus object.
+      */
+      popAllDown : function(bus){
+        var self = this;
+        forEach(self.pop(bus).children, function(e){
+          self.popAllDown(e);
+        });
+      },
+
+      /* 
+        Removes from executable drive @bus, @bus.parent and @bus.parent.parent etc
+        @bus must be DataBus object
+      */
+      popAllUp : function(bus){
+        var match = this.pop(bus);
+        if(is.exist(match.parent)){
+          this.popAllUp(match.parent);
+        }
       },
 
       /*
@@ -55,10 +99,9 @@ Warden.makeStream = (function(){
         var bus = new DataBus();
         bus.host(this);
         return bus;
-      }
-    }
+      },
+    });
   }
-
 
   /* 
     Creates stream of @x on context @context;
@@ -66,7 +109,7 @@ Warden.makeStream = (function(){
     in the context to prevent overwriting;
   */
   return function(x, context, strict){
-    var stream, xstr, reserved = [];
+    var stream, xstr, reserved = [], i;
 
     Analyze("makeStream", x);
     
@@ -76,11 +119,11 @@ Warden.makeStream = (function(){
     if(is.fn(x)){
 
       /* If we strict in context */
-      if(is.exist(strict)){
+      if(strict===true){
         xstr = x.toString();
 
-        for(var i in context){
-          if(context.hasOwnPropery(i)){
+        for(i in context){
+          if(context.hasOwnProperty(i)){
             reserved.push(i);
           }
         }
@@ -93,10 +136,11 @@ Warden.makeStream = (function(){
         });    
       }
 
-      x.apply(context, [function(expectedData){
+      x.call(context, function(expectedData){
         stream.eval(expectedData);
-      }]);  
-    }    
+      });  
+    }
+
     return stream;
   };
 })();

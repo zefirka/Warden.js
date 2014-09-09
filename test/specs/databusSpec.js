@@ -1,0 +1,736 @@
+describe('Warden DataBus methods', function () {  
+	var sync = {}, 
+		value = 0, 
+		mapped = {}, 
+		filtered = {},
+		reduced = {},
+		taken = 0,
+		_clear = function(){
+			value = 0;
+			mapped = {};
+			filtered = {};
+			reduced = {};
+			taken = 0;
+		},
+		bus = Warden.makeStream(function(trigger){
+			this.transmit = function(val){
+				trigger(val);
+			}
+		}, sync).get();
+
+	/* Simple */
+	bus.listen(function(data){
+		value = data;
+	});
+
+	it('Simple', function (done) {
+		sync.transmit(1);
+		expect(value).toBe(1); 
+		done();
+	});
+	describe('.map()', function () {  
+	    /* Mappings: integer */
+		var mp = 10;
+		bus.map(mp).listen(function(){
+			mapped.integer = mp;
+		});
+
+		/* Mappings: String */
+		var str = 'test';
+		bus.map(str).listen(function(e){
+			mapped.string = str;
+		});
+
+		/* Mappings: Prop */
+		bus.map('prop').listen(function(e){
+			mapped.prop = e;
+		});
+
+		/* Mappings: Array of Simple*/
+		bus.map([10, 12]).listen(function(e){
+			mapped.arrSimple = e;
+		});
+
+		/* Mappings: Array of Props*/
+		bus.map(['test', 'prop']).listen(function(e){
+			mapped.arrProp = e;
+		});
+
+		/* Mappings: Object*/
+		bus.map({
+			name: 'value'
+		}).listen(function(e){
+			mapped.obj = e;
+		});
+
+		it('-- simple data type: integer', function (done) {     
+			sync.transmit(200);
+		    expect(mapped.integer).toBe(10);
+		    done();
+	    }); 
+
+	    it('-- simple data type: string', function (done) {     
+			sync.transmit('not test');
+		    expect(mapped.string).toBe('test');
+		    done();
+	    }); 
+
+	    it('-- simple data type: name of string', function (done) {     
+			sync.transmit({
+				prop: 'test'
+			});
+		    expect(mapped.prop).toBe('test');
+		    done();
+	    }); 
+
+	    it('-- array of simple data types (integers)', function (done) {     
+			sync.transmit(0);
+		    expect(mapped.arrSimple).toEqual([10,12]);
+		    done();
+	    }); 
+
+	    it('-- array of names of properties', function (done) {     
+			sync.transmit({
+				prop: 'val'
+			});
+		    expect(mapped.arrProp).toEqual(['test','val']);
+		    done();
+	    }); 
+
+	    it('-- object', function (done) {     
+			sync.transmit({
+				value : 20
+			});
+		    expect(mapped.obj).toEqual({name : 20});
+		    done();
+	    }); 
+	});
+	describe('.filter()', function () {  
+		bus.filter(function(x){
+			return x > 100;
+		}).listen(function(e){
+			filtered.passed = true;
+		});
+
+		bus.filter(function(x){
+			return x <= 100;
+		}).listen(function(e){
+			filtered.passed = false;
+		});
+
+			it('-- passed', function (done) {     
+			sync.transmit(101);
+		    expect(filtered.passed).toBe(true);
+		    done();
+	    }); 
+
+	    it('-- not passed', function (done) {     
+			sync.transmit(10);
+		    expect(filtered.passed).toBe(false);
+		    done();
+	    });
+
+	    it('-- type error catched', function (done) {
+	    	var filterError;
+	    	try{
+				bus.filter(23)
+			}catch(err){
+				filterError = err; 
+			}
+			expect(filterError).toBe('TypeError: unexpected type of argument at: .filter(). Expected type: function. Your argument is type of: number');
+			done();
+	    });
+	});
+
+	describe('.reduce()', function () {  
+		_clear();
+
+		function isInReduce(d){
+			return d.reduce ? true : false;			
+		}
+
+		var asReduce = bus.filter(isInReduce).map('val')
+
+		asReduce
+		.reduce(0, function(a,b){
+			return a + b;
+		}).listen(function(e){
+			reduced.first = reduced.first || e;
+			reduced.sum = e;
+		});
+
+		asReduce
+		.reduce('start', function(a,b){
+			return a.toString() + ":" + b.toString();
+		}).listen(function(e){
+			reduced.str = e;
+		});
+
+
+		asReduce
+		.reduce(0, function(a,b){
+			return a > b ? a : b;
+		})
+		.listen(function(e){
+			reduced.sort = e;
+		})
+
+		sync.transmit({reduce : true,val : 20});
+		sync.transmit({reduce : true,val : 20});
+		sync.transmit({reduce : true,val : 20});
+		sync.transmit({reduce : true,val : 40});
+		
+
+	    it('-- once', function (done) {     			
+		    expect(reduced.first).toBe(20);
+		    done();
+	    }); 
+	    
+	    it('-- sum', function (done) {     			
+		    expect(reduced.sum).toBe(100);
+		    done();
+	    }); 
+
+	    it('-- string', function (done) {     			
+		    expect(reduced.str).toBe("start:20:20:20:40");
+		    done();
+	    }); 
+
+		it('-- sort', function (done) {     			
+		    expect(reduced.sort).toBe(40);
+		    done();
+	    }); 
+
+	    it('-- type error catched', function (done) {
+	    	var reduceError;
+	    	try{
+				bus.reduce('string', 'dsds')
+			}catch(err){
+				reduceError = err; 
+			}
+			expect(reduceError).toBe('TypeError: unexpected type of argument at: .reduce(). Expected type: function. Your argument is type of: string');
+			done();
+	    });
+	});
+	describe('.take()', function () {  
+		bus.take(2).listen(function(){
+			taken ++;
+		});
+
+		bus.take(function(x){
+			return x === 'takenFilter';
+		}).listen(function(){
+			takenFilter = true;
+		})
+
+
+
+		it('-- integer', function (done) {     			
+		    sync.transmit(0);
+		    sync.transmit(0);
+		    sync.transmit(0);
+		    expect(taken).toBe(2);
+		    done();
+	    });
+
+	    it('-- function', function (done) {     			
+		    sync.transmit('takenFilter');
+		    expect(takenFilter).toBe(true);
+		    done();
+	    });
+
+	    it('-- type error catched', function (done) {
+	    	try{
+				bus.take('string')
+			}catch(err){
+				takenError = err; 
+			}
+			expect(takenError).toBe('TypeError: unexpected type of argument at: .take(). Expected type: function or number. Your argument is type of: string');
+			done();
+	    });
+	});
+	describe('.skip()', function () {  
+		var emitted = 0;	
+		
+		it('-- integer', function (done) {     			
+			bus.skip(2).listen(function(){
+				emitted ++;
+			});
+
+		    sync.transmit(0);
+		    sync.transmit(0);
+		    sync.transmit(0);
+		    expect(emitted).toBe(1);
+		    done();
+	    });
+
+	    it('-- type error catched', function (done) {
+	    	var skipError;
+	    	try{
+				bus.skip(function(){})
+			}catch(err){
+				skipError = err; 
+			}
+			expect(skipError).toBe('TypeError: unexpected type of argument at: .skip(). Expected type: number. Your argument is type of: function');
+			done();
+	    });
+	});
+	describe('.interpolate() and .mask()', function () {  		
+		it('-- interpolate', function (done) {
+			var res = "", str = "Hello, {{val}}!";     			
+			bus.interpolate(str).listen(function(e){
+				res = e;
+			});
+			
+		    sync.transmit({
+		    	val: "world"}
+		    );
+
+		    expect(res).toBe("Hello, world!");
+		    done();
+	    });
+
+		it('-- mask', function (done) {
+			var res = "", str = "Hello, {{val}}!";     			
+			var b = bus.mask({
+				val: 'world'
+			}).listen(function(e){
+				res = e;
+			});
+			
+		    sync.transmit(str);
+
+		    expect(res).toBe("Hello, world!");
+		    b.lock();
+		    done();
+	    });
+	});
+	describe('.unique()', function () {  		
+		it('-- no function', function (done) {
+			var res = "";
+			
+			var u = bus.unique().listen(function(e){
+				res++;
+			});
+			
+		    sync.transmit(10);
+		    sync.transmit(10);
+		    sync.transmit(20);
+		    sync.transmit(20);
+
+		    expect(res).toBe(2);
+		    u.lock();
+		    done();
+	    });
+
+	    it('-- compare second letter', function (done) {
+			var res = 0;
+			
+			var u = bus.unique(function(a,b){
+				return  a[1] == b[1];
+			}).listen(function(e){
+				res++;
+			});
+			
+		    sync.transmit("123");
+		    sync.transmit("222");
+		    sync.transmit("321");
+		    sync.transmit("524444");
+		    sync.transmit([0,"2",3]);
+		    sync.transmit("011");
+
+		    expect(res).toBe(2);
+		    u.lock();
+		    done();
+	    });
+
+	    it('-- compare length of string', function (done) {
+			var res = 0;
+			
+			var u = bus.unique(function(a,b){
+				return  a.length == b.length
+			}).listen(function(e){
+				res++;
+			});
+			
+		    sync.transmit("123");
+		    sync.transmit("524444");
+		    sync.transmit("222");
+		    sync.transmit("524444");
+		    sync.transmit("321");
+		    sync.transmit("011");
+
+		    expect(res).toBe(5);
+		    u.lock();
+		    done();
+	    });
+	});
+	describe('Time methods ', function () {  		
+		it('-- debounce (200 ms)', function (done) {
+			var res = 0;
+			
+			var u = bus.debounce(200).listen(function(e){
+				res++;
+			});
+			
+		    sync.transmit(0); //res = 1
+		    sync.transmit(0);
+		    sync.transmit(0);
+		    setTimeout(function(){
+		    	sync.transmit(0); // res =2;
+			    u.lock();
+			    setTimeout(function(){
+			    	expect(res).toBe(2);
+			    	done();
+			    }, 300);			    
+		    }, 300);		    
+	    });
+
+	    it('-- getCollected (200 ms)', function (done) {
+			var res = "";
+			
+			var u = bus.getCollected(200).listen(function(e){
+				res = e;
+			});
+			
+		    sync.transmit(0); 
+		    sync.transmit(1); 
+		    sync.transmit(2); 
+		    setTimeout(function(){
+		    	sync.transmit(0); // res =2;
+			    u.lock();
+		    	expect(res).toEqual([0,1,2]);
+			    done();
+		    }, 300);		    
+	    });
+
+	});
+	describe('Combining methods ', function () {  		
+		it('-- merge', function (done) { 
+			var cl;
+
+			var bus1 = bus.filter(function(x){return x==1}).map('One'),
+				bus2 = bus.filter(function(x){return x==0}).map('Two'),
+				merged = bus1.merge(bus2);
+
+			merged.reduce([],function(a,b){
+				a.push(b);
+				return a;
+			}).listen(function(x){
+				cl = x;
+			});
+
+			sync.transmit(1);
+			sync.transmit(0);
+
+			expect(cl).toEqual(['One', 'Two']);
+			merged.lock();
+			done();
+		});
+
+		it('-- resolveWith (bigger)', function (done) {
+			var cl;
+
+			var bus1 = bus.filter(function(x){return x.one}).map(10),
+				bus2 = bus.filter(function(x){return x.two}).map(20),
+				produced = bus1.resolveWith(bus2, function(a,b){
+					return a > b ? 'first' : 'second';
+				});
+
+			produced.listen(function(x){
+				cl = x;
+			});
+
+			sync.transmit({one:true});
+			sync.transmit({two:true});
+
+			expect(cl).toBe('second');
+			done();
+		});
+
+		it('-- resolveWith (smaller)', function (done) {
+			var cl;
+
+			var bus1 = bus.filter(function(x){return x.one}).map(30),
+				bus2 = bus.filter(function(x){return x.two}).map(20),
+				produced = bus1.resolveWith(bus2, function(a,b){
+					return a > b ? 'first' : 'second';
+				});
+
+			produced.listen(function(x){
+				cl = x;
+			});
+
+			sync.transmit({one:true});
+			sync.transmit({two:true});
+
+			expect(cl).toBe('first');
+			done();
+		});
+
+
+		it('-- resolveWith (first is earlier)', function (done) {
+			var cl;
+
+			bus.setup(function(d){
+				d.time = (new Date()).getTime();
+				return d;
+			});
+
+			var bus1 = bus.filter(function(x){return x.one}),
+				bus2 = bus.filter(function(x){return x.two}),
+				produced = bus1.resolveWith(bus2, function(a,b){
+					return a.time <= b.time ? 'first' : 'second';
+				});
+
+			produced.listen(function(x){
+				cl = x;
+			});
+
+			sync.transmit({one:true});
+			setTimeout(function(){
+				sync.transmit({two:true});
+				expect(cl).toBe('first');
+				done();
+			},10);
+			
+		});
+
+		it('-- resolveWith (second is earlier)', function (done) {
+			var cl;
+
+			bus.setup(function(d){
+				d.time = (new Date()).getTime();
+				return d;
+			});
+
+			var bus1 = bus.filter(function(x){return x.one}),
+				bus2 = bus.filter(function(x){return x.two}),
+				produced = bus1.resolveWith(bus2, function(a,b){
+					return a.time <= b.time ? 'first' : 'second';
+				});
+
+			produced.listen(function(x){
+				cl = x;
+			});
+
+			sync.transmit({two:true});
+			setTimeout(function(){
+				sync.transmit({one:true});
+				expect(cl).toBe('second');
+				done();
+			},10);
+			
+		});
+
+		it('-- sync (with intreval of 300 ms);', function (done) { 
+			var cl;
+
+			var bus1 = bus.filter(function(x){return x==1}).map('a'),
+				bus2 = bus.filter(function(x){return x==0}).map('b'),
+				synced = bus1.sync(bus2);
+
+			synced.listen(function(x){
+				cl = x;
+			});
+
+			sync.transmit(1);
+			setTimeout(function(){
+				sync.transmit(0);	
+				expect(cl).toEqual(['a', 'b']);
+				synced.lock();
+				done();
+			}, 300)
+			
+		});
+
+	});
+	describe('Lock/Unlock methods ', function () {
+		var Context = {
+			syncemitted: 0,
+			syncLastValue: 0
+		};
+		var Stream = Warden.makeStream(function(trigger){
+			this.sync = function(value){
+				trigger(value);
+			}
+
+			this.async = function(time, value){
+				setTimeout(function(){
+					trigger(value);
+				}, time);
+			}
+		}, Context);
+
+		it('-- locking and unlocking simple listened bus', function (done) { 
+			var bus = Stream.get();
+			bus.listen(function(x){
+				Context.syncemitted++
+				Context.syncLastValue = x;
+			});
+
+			Context.sync(10);
+			Context.sync(10);
+			Context.sync(20);
+
+			bus.lock();
+
+			Context.sync(10);
+			Context.sync(10);
+			Context.sync(30);
+
+			expect(Context.syncemitted).toBe(3);
+			expect(Context.syncLastValue).toBe(20);
+
+			bus.unlock();
+
+			Context.sync(10);
+			Context.sync(10);
+			Context.sync(10);
+			expect(Context.syncemitted).toBe(6);
+			expect(Context.syncLastValue).toBe(10);
+
+			bus.lock();
+			done();
+		});
+
+		it('-- locking and unlocking difference buses', function (done) { 
+			var bus1 = Stream.get(),
+				bus2 = Stream.get();
+
+			var b1 = {t: 0,v: 0},
+				b2 = {t: 0,v: 0}
+
+			bus1.listen(function(x){
+				b1.t++
+				b1.v = x;
+			});
+
+			bus2.listen(function(x){
+				b2.t++
+				b2.v = x;
+			});
+
+			Context.sync(10);
+			Context.sync(10);
+			Context.sync(20);
+
+			expect(b1.t).toBe(3);
+			expect(b1.v).toBe(20);
+			expect(b2.t).toBe(3);
+			expect(b2.v).toBe(20);
+
+			bus1.lock();
+
+			Context.sync(10);
+			Context.sync(10);
+			Context.sync(30);
+
+			expect(b1.t).toBe(3);
+			expect(b1.v).toBe(20);
+			expect(b2.t).toBe(6);
+			expect(b2.v).toBe(30);
+
+			bus2.lock();
+
+			Context.sync(10);
+			Context.sync(10);
+			Context.sync(10);
+			
+			expect(b1.t).toBe(3);
+			expect(b1.v).toBe(20);
+			expect(b2.t).toBe(6);
+			expect(b2.v).toBe(30);
+
+			bus1.unlock();						
+
+			Context.sync(10);
+			Context.sync(10);
+			Context.sync('test');
+
+			expect(b1.t).toBe(6);
+			expect(b1.v).toBe('test');
+			expect(b2.t).toBe(6);
+			expect(b2.v).toBe(30);
+
+			bus2.unlock();
+
+			Context.sync(10);
+			Context.sync(10);
+			Context.sync('10');
+
+			expect(b1.t).toBe(9);
+			expect(b1.v).toBe('10');
+			expect(b2.t).toBe(9);
+			expect(b2.v).toBe('10');
+
+			bus1.lock();
+			bus2.lock();
+			done();
+		});
+
+		
+		it('-- locking all children', function (done) { 
+			var parent = Stream.get(),
+					child1 = parent.map('c1'),
+					child2 = parent.map('c2'),
+					childChild1 = child1.map('cc1');
+
+			var p = 0, c1 = 0, c2 = 0, cc1 = 0;
+
+			var clear = function(){p = 0, c1 = 0, c2 = 0, cc1 = 0;}
+
+			parent.listen(function(x){p=x;});
+			child1.listen(function(x){c1 = x;});
+			child2.listen(function(x){c2 = x;});
+			childChild1.listen(function(x){cc1 = x;});
+
+			Context.sync(666);
+
+			expect(p).toBe(666);
+			expect(c1).toBe('c1');
+			expect(c2).toBe('c2');
+			expect(cc1).toBe('cc1');
+
+			clear();
+
+			expect(p).toBe(0);
+			expect(c1).toBe(0);
+			expect(c2).toBe(0);
+			expect(cc1).toBe(0);
+
+			parent.lock();
+
+			Context.sync(666);
+
+			expect(p).toBe(0);
+			expect(c1).toBe('c1');
+			expect(c2).toBe('c2');
+			expect(cc1).toBe('cc1');
+
+			clear();
+
+			parent.lockChildren();
+
+			Context.sync(666);
+
+			expect(p).toBe(0);
+			expect(c1).toBe(0);
+			expect(c2).toBe(0);
+			expect(cc1).toBe(0);
+
+			clear();
+
+			parent.unlock();
+
+			Context.sync(666);
+
+			expect(p).toBe(666);
+			expect(c1).toBe(0);
+			expect(c2).toBe(0);
+			expect(cc1).toBe(0);			
+
+			done();
+		});
+	});
+});

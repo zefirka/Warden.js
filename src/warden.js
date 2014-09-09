@@ -15,15 +15,43 @@
 })(this, function(Warden){
   
   'use strict';
-  Warden.version = "0.0.4"; 
-  Warden.log = function(x){
-    console.log(x);
-  }
+  Warden.version = "0.1.0"; 
+  Warden.configure = {};
   
-  include "Helpers.js"      
+  /* 
+    Globals: 
+      Utils
+      Analyze
+  */
+  include "Helpers.js"
+
+  /*
+    Globals:
+      Warden.extend
+  */
   include "Extend.js" 
+
+  /* 
+    Globals:
+      Processor
+  */
   include "Processor.js" 
+
+  /*
+    Globals:
+      Warden.makeStream
+  */
   include "Streams.js"
+
+  /*
+    Globals:
+      DataBus
+  */
   include "DataBus.js"
+
+  /*
+    Globals:
+      Warden.watcher
+  */
   include "Watcher.js"
 }));

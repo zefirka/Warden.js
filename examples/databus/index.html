@@ -66,8 +66,8 @@
       <div class='box'></div>
     </div>
 
-    <div id='mask' class='line'>
-      <div class='title'>red.mask("X:{{clientX}}, Y:{{clientY}}")</div>
+    <div id='interpolate' class='line'>
+      <div class='title'>red.interpolate("X:{{clientX}}, Y:{{clientY}}")</div>
       <div class='box'></div>
     </div>   
   </div> 
@@ -85,11 +85,18 @@
       <div class='title'>red.map(0).waitFor(blue)</div>
       <div class='box'></div>
     </div>
+    <div id='after' class='line'>
+      <div class='title'>red.map(0).after(blue)</div>
+      <div class='box'></div>
+    </div>
+    <div id='produce' class='line'>
+      <div class='title'>blue.map(Math.random).produceWith(blue.map(Math.random), bigger)</div>
+      <div class='box'></div>
+    </div>
     <div id='combine' class='line'>
       <div class='title'>blue.map('timeStamp').combine(blue.map('timeStamp'), resolver</div>
       <div class='box'></div>
     </div>
- 
   </div>
 
   </body>
