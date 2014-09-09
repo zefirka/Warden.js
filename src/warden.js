@@ -16,9 +16,7 @@
   
   'use strict';
   Warden.version = "0.1.0"; 
-  Warden.log = function(x){
-    console.log(x);
-  }
+  Warden.configure = {};
   
   /* 
     Globals: 

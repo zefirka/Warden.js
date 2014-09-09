@@ -5,10 +5,9 @@ Module at:
  - `./src/module/Streams.js` : Streams module
  - `./src/module/DataBus.js` : DataBus module
 
-
 Usage : 
  - `object.stream(type, [context])` - Create an event stream,
- - `Warden.makeStream(creator)` - Create custom data stream
+ - `Warden.makeStream(creator, [context], [strictCheck])` - Create custom data stream
 
 
 ##Event streams##
@@ -45,7 +44,7 @@ someTypeStream.listen(function(event){
 	console.log(event.data);
 })
 
-module.sync("Hellow world!");
+module.sync("Hello world!");
 ```
 
 ##Creating custom data streams##
@@ -76,7 +75,7 @@ pulser.log(); // will log to console PULSE! every second
 
 ###Usage###
 ####Warden.extend####
-`Warden.extend` creates a Pub/Sub wrapper around your object or constructor function. So all objects will have method `.stream(@type)` which listens all events of `@type` and evaluates all streams that you want to process (as DataBuses). Is you will use much DOM API events or custom events use Warden.extend.
+[`Warden.extend`] creates a Pub/Sub wrapper around your object or object's constructor. So all resulting objects will have method [`.stream(type, [context]`] which listens all events of [`@type`] and evaluates all streams conjuncted with adequate object (look [DataBuses](http://databuses)). If you will use much DOM API events or custom events use Warden.extend.
 ####Warden.makeStream####
 `Warden.makeStream(creator, [context], [strict])`
 Returns: Stream object.

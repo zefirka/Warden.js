@@ -1,8 +1,11 @@
 /*
   Streams module:
     docs: ./docs/Streams.md
-    version: 0.2.2
+    version: 0.3.1
   
+  -- v0.3.2 --
+    - Fixed mistakes in pop and push down and up
+
   -- v0.3.0 --
     - Stream strict checking argument now must be only boolean true
     
@@ -15,11 +18,14 @@
 */
 
 Warden.makeStream = (function(){
-  var forEach = Utils.forEach, is = Utils.is;
+  var forEach = Utils.forEach, 
+      is = Utils.is;
 
   /* Stream constructor */
   function Stream(context){
-    var drive = [], self = {};
+    var drive = [], 
+        self = new (function DataStream(){})();
+
     return  Utils.extend(self, {
       /*
         For debugging:
@@ -46,7 +52,7 @@ Warden.makeStream = (function(){
 
       pushAllUp : function(bus){
         var self = this;
-        forEach(drive.push(bus).children, function(child){
+        forEach( drive.push(bus).children, function(child){
           self.pushAllUp(child);
         });
       },

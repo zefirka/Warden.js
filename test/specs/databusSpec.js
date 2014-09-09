@@ -365,7 +365,6 @@ describe('Warden DataBus methods', function () {
 		    done();
 	    });
 	});
-
 	describe('Time methods ', function () {  		
 		it('-- debounce (200 ms)', function (done) {
 			var res = 0;
@@ -406,8 +405,6 @@ describe('Warden DataBus methods', function () {
 	    });
 
 	});
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
 	describe('Combining methods ', function () {  		
 		it('-- merge', function (done) { 
 			var cl;
@@ -548,8 +545,6 @@ describe('Warden DataBus methods', function () {
 		});
 
 	});
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////
 	describe('Lock/Unlock methods ', function () {
 		var Context = {
 			syncemitted: 0,

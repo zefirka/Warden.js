@@ -97,10 +97,7 @@ var Utils = (function(){
 
 Warden.Utils = Utils;
 
-/* 
-  Datatype analyzer
-*/
-
+/* Exception manager */
 var Analyze = function(id, i){
   var t = Analyze.MAP[id], yt = typeof i;
   if(t && t.indexOf(yt)==-1){
@@ -130,3 +127,11 @@ Analyze.MAP = (function(){
     }
   }
 })();
+
+Warden.configure.datatypes = function(name, types){
+  if(Analyze.MAP[name]){
+    throw "This name is already exist";
+  }else{
+    Analyze.MAP[name] = types;
+  }
+}

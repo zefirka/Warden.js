@@ -22,7 +22,7 @@ module.exports = function(grunt){
     includes: {
       build: {
         cwd: './src',
-        src: './wardens.js',
+        src: './warden.js',
         dest: './src/build/',
         options: {
           duplicates: false,

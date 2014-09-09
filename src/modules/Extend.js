@@ -22,6 +22,15 @@ Warden.extend = (function(){
       listener : null // custrom event listener if exists
     }
 
+  Warden.configure.changeDefault = function(newConfig){
+    return Utils.extend(defaultConfig, newConfig);
+  }
+
+  Warden.configure.natives = function(obj){
+    nativeListener = obj.listener;
+    alternativeListener = obj.altenativeListener;
+  }
+
   return function(obj, conf) {
     Analyze('extend', obj);
 
@@ -73,7 +82,7 @@ Warden.extend = (function(){
       return this;
     };
 
-    /* Listener function */
+    /* listen events of @type */
     inheritor.listen = function(type, callback){
       var self = this;
       //handlers.set(this, type, callback);    
@@ -95,6 +104,7 @@ Warden.extend = (function(){
       return this;
     };
 
+    
     inheritor.unlisten = function(type, name){
       var self = this;
       name = name.name || name;

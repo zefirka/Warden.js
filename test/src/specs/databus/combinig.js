@@ -73,6 +73,7 @@ describe('Combining methods ', function () {
 		var bus1 = bus.filter(function(x){return x.one}),
 			bus2 = bus.filter(function(x){return x.two}),
 			produced = bus1.resolveWith(bus2, function(a,b){
+				debugger;
 				return a.time <= b.time ? 'first' : 'second';
 			});
 
