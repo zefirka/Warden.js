@@ -1,1 +1,0 @@
-<p class="error">404 Error! There is no such page: {{pageUrl}} </p>

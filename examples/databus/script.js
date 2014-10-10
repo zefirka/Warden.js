@@ -46,7 +46,7 @@ $(function () {
 			reducesum : lc.map('clientX').reduce(0, function(prev, cur){ return prev + cur}),
 			debounce : rc.map('red').debounce(1000),
 			getcollected : rc.map('clientY').getCollected(2000),
-			unique : rc.map('clientY').unique(),
+			unique : rc.map('clientX').unique(),
 			interpolate : rc.interpolate("X:{{clientX}}, Y:{{clientY}}"),
 			merge : rc.merge(lc),
 			sync : lc.map(0).sync(rc.map(1)),

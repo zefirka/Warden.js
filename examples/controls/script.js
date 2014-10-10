@@ -27,6 +27,7 @@ $(function(){
   var moves = mousemoves.map('clientY').map(mapY);
 
   moves.listen(redraw);
+  debugger;
   moves.bindTo(res, res.html);
 
   mousedowns.listen(function(){

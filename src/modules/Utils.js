@@ -1,46 +1,114 @@
 /* 
-  Helpers module
-  v.0.2.0
+  Utilities module
+  v.1.0.0
 */
 
-/* 
-  Data type checking methods
-*/
 
 var Utils = (function(){
-  return {
-    is : {
-      fn : function (x) {
-        return typeof x === 'function';
-      },
-      num : function (x) {
-        return typeof x === 'number';
-      },
-      str : function (x) {
-        return typeof x === 'string';
-      },
-      obj : function(x){
-        return typeof x === 'object' && !this.array(x);
-      },
-
-      /*
-        Function isArray(@mixed x):
-        Checks is x param is real array or object (or arguments object)
-      */
-      array : (function(){    
-        return Array.isArray ? Array.isArray : function(x){
-          return Object.prototype.toString.call(x) === '[object Array]';
-        }
-      }()),
-
-      /*
-        Function exists(@mixed x):
-        Returns true is x exists and not equal null.
-      */
-      exist : function(x){
-        return typeof x !== 'undefined' && x !== null;
+  var _FUN = 'function',
+      _NUM = 'number',
+      _STR = 'string',
+      _OBJ = 'object',
+      _ARR = 'array',
+      _BOOL = 'boolean',
+      _UND = 'undefined';
+  
+  function equals(x){
+      return function(y){
+          return x === y;
       }
-    },
+  }
+
+  function truthy(x){
+       return x ? true : false;
+  }
+  
+  function $let(predicate){
+    var predicates = [predicate],
+        all = false;
+
+    var ans = function(x){
+        var res = map(predicates, function(pred){
+            return pred(x);
+        });
+
+        return all ?  res.every(truthy) : res.some(truthy);		
+    }
+
+
+    ans.and = function(predicate){
+        ans.or(predicate);
+        all = true;
+        return ans;
+    }
+
+    ans.or = function(predicate){
+        predicates.push(predicate);
+        return ans;
+    }
+
+    return ans;
+  }
+  
+  function filter(arr, fn){
+    var filterd = [];
+    for(var i=0, l=arr.length; i<l; i++){
+      if(fn(arr[i])===true){
+        filterd.push(arr[i]);
+      }
+    }
+    return filterd;
+  }
+	
+  function map(arr, fn){
+    var mapped = [];
+    for(var i=0, l=arr.length; i<l; i++){
+      mapped[i] = fn(arr[i], i)
+    }
+    return mapped;
+  }
+  
+  function typeIs(n){
+    return function(x){
+      return typeof x === n;
+    }
+  }
+
+  function not(predicate){
+    return function(x){
+      return !predicate(x);
+    }
+  }	
+  
+  /* 
+    Data type checking methods
+  */
+  var is = {
+    exist : $let(not(typeIs(_UND))).and(not(equals(null))),
+	array : function(x){
+		return Array.isArray(x)
+	},
+	fn : typeIs(_FUN),
+	num : typeIs(_NUM),
+	str : typeIs(_STR),
+	bool : typeIs(_BOOL),
+	truthy : truthy,
+	falsee : not(truthy)
+  }
+        
+  is.obj = $let(typeIs(_OBJ)).and(not(is.arr)),
+	
+  is.not = (function(x){
+    var obj = {};
+    for(var i in is){
+      obj[i] = not(is[i])
+    }
+    return obj;
+  })();
+	
+             
+  return {
+    is : is,
 
     /* 
       Function forEach(@array arr, @function fn):
@@ -98,8 +166,8 @@ var Utils = (function(){
 Warden.Utils = Utils;
 
 /* Exception manager */
-var Analyze = function(id, i){
-  var t = Analyze.MAP[id], yt = typeof i;
+var Analyze = function(id, i, l){
+  var t = Analyze.MAP[id], yt = typeof i, tl = t[t.length-1];
   if(t && t.indexOf(yt)==-1){
     throw "TypeError: unexpected type of argument at: ." + id + "(). Expected type: " + t.join(' or ') + ". Your argument is type of: " + yt;
   }

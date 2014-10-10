@@ -24,48 +24,116 @@
       Analyze
   */
   /* 
-    Helpers module
-    v.0.2.0
+    Utilities module
+    v.1.0.0
   */
 
-  /* 
-    Data type checking methods
-  */
 
   var Utils = (function(){
-    return {
-      is : {
-        fn : function (x) {
-          return typeof x === 'function';
-        },
-        num : function (x) {
-          return typeof x === 'number';
-        },
-        str : function (x) {
-          return typeof x === 'string';
-        },
-        obj : function(x){
-          return typeof x === 'object' && !this.array(x);
-        },
-
-        /*
-          Function isArray(@mixed x):
-          Checks is x param is real array or object (or arguments object)
-        */
-        array : (function(){    
-          return Array.isArray ? Array.isArray : function(x){
-            return Object.prototype.toString.call(x) === '[object Array]';
-          }
-        }()),
-
-        /*
-          Function exists(@mixed x):
-          Returns true is x exists and not equal null.
-        */
-        exist : function(x){
-          return typeof x !== 'undefined' && x !== null;
+    var _FUN = 'function',
+        _NUM = 'number',
+        _STR = 'string',
+        _OBJ = 'object',
+        _ARR = 'array',
+        _BOOL = 'boolean',
+        _UND = 'undefined';
+    
+    function equals(x){
+        return function(y){
+            return x === y;
         }
-      },
+    }
+
+    function truthy(x){
+         return x ? true : false;
+    }
+    
+    function $let(predicate){
+      var predicates = [predicate],
+          all = false;
+
+      var ans = function(x){
+          var res = map(predicates, function(pred){
+              return pred(x);
+          });
+
+          return all ?  res.every(truthy) : res.some(truthy);		
+      }
+
+
+      ans.and = function(predicate){
+          ans.or(predicate);
+          all = true;
+          return ans;
+      }
+
+      ans.or = function(predicate){
+          predicates.push(predicate);
+          return ans;
+      }
+
+      return ans;
+    }
+    
+    function filter(arr, fn){
+      var filterd = [];
+      for(var i=0, l=arr.length; i<l; i++){
+        if(fn(arr[i])===true){
+          filterd.push(arr[i]);
+        }
+      }
+      return filterd;
+    }
+  	
+    function map(arr, fn){
+      var mapped = [];
+      for(var i=0, l=arr.length; i<l; i++){
+        mapped[i] = fn(arr[i], i)
+      }
+      return mapped;
+    }
+    
+    function typeIs(n){
+      return function(x){
+        return typeof x === n;
+      }
+    }
+
+    function not(predicate){
+      return function(x){
+        return !predicate(x);
+      }
+    }	
+    
+    /* 
+      Data type checking methods
+    */
+    var is = {
+      exist : $let(not(typeIs(_UND))).and(not(equals(null))),
+  	array : function(x){
+  		return Array.isArray(x)
+  	},
+  	fn : typeIs(_FUN),
+  	num : typeIs(_NUM),
+  	str : typeIs(_STR),
+  	bool : typeIs(_BOOL),
+  	truthy : truthy,
+  	falsee : not(truthy)
+    }
+          
+    is.obj = $let(typeIs(_OBJ)).and(not(is.arr)),
+  	
+    is.not = (function(x){
+      var obj = {};
+      for(var i in is){
+        obj[i] = not(is[i])
+      }
+      return obj;
+    })();
+  	
+               
+    return {
+      is : is,
 
       /* 
         Function forEach(@array arr, @function fn):
@@ -123,8 +191,8 @@
   Warden.Utils = Utils;
 
   /* Exception manager */
-  var Analyze = function(id, i){
-    var t = Analyze.MAP[id], yt = typeof i;
+  var Analyze = function(id, i, l){
+    var t = Analyze.MAP[id], yt = typeof i, tl = t[t.length-1];
     if(t && t.indexOf(yt)==-1){
       throw "TypeError: unexpected type of argument at: ." + id + "(). Expected type: " + t.join(' or ') + ". Your argument is type of: " + yt;
     }
@@ -190,7 +258,7 @@
       }
 
     Warden.configure.changeDefault = function(newConfig){
-      return Utils.extend(defaultConfig, newConfig);
+      return Utils.extend(newConfig, defaultConfig);
     }
 
     Warden.configure.natives = function(obj){
@@ -405,7 +473,10 @@
   /*
     Streams module:
       docs: ./docs/Streams.md
-      version: 0.3.1
+      version: 0.3.3
+      
+    -- v0.3.3 -- 
+      - Added $context in object. Removed class name.
     
     -- v0.3.2 --
       - Fixed mistakes in pop and push down and up
@@ -427,15 +498,14 @@
 
     /* Stream constructor */
     function Stream(context){
-      var drive = [], 
-          self = new (function DataStream(){})();
+      var drive = [];
 
-      return  Utils.extend(self, {
+      return {
         /*
           For debugging:
         */
         $$id : Utils.$hash.set('s'),
-
+        $$context : context,
         /* 
           Evaluating the stream with @data 
         */
@@ -504,7 +574,7 @@
           bus.host(this);
           return bus;
         },
-      });
+      }
     }
 
     /* 
@@ -527,9 +597,8 @@
           xstr = x.toString();
 
           for(i in context){
-            if(context.hasOwnProperty(i)){
+            if(context.hasOwnProperty(i))
               reserved.push(i);
-            }
           }
 
           forEach(reserved, function(prop){
@@ -615,14 +684,15 @@
     /* **************************************************** */
 
     function DataBus(proc){
-      var self = this;
+      var self = this,
+          binding = null;
 
       this.$$id = Utils.$hash.set('d');
 
       var priv = _private(this.$$id, {
         processor : new Processor(proc || [], self),
         host : 0,
-        binding : 0,
+        binding : null,
         handlers : [],
         setup : function(x){ return x}
       });
@@ -632,6 +702,18 @@
       this._ = {  
         fires : new Utils.Queue(),
         takes : new Utils.Queue()
+      };
+      
+      this.bindTo = function(a,b,c) {
+        var bus = this;
+        if(!binding){
+          binding = Warden.watcher(bus, a, b, c);
+        }
+        return binding;
+      };
+
+      this.update = function(e) {
+        binding && binding.update(e || this._.takes[this._.takes.length-1]);
       };
     }
 
@@ -657,16 +739,7 @@
       });
     };
 
-    DataBus.prototype.bindTo = function(a,b,c) {
-      var bus = this;
-      _private(this.$$id, 'binding', function(binding){
-        if(!is.exist(binding)){
-          binding = Warden.watcher(bus, a, b, c);
-        }
-        return binding
-      });
-    };
-
+    
     DataBus.prototype.setup = function(fn) {
       Analyze('setup', fn);
       _private(this.$$id, 'setup', function(setup){
@@ -676,11 +749,6 @@
 
     DataBus.prototype.host = function(host) {
       return host ? _private(this.$$id, 'host', host) : _private(this.$$id, 'host');
-    };
-
-    DataBus.prototype.update = function() {
-      var binding = _private(this.$$id, 'binding');
-      binding && binding.update(this._.takes[this._.takes.length-1]);
     };
 
     /* 
@@ -800,7 +868,7 @@
       If previous value is empty, then it is init or first value (or when init == 'first' or '-f')
     */
     DataBus.prototype.reduce = function(init, fn){
-      Analyze('reduce', fn);
+      Analyze('reduce', fn, arguments.length);
       return process.call(this, function(event, drive){
         var bus = drive.$host(),
             prev = init,
@@ -809,7 +877,7 @@
         if(bus._.takes.length >= 1 || init == 'first' || init == '-f'){
           prev = bus._.takes[bus._.takes.length-1];
         }
-        return drive.$continue(fn(prev, cur));
+        return drive.$continue(fn.call(this, prev, cur));
       });   
     };
 
@@ -989,39 +1057,31 @@
         bus.listen(emit);
         self.listen(emit);
       }).get();
-      inheritFrom(nbus, this);
+      
       return nbus;
     };
 
 
     DataBus.prototype.resolveWith = function(bus, fn) {
-      var self = this; 
+      var self = this, ctx = this.host().$$context;
       return Warden.makeStream(function(emit){
         self.sync(bus).listen(function(data){
           var d1 = data[0], d2 = data[1];
-          emit(fn(d1, d2));
+          emit(fn.call(ctx, d1, d2));
         });
-      }).get();
+      }, ctx).get();
     };
 
-    DataBus.prototype.combine = function(bus, fn){
-      var self = this;
-      var a, b;
-      bus.listen(function(event){
-        b = event;
-      });
-      this.listen(function(event){
-        a = event;
-      })
+    DataBus.prototype.combine = function(bus, fn, ctx){
+      var self = this, ctx = ctx || this.host().$$context, a, b;
+      bus.listen(function(event){b = event;});
+      this.listen(function(event){a = event;});
 
       return Warden.makeStream(function(emit){
-        self.listen(function(data){
-          emit(fn(a,b));
-        });
-        bus.listen(function(data){
-          emit(fn(a,b));
-        });
-      }).get();
+        function e(x){emit(fn.call(ctx, a,b));}
+        self.listen(e);
+        bus.listen(e);
+      }, ctx).get();
     };
 
     /* Synchronizes two buses */
@@ -1061,6 +1121,8 @@
       return bus;
     };
 
+    
+    
     /*
       Locking evaluation of current bus
     */

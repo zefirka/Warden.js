@@ -111,6 +111,7 @@ body{
   width: 100%;
 }
 .line .title{
+  font-size: 85%;
   font-family: monospace;
   text-align: right;
   font-weight: bold;

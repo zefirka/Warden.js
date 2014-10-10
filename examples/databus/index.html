@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
     <link rel="stylesheet" type="text/css" href="style.css">
-    <script src="jquery/dist/jquery.min.js"></script>
+    <script src="../vendor/jquery.min.js"></script>
     <script src="../../dist/warden.js"></script>
     <script src="script.js"></script>
   </head>
@@ -32,12 +32,12 @@
     </div>
 
     <div id='skiptake' class='line'>
-      <div class='title'>blue.skip(3).take(3).map('blue')</div>
+      <div class='title'>b.skip(3).take(3).map('blue')</div>
       <div class='box'></div>
     </div>
 
     <div id='reducesum' class='line'>
-      <div class='title'>blue.map('clientX').reduce(x1 + x2)</div>
+      <div class='title'>blue.map('clientX').reduce(prevX + curX)</div>
       <div class='box'></div>
     </div>
 
@@ -57,7 +57,7 @@
     </div> 
 
     <div id='unique' class='line'>
-      <div class='title'>red.map('clientY').unique()</div>
+      <div class='title'>red.map('clientX').unique()</div>
       <div class='box'></div>
     </div>
 
@@ -90,7 +90,7 @@
       <div class='box'></div>
     </div>
     <div id='produce' class='line'>
-      <div class='title'>blue.map(Math.random).produceWith(blue.map(Math.random), bigger)</div>
+      <div class='title'>blue.map(random).resolveWith(blue.map(random), bigger)</div>
       <div class='box'></div>
     </div>
     <div id='combine' class='line'>

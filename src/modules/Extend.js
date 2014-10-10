@@ -23,7 +23,7 @@ Warden.extend = (function(){
     }
 
   Warden.configure.changeDefault = function(newConfig){
-    return Utils.extend(defaultConfig, newConfig);
+    return Utils.extend(newConfig, defaultConfig);
   }
 
   Warden.configure.natives = function(obj){

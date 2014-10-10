@@ -289,8 +289,25 @@ describe('Warden DataBus methods', function () {
 		    expect(res).toBe("Hello, world!");
 		    done();
 	    });
+	  
+	    it('-- interpolate (advanced)', function(done){
+	      var res = "", str = "<{{tag}}>{{property}} = {{value}}</{{tag}}>"
+	      
+	        bus.interpolate(str).listen(function(e){
+				res = e;
+			});
+			
+		    sync.transmit({
+	          tag: 'span',
+	          property : 'няш',
+	          value : 'мяш',
+	        });
+	      
+	      expect(res).toBe("<span>няш = мяш</span>");
+	      done();
+	    });
 
-		it('-- mask', function (done) {
+		it('-- mask (simple)', function (done) {
 			var res = "", str = "Hello, {{val}}!";     			
 			var b = bus.mask({
 				val: 'world'
@@ -302,7 +319,26 @@ describe('Warden DataBus methods', function () {
 
 		    expect(res).toBe("Hello, world!");
 		    b.lock();
-		    done();
+	        done();
+	    });
+	  
+	    it('-- mask (advanced)', function (done) {
+	      var res = "", str = "<{{tag}}>{{property}} = {{value}}</{{tag}}>"
+	      
+	      var b = bus.mask({
+			  tag: 'span',
+	          property : 'няш',
+	          value : 'мяш',
+			}).listen(function(e){
+				res = e;
+			});
+			
+		    sync.transmit(str);
+
+		    expect(res).toBe("<span>няш = мяш</span>");
+		    b.lock();
+	      
+	      done();
 	    });
 	});
 	describe('.unique()', function () {  		
@@ -733,4 +769,74 @@ describe('Warden DataBus methods', function () {
 			done();
 		});
 	});
+    describe('Context saving', function () {
+        var Context = {
+          test : 'non-exists'
+        }
+      
+        var module = Warden.extend({
+          test : 'exists'
+        });  
+        
+    	it('-- DataBus execution Context', function(done){
+          var busMod = module.stream('sync');
+          var busBinded = module.stream('sync', Context); 
+          
+          var executed = {};
+          
+          busMod.listen(function(){
+            executed.mod = this.test;
+          });
+          
+          busBinded.listen(function(){
+            executed.bind = this.test;
+          });
+          
+          module.emit('sync');
+          
+          expect(executed.mod).toBe('exists');
+          expect(executed.bind).toBe('non-exists');
+          
+          done();
+        });
+      
+      	it('-- DataBus methods context', function(done){
+          var bus = module.stream('sync', Context); 
+          
+          var executed = {};
+          
+          function sil(){
+            executed[Math.random()] = this.test;
+            return true;
+          }
+          
+          bus.map(sil).listen(sil);
+          bus.filter(sil).listen(sil);
+          bus.reduce(0, sil).listen(sil);
+          bus.resolveWith(bus, sil).listen(sil);
+          bus.combine(bus, sil).listen(sil);
+          
+          module.emit('sync');
+          
+          for(var i in executed){
+            expect(executed[i]).toBe('non-exists');
+          }
+          
+          done();
+        });
+      
+        it('-- Stream Context', function (done) { 
+    	  var context = {x:10};
+          var stream = Warden.makeStream(function(trigger){
+            this.y = 10;
+            this.sync = function(x){
+              trigger()
+            };
+          }, context);
+          
+          expect(context.y).toBe(10);
+          
+          done();
+    	});
+    });
 });

@@ -34,4 +34,5 @@ describe('Warden DataBus methods', function () {
 	include "databus/timefunc.js"
 	include "databus/combinig.js"
 	include "common/lockunlock.js"
+    include "common/context.js"
 });

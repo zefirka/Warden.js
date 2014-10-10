@@ -1,7 +1,10 @@
 /*
   Streams module:
     docs: ./docs/Streams.md
-    version: 0.3.1
+    version: 0.3.3
+    
+  -- v0.3.3 -- 
+    - Added $context in object. Removed class name.
   
   -- v0.3.2 --
     - Fixed mistakes in pop and push down and up
@@ -23,15 +26,14 @@ Warden.makeStream = (function(){
 
   /* Stream constructor */
   function Stream(context){
-    var drive = [], 
-        self = new (function DataStream(){})();
+    var drive = [];
 
-    return  Utils.extend(self, {
+    return {
       /*
         For debugging:
       */
       $$id : Utils.$hash.set('s'),
-
+      $$context : context,
       /* 
         Evaluating the stream with @data 
       */
@@ -100,7 +102,7 @@ Warden.makeStream = (function(){
         bus.host(this);
         return bus;
       },
-    });
+    }
   }
 
   /* 
@@ -123,9 +125,8 @@ Warden.makeStream = (function(){
         xstr = x.toString();
 
         for(i in context){
-          if(context.hasOwnProperty(i)){
+          if(context.hasOwnProperty(i))
             reserved.push(i);
-          }
         }
 
         forEach(reserved, function(prop){

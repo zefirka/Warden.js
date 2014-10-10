@@ -60,14 +60,15 @@ var DataBus = (function(){
   /* **************************************************** */
 
   function DataBus(proc){
-    var self = this;
+    var self = this,
+        binding = null;
 
     this.$$id = Utils.$hash.set('d');
 
     var priv = _private(this.$$id, {
       processor : new Processor(proc || [], self),
       host : 0,
-      binding : 0,
+      binding : null,
       handlers : [],
       setup : function(x){ return x}
     });
@@ -77,6 +78,18 @@ var DataBus = (function(){
     this._ = {  
       fires : new Utils.Queue(),
       takes : new Utils.Queue()
+    };
+    
+    this.bindTo = function(a,b,c) {
+      var bus = this;
+      if(!binding){
+        binding = Warden.watcher(bus, a, b, c);
+      }
+      return binding;
+    };
+
+    this.update = function(e) {
+      binding && binding.update(e || this._.takes[this._.takes.length-1]);
     };
   }
 
@@ -102,16 +115,7 @@ var DataBus = (function(){
     });
   };
 
-  DataBus.prototype.bindTo = function(a,b,c) {
-    var bus = this;
-    _private(this.$$id, 'binding', function(binding){
-      if(!is.exist(binding)){
-        binding = Warden.watcher(bus, a, b, c);
-      }
-      return binding
-    });
-  };
-
+  
   DataBus.prototype.setup = function(fn) {
     Analyze('setup', fn);
     _private(this.$$id, 'setup', function(setup){
@@ -121,11 +125,6 @@ var DataBus = (function(){
 
   DataBus.prototype.host = function(host) {
     return host ? _private(this.$$id, 'host', host) : _private(this.$$id, 'host');
-  };
-
-  DataBus.prototype.update = function() {
-    var binding = _private(this.$$id, 'binding');
-    binding && binding.update(this._.takes[this._.takes.length-1]);
   };
 
   /* 
@@ -245,7 +244,7 @@ var DataBus = (function(){
     If previous value is empty, then it is init or first value (or when init == 'first' or '-f')
   */
   DataBus.prototype.reduce = function(init, fn){
-    Analyze('reduce', fn);
+    Analyze('reduce', fn, arguments.length);
     return process.call(this, function(event, drive){
       var bus = drive.$host(),
           prev = init,
@@ -254,7 +253,7 @@ var DataBus = (function(){
       if(bus._.takes.length >= 1 || init == 'first' || init == '-f'){
         prev = bus._.takes[bus._.takes.length-1];
       }
-      return drive.$continue(fn(prev, cur));
+      return drive.$continue(fn.call(this, prev, cur));
     });   
   };
 
@@ -434,39 +433,31 @@ var DataBus = (function(){
       bus.listen(emit);
       self.listen(emit);
     }).get();
-    inheritFrom(nbus, this);
+    
     return nbus;
   };
 
 
   DataBus.prototype.resolveWith = function(bus, fn) {
-    var self = this; 
+    var self = this, ctx = this.host().$$context;
     return Warden.makeStream(function(emit){
       self.sync(bus).listen(function(data){
         var d1 = data[0], d2 = data[1];
-        emit(fn(d1, d2));
+        emit(fn.call(ctx, d1, d2));
       });
-    }).get();
+    }, ctx).get();
   };
 
-  DataBus.prototype.combine = function(bus, fn){
-    var self = this;
-    var a, b;
-    bus.listen(function(event){
-      b = event;
-    });
-    this.listen(function(event){
-      a = event;
-    })
+  DataBus.prototype.combine = function(bus, fn, ctx){
+    var self = this, ctx = ctx || this.host().$$context, a, b;
+    bus.listen(function(event){b = event;});
+    this.listen(function(event){a = event;});
 
     return Warden.makeStream(function(emit){
-      self.listen(function(data){
-        emit(fn(a,b));
-      });
-      bus.listen(function(data){
-        emit(fn(a,b));
-      });
-    }).get();
+      function e(x){emit(fn.call(ctx, a,b));}
+      self.listen(e);
+      bus.listen(e);
+    }, ctx).get();
   };
 
   /* Synchronizes two buses */
@@ -506,6 +497,8 @@ var DataBus = (function(){
     return bus;
   };
 
+  
+  
   /*
     Locking evaluation of current bus
   */

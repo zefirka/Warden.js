@@ -1,1 +1,0 @@
-<h1>This is user {{user}} page</h1>
