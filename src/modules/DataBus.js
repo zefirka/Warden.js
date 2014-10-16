@@ -10,7 +10,7 @@
 */
 
 var DataBus = (function(){
-  var forEach = Utils.forEach, is = Utils.is;
+  var each = Utils.each, is = Utils.is;
   var _private = (function(){
     var collection = {};
     return function (id, param, value){
@@ -45,7 +45,7 @@ var DataBus = (function(){
     }
      /* Copying process */
     nprocess = [];
-    forEach(processor.process(), function(i){
+    each(processor.process(), function(i){
       nprocess.push(i);
     });
     nprocess.push(p);
@@ -108,7 +108,7 @@ var DataBus = (function(){
       self.update(result);
 
       /* Executing all handlers of this DataBus */
-      forEach(handlers, function(handler){
+      each(handlers, function(handler){
         handler.apply(context, [result]);
       });
 
@@ -145,7 +145,6 @@ var DataBus = (function(){
     return this;
   };
 
-
   /*
     Unbinds handler with name @x (if @x is string) or @x handler (if @x is function) 
     If in the handlers list 2 or more handlers with name @x (or @x handlers registered twice) it will remove all handlers
@@ -153,7 +152,7 @@ var DataBus = (function(){
   DataBus.prototype.mute = function(x){
     x = is.fn(fn) ? x.name : x;
     
-    forEach(_private(this.$$id, 'handlers'), function(handler, index){
+    each(_private(this.$$id, 'handlers'), function(handler, index){
       if(handler.name == x){
          _private(this.$$id, 'handlers', function(handlers){
             return handlers.slice(0,index).concat(handlers.slice(index+1,handlers.length));
@@ -213,7 +212,7 @@ var DataBus = (function(){
         if(is.array(x)){
           fn = function(e, drive){
             var res = [];
-            forEach(x, function(i){
+            each(x, function(i){
               var t = e[i];
               res.push(is.exist(t) ? t : i);
             }); 
@@ -497,8 +496,7 @@ var DataBus = (function(){
     return bus;
   };
 
-  
-  
+
   /*
     Locking evaluation of current bus
   */

@@ -1,6 +1,6 @@
 Warden.watcher = (function(){
 	return function(bus, a, b, c){
-		var ta = typeof a, tb = typeof b, terr = "TypeError", fn, is = Utils.is;
+		var fn, is = Utils.is;
 
 		if(!is.exist(b) && is.exist(a)){
 			if(ta == 'string' || ta == 'object'){
@@ -12,30 +12,21 @@ Warden.watcher = (function(){
 				fn = function(event){
 					return a(event);
 				}
-			}else{
-				throw terr;
 			}
 		}else
 
 		if(is.exist(b)){
-			if(ta == 'object' && tb == 'string'){
+			if(is.obj(a) && is.str(b)){
 				fn = function(event){
 					return a[b] = event;
 				}
 			}else
 
-			if(ta == 'object' && tb == 'function'){
+			if(is.obj(a) && is.fn(b)){
 				fn = function(event){
 					return b.call(a, event);
 				}
-			}else
-			{
-				throw terr;
 			}
-		} else
-
-		{
-			throw "Arg Error"
 		}
 
 		bus.listen(fn);

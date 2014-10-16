@@ -9,21 +9,26 @@
 */
 
 Warden.extend = (function(){
-  var forEach = Utils.forEach, 
+  var each = Utils.each, 
     is = Utils.is,
     extend = Utils.extend,
     nativeListener = "addEventListener",
     alternativeListener = "attachEvent",
 
     defaultConfig = {
+      names : {
+        emit : 'emit',
+        listen : 'listen',
+        stream : 'stream',
+        unlisten : 'unlisten'
+      },
       max : 512, // maximal handlers per object
-      context : 'this', // context of evaluation
       emitter : null, // custom event emitter if exists
       listener : null // custrom event listener if exists
     }
 
   Warden.configure.changeDefault = function(newConfig){
-    return Utils.extend(newConfig, defaultConfig);
+    return Utils.extend(defaultConfig, newConfig);
   }
 
   Warden.configure.natives = function(obj){
@@ -34,9 +39,10 @@ Warden.extend = (function(){
   return function(obj, conf) {
     Analyze('extend', obj);
 
-    var config = extend(defaultConfig, conf || {}), // default configuration 
+    var config = extend({}, defaultConfig, conf || {}), // default configuration 
         inheritor = obj, // final object to expand
-        isConstructor = true; //obj is constructor
+        isConstructor = true, //obj is constructor
+        names = config.names;
     /* 
       Choose object to extend,
       if fn is constructor function, then that's prototype, else
@@ -48,11 +54,14 @@ Warden.extend = (function(){
       isConstructor = false;
     }
 
-    var overwrite = inheritor.emit || inheritor.listen || inheritor.stream;
+    var overwrite = inheritor[names.emit] || 
+                    inheritor[names.listen] || 
+                    inheritor[names.unlisten] || 
+                    inheritor[names.stream];
 
     /* Checking free namespace */
     if(is.exist(overwrite)){
-      throw "Can't overwrite: " + (overwrite.name ? overwrite.name : overwrite) + " of object";
+      throw new Error("Can't overwrite: " + (overwrite.name ? overwrite.name : overwrite) + " of object");
     }
     
     /* 
@@ -69,13 +78,13 @@ Warden.extend = (function(){
     }
         
     /* Emitter method */
-    inheritor.emit = function(ev){
+    inheritor[names.emit] = function(ev){
       var self = this,
           callbacks = this['$$handlers'].filter(function(i){
             return i.type == ev || i.type == ev.type            
           });
       
-      forEach(callbacks, function(callback){
+      each(callbacks, function(callback){
         callback.callback.call(self, ev);
       });
         
@@ -83,39 +92,40 @@ Warden.extend = (function(){
     };
 
     /* listen events of @type */
-    inheritor.listen = function(type, callback){
-      var self = this;
-      //handlers.set(this, type, callback);    
-      var handlers = this['$$handlers'] = this['$$handlers'] || [];
+    inheritor[names.listen] = function(type, callback){
+      var self = this,
+          handlers = this['$$handlers'] = this['$$handlers'] || [];
 
-      if(!handlers.filter(function(i){return i.type == type;}).length){
-        if(this[config.listener]){
+      if(this['$$handlers'].length<config.max){ 
+      
+        if(!handlers.filter(function(i){return i.type == type;}).length && this[config.listener]){
           this[config.listener].apply(this, [type, function(event){ 
             self.emit(event)
           }]);
         }
+      
+        this['$$handlers'].push({
+          type: type,
+          callback: callback
+        });
+      }else{
+        throw new Error("Maximal handlers limit reached");
       }
-
-      this['$$handlers'].push({
-        type: type,
-        callback: callback
-      });      
 
       return this;
     };
 
     
-    inheritor.unlisten = function(type, name){
+    inheritor[names.unlisten] = function(type, name){
       var self = this;
-      name = name.name || name;
       if(self['$$handlers']){
         var indexes = [];
-        forEach(self['$$handlers'], function(i, index){
-          if(i.callback.name == name){
+        each(self['$$handlers'], function(i, index){
+          if(i.callback.name == (name.name || name)){
             indexes.push(index);
           }
         });
-        forEach(indexes, function(i){
+        each(indexes, function(i){
           self['$$handlers'].splice(i,1);
         });
       }
@@ -123,17 +133,14 @@ Warden.extend = (function(){
     };
 
     /* Creates stream */
-    inheritor.stream = function(type, cnt) {
-      var stream = Warden.makeStream(type, cnt || this);
-
-      var handlers = this['$$handlers'] = this['$$handlers'] || [];
+    inheritor[names.stream] = function(type, cnt) {
+      var stream = Warden.makeStream(type, cnt || this),
+          handlers = this['$$handlers'] = this['$$handlers'] || [];
          
-      if(!handlers.filter(function(i){return i.type == type;}).length){
-        if(this[config.listener]){
-          this[config.listener].apply(this, [type, function(event){     
-            stream.eval(event);      
-          }]);
-        }
+      if(!handlers.filter(function(i){return i.type == type;}).length && this[config.listener]){
+        this[config.listener].apply(this, [type, function(event){     
+          stream.eval(event);      
+        }]);
       }
 
       this['$$handlers'].push({
@@ -148,5 +155,4 @@ Warden.extend = (function(){
 
     return obj;
   };
-
 })();

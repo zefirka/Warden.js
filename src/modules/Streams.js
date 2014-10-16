@@ -21,7 +21,7 @@
 */
 
 Warden.makeStream = (function(){
-  var forEach = Utils.forEach, 
+  var each = Utils.each, 
       is = Utils.is;
 
   /* Stream constructor */
@@ -29,16 +29,13 @@ Warden.makeStream = (function(){
     var drive = [];
 
     return {
-      /*
-        For debugging:
-      */
-      $$id : Utils.$hash.set('s'),
-      $$context : context,
+      $$id : Utils.$hash.set('s'), // stream id
+      $$context : context, // saving context
       /* 
         Evaluating the stream with @data 
       */
       eval : function(data){
-        forEach(drive, function(bus){
+        each(drive, function(bus){
           bus.fire(data, context);
         });
       },
@@ -54,7 +51,7 @@ Warden.makeStream = (function(){
 
       pushAllUp : function(bus){
         var self = this;
-        forEach( drive.push(bus).children, function(child){
+        each(drive.push(bus).children, function(child){
           self.pushAllUp(child);
         });
       },
@@ -64,7 +61,7 @@ Warden.makeStream = (function(){
         Bus must be DataBus object.
       */
       pop : function(bus){
-        forEach(drive, function(b, i){
+        each(drive, function(b, i){
           if(bus.$$id == b.$$id){
             drive = drive.slice(0,i).concat(drive.slice(i+1,drive.length));
           }
@@ -78,7 +75,7 @@ Warden.makeStream = (function(){
       */
       popAllDown : function(bus){
         var self = this;
-        forEach(self.pop(bus).children, function(e){
+        each(self.pop(bus).children, function(e){
           self.popAllDown(e);
         });
       },
@@ -101,8 +98,8 @@ Warden.makeStream = (function(){
         var bus = new DataBus();
         bus.host(this);
         return bus;
-      },
-    }
+      }
+    };
   }
 
   /* 
@@ -129,10 +126,10 @@ Warden.makeStream = (function(){
             reserved.push(i);
         }
 
-        forEach(reserved, function(prop){
+        each(reserved, function(prop){
           if(xstr.indexOf("this."+prop)>=0){
             /* If there is a coincidence, we warn about it */
-            Analyze.MAP.warn(prop, context);
+            console.error("Coincidence: property: '" + prop + "' is already defined in stream context!", context);
           }
         });    
       }
@@ -140,6 +137,25 @@ Warden.makeStream = (function(){
       x.call(context, function(expectedData){
         stream.eval(expectedData);
       });  
+    }else
+    if(is.array(x)){
+      each((function(){
+        var res = [];
+        each(['pop', 'push', 'slice', 'splice', 'reverse', 'map', 'forEach', 'reduce', 'join', 'filter', 'concat', 'shift', 'unshift'], function(fn){
+          res.push({
+            name: fn,
+            fun: Array.prototype[fn] });
+        });
+        return res;
+      })(), function(item){
+        x[item.name] = function(){
+          item.fun.apply(x, arguments);
+          stream.eval({
+            type: arguments.callee.name,
+            data: arguments
+          });
+        }
+      });      
     }
 
     return stream;

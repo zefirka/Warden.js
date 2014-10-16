@@ -47,12 +47,12 @@
     function toStringJson(arg, delim, maxdepth, short, n){
       var i, key, offset, res, val;
       
-      var res = "",           offset = ""; 
-      res = "{" + (delim ? "\n" : " "); 
+      var res = "", // result
+          offset = ""; //padding
 
-            n = !n ? 0 : n;
-      
-            maxdepth = maxdepth || 2;
+      res = "{" + (delim ? "\n" : " "); 
+      n = !n ? 0 : n;
+      maxdepth = maxdepth || 2;
       if(n > maxdepth){
         res = "[object]";
         return res;
@@ -93,8 +93,7 @@
 
       return res;
     }
-
-        Warden.stringify = function(arg, delim, maxdepth, short, n){
+    Warden.stringify = function(arg, delim, maxdepth, short, n){
       if(isArray(arg)){
         return toStringArr(arg, delim);
       }else

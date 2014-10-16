@@ -24,12 +24,24 @@
       Analyze
   */
   /* 
-    Utilities module
-    v.1.0.0
+    Utilities module  
+    v.1.1.0
+
+    -- v.1.1.0 --
+      - Most of functional style reverted cause it is too slow.
+
+    -- v.1.0.0 --
+      - All checing methods changed with functional paradigm.
+
+    -- v.0.0.1 --
+      - Datatype checking functions. Array prototype forEach method wrap for ECMAScript 3. 
   */
 
 
-  var Utils = (function(){
+  /* Globals */
+  var Utils, Analyze;
+
+  (function(){
     var _FUN = 'function',
         _NUM = 'number',
         _STR = 'string',
@@ -37,190 +49,257 @@
         _ARR = 'array',
         _BOOL = 'boolean',
         _UND = 'undefined';
-    
-    function equals(x){
-        return function(y){
-            return x === y;
-        }
-    }
 
-    function truthy(x){
-         return x ? true : false;
-    }
-    
-    function $let(predicate){
-      var predicates = [predicate],
-          all = false;
+    Utils = (function(){
+      var $let = function $let(predicate){
+        var predicates = [predicate],
+            all = false;
 
-      var ans = function(x){
+        var ans = function(x){
           var res = map(predicates, function(pred){
               return pred(x);
           });
 
-          return all ?  res.every(truthy) : res.some(truthy);		
-      }
+          return all ?  res.every(truthy) : res.some(truthy);   
+        }
 
-
-      ans.and = function(predicate){
-          ans.or(predicate);
-          all = true;
-          return ans;
-      }
-
-      ans.or = function(predicate){
+        ans.or = function(predicate){
           predicates.push(predicate);
           return ans;
-      }
-
-      return ans;
-    }
-    
-    function filter(arr, fn){
-      var filterd = [];
-      for(var i=0, l=arr.length; i<l; i++){
-        if(fn(arr[i])===true){
-          filterd.push(arr[i]);
         }
-      }
-      return filterd;
-    }
-  	
-    function map(arr, fn){
-      var mapped = [];
-      for(var i=0, l=arr.length; i<l; i++){
-        mapped[i] = fn(arr[i], i)
-      }
-      return mapped;
-    }
-    
-    function typeIs(n){
-      return function(x){
-        return typeof x === n;
-      }
-    }
 
-    function not(predicate){
-      return function(x){
-        return !predicate(x);
-      }
-    }	
-    
-    /* 
-      Data type checking methods
-    */
-    var is = {
-      exist : $let(not(typeIs(_UND))).and(not(equals(null))),
-  	array : function(x){
-  		return Array.isArray(x)
-  	},
-  	fn : typeIs(_FUN),
-  	num : typeIs(_NUM),
-  	str : typeIs(_STR),
-  	bool : typeIs(_BOOL),
-  	truthy : truthy,
-  	falsee : not(truthy)
-    }
-          
-    is.obj = $let(typeIs(_OBJ)).and(not(is.arr)),
-  	
-    is.not = (function(x){
-      var obj = {};
-      for(var i in is){
-        obj[i] = not(is[i])
-      }
-      return obj;
-    })();
-  	
-               
-    return {
-      is : is,
-
-      /* 
-        Function forEach(@array arr, @function fn):
-        Applies @fn for each item from array @arr usage: forEach([1,2], function(item){...})
-      */
-      forEach : (function(){
-        if(Array.prototype.forEach){
-          return function(arr, fn){ 
-            return arr ? arr.forEach(fn) : null;
-          }
-        }else{
-          return function(arr, fn){ 
-            for(var i=0, l=arr.length; i<l;i++){ 
-              fn(arr[i], i);
-            }
-          }
+        ans.and = function(predicate){
+          all = true;
+          return ans.or(predicate);
         }
-      }()),
 
-      /* Extending objects */
-      extend : (typeof $ !== 'undefined' && $.extend) ? $.extend : function (){var a,b,c,d,e,f,g=arguments[0]||{},h=1,i=arguments.length,j=!1;for("boolean"==typeof g&&(j=g,g=arguments[h]||{},h++),"object"==typeof g||m.isFunction(g)||(g={}),h===i&&(g=this,h--);i>h;h++)if(null!=(e=arguments[h]))for(d in e)a=g[d],c=e[d],g!==c&&(j&&c&&(m.isPlainObject(c)||(b=m.isArray(c)))?(b?(b=!1,f=a&&m.isArray(a)?a:[]):f=a&&m.isPlainObject(a)?a:{},g[d]=m.extend(j,f,c)):void 0!==c&&(g[d]=c));return g},
-
-      /* 
-        Queue class @arr is Array, @maxlength is Number
-      */
-      Queue : function Queue(max, arr){
-        var res = arr || [],
-            max = max || 16,
-            oldpush = res.push;
-
-        res.push = function(x){
-          if(this.length>=max){
-            this.shift();
-          }
-          return oldpush.apply(res, [x]);
+        ans.butNot = function(predicate){
+          return ans.and(not(predicate));
         }
-        return res;
+
+        return ans;
       },
 
-      $hash : (function(){
-        var hash = {};
-        return {
-          get : function(n){
-            return hash[n];
-          },
-          set : function(i){
-            var current = parseInt(hash[i], 16) || 0;      
-            return hash[i] = (current+1) . toString(16);
+      protoCheck = function(a, b){
+        if(a.prototype[b]){
+          return function(arr, fn){
+            a.prototype[b].call(arr, fn);
+          }
+        }else{
+          return false
+        }
+      },
+
+      each = protoCheck(Array, 'forEach') || function each(arr, fn){ 
+        for(var i=0, l=arr.length; i<l;i++){ 
+          fn(arr[i], i);
+        }
+      },
+
+      forWhile = function forWhile(arr, fn, preventValue){
+        preventValue = preventValue || false; 
+        for(var i=0, l=arr.length; i<l;i++){ 
+          if(fn(arr[i], i) === preventValue){
+            return null;
           }
         }
-      })()
+      },
+
+      filter = protoCheck(Array, 'filter')|| function filter(arr, fn){
+        var filtered = [];
+        each(arr, function(i, index){
+          if(fn(i, index)===true){
+            filtered.push(i);
+          }
+        });
+        return filterd;
+      },
+      
+      map = protoCheck(Array, 'map') || function map(arr, fn){
+        var mapped = [];
+        each(arr, function(e, i){
+          mapped[i] = fn(e, i);
+        });
+        return mapped;
+      },
+
+      truthy = function(x){
+        return x ? true : false;
+      },
+
+
+      typeIs = function(n){
+        return function(x){
+          return typeof x === n;
+        }
+      },
+
+      not = function(predicate){
+        return function(x){
+          return !predicate(x);
+        }
+      },
+      
+      profile = function(fn, n, gen, fname){
+        var t = n, 
+            name = fn.name || fname || "function",
+            m = [name, "have been ran", t,"times:"].join(" ");
+
+        console.time(m);
+        while(n--){
+          fn(gen());
+        }
+        console.timeEnd(m);
+      },
+
+      is = {
+        exist : function(x){
+          return typeof x != 'undefined' && x !== null;
+        },
+        array : function(x){
+          return Array.isArray(x)
+        },
+        fn : typeIs(_FUN),
+        num : typeIs(_NUM),
+        str : typeIs(_STR),
+        bool : typeIs(_BOOL),
+        truthy : truthy,
+        falsee : not(truthy),
+        equals : function(x){
+          return function(y){
+            return x === y;
+          }
+        }
+      }
+            
+      is.obj = function(x){
+        return typeIs(_OBJ)(x) && !is.array(x);
+      }
+
+      is.not = (function(x){
+        var obj = {};
+        for(var i in is){
+          obj[i] = not(is[i])
+        }
+        return obj;
+      })();
+      
+                 
+      return {
+        /* 
+          Data type and logical statements checking methods
+        */
+        is : is,
+
+        /* Logical chining method to combine predicates and calculating a final expression like:
+          $let([falsee function]).or([truthy function]) -> true
+          $let([truthy function]).and([falses function]) -> false
+          $let([truthy function]).or([falsee function]).butNot([falsee function]) -> true
+
+          $let(@function predicate) returns object with methods .and, .or, .butNot 
+        */
+        $let : $let,
+
+        /* 
+          Array.prototype functional methods: 
+        */ 
+
+        forEach : each,
+        each : each, // synonym of forEach
+        filter : filter,
+        map : map,
+
+        /* Extending objects */
+        extend : function () {;
+          function _extend(dest, source) {
+            var key, _, _i, _len, _ref;
+
+            for (var property in source) {
+              if (source[property] && is.obj(source[property])) {
+                dest[property] = dest[property] || {};
+                _extend(dest[property], source[property]);
+              } else if (is.array(source[property])) {
+                dest[property] = dest[property] || [];
+                if (is.obj(dest[property][0]) && is.obj(source[property][0])) {
+                  _ref = source[property];
+                  for (key = _i = 0, _len = _ref.length; _i < _len; key = ++_i) {
+                    _ = _ref[key];
+                    dest[property][key] = _extend(dest[property][key] || {}, source[property][key]);
+                  }
+                } else {
+                  dest[property] = source[property];
+                }
+              } else {
+                dest[property] = source[property];
+              }
+            }
+            return dest;
+          };
+
+          var args = Array.prototype.slice.call(arguments);
+          return args.reduce(function(dest, src) {
+            return _extend(dest, src);
+          });
+        } ,
+        /* 
+          Queue class @arr is Array, @maxlength is Number
+        */
+        Queue : function Queue(max, arr){
+          var res = arr || [],
+              max = max || 16,
+              oldpush = res.push;
+
+          res.push = function(x){
+            if(this.length>=max){
+              this.shift();
+            }
+            return oldpush.apply(res, [x]);
+          }
+          return res;
+        },
+
+        $hash : (function(){
+          var hash = {};
+          return {
+            get : function(n){
+              return hash[n];
+            },
+            set : function(i){
+              var current = parseInt(hash[i], 16) || 0;      
+              return hash[i] = (current+1) . toString(16);
+            }
+          }
+        })()
+      }
+    })();
+
+    /* Exception manager */
+
+    Analyze = function(id, i, l){
+      var t = Analyze.MAP[id], yt = typeof i, tl = t[t.length-1];
+      if(t && t.indexOf(yt)==-1){
+        throw "TypeError: unexpected type of argument at: ." + id + "(). Expected type: " + t.join(' or ') + ". Your argument is type of: " + yt;
+      }
     }
+
+    Analyze.MAP = {
+      extend : [_OBJ,_FUN],
+      reduce : [_FUN],
+      take : [_FUN,_NUM],
+      filter : [_FUN],
+      skip : [_NUM],
+      setup : [_FUN],
+      makeStream: [_STR,_FUN, _OBJ],
+      debounce : [_NUM],
+      getCollected : [_NUM],
+      interpolate : [_STR],
+      mask : [_OBJ]
+    }
+
   })();
 
   Warden.Utils = Utils;
-
-  /* Exception manager */
-  var Analyze = function(id, i, l){
-    var t = Analyze.MAP[id], yt = typeof i, tl = t[t.length-1];
-    if(t && t.indexOf(yt)==-1){
-      throw "TypeError: unexpected type of argument at: ." + id + "(). Expected type: " + t.join(' or ') + ". Your argument is type of: " + yt;
-    }
-  }
-
-  Analyze.MAP = (function(){
-    var o = 'object', 
-        s = 'string', 
-        f = 'function', 
-        n = 'number';
-    return {
-      extend : [o,f],
-      reduce : [f],
-      take : [f,n],
-      filter : [f],
-      skip : [n],
-      setup : [f],
-      makeStream: [s,f],
-      debounce : [n],
-      getCollected : [n],
-      interpolate : [s],
-      mask : [o],
-      warn : function(i, context){
-        console.warn("Coincidence: property: '" + i + "' is already defined in stream context!", context);
-      }
-    }
-  })();
-
+  Warden.configure.exceptionManager = Analyze;
   Warden.configure.datatypes = function(name, types){
     if(Analyze.MAP[name]){
       throw "This name is already exist";
@@ -244,21 +323,26 @@
   */
 
   Warden.extend = (function(){
-    var forEach = Utils.forEach, 
+    var each = Utils.each, 
       is = Utils.is,
       extend = Utils.extend,
       nativeListener = "addEventListener",
       alternativeListener = "attachEvent",
 
       defaultConfig = {
+        names : {
+          emit : 'emit',
+          listen : 'listen',
+          stream : 'stream',
+          unlisten : 'unlisten'
+        },
         max : 512, // maximal handlers per object
-        context : 'this', // context of evaluation
         emitter : null, // custom event emitter if exists
         listener : null // custrom event listener if exists
       }
 
     Warden.configure.changeDefault = function(newConfig){
-      return Utils.extend(newConfig, defaultConfig);
+      return Utils.extend(defaultConfig, newConfig);
     }
 
     Warden.configure.natives = function(obj){
@@ -269,9 +353,10 @@
     return function(obj, conf) {
       Analyze('extend', obj);
 
-      var config = extend(defaultConfig, conf || {}), // default configuration 
+      var config = extend({}, defaultConfig, conf || {}), // default configuration 
           inheritor = obj, // final object to expand
-          isConstructor = true; //obj is constructor
+          isConstructor = true, //obj is constructor
+          names = config.names;
       /* 
         Choose object to extend,
         if fn is constructor function, then that's prototype, else
@@ -283,11 +368,14 @@
         isConstructor = false;
       }
 
-      var overwrite = inheritor.emit || inheritor.listen || inheritor.stream;
+      var overwrite = inheritor[names.emit] || 
+                      inheritor[names.listen] || 
+                      inheritor[names.unlisten] || 
+                      inheritor[names.stream];
 
       /* Checking free namespace */
       if(is.exist(overwrite)){
-        throw "Can't overwrite: " + (overwrite.name ? overwrite.name : overwrite) + " of object";
+        throw new Error("Can't overwrite: " + (overwrite.name ? overwrite.name : overwrite) + " of object");
       }
       
       /* 
@@ -304,13 +392,13 @@
       }
           
       /* Emitter method */
-      inheritor.emit = function(ev){
+      inheritor[names.emit] = function(ev){
         var self = this,
             callbacks = this['$$handlers'].filter(function(i){
               return i.type == ev || i.type == ev.type            
             });
         
-        forEach(callbacks, function(callback){
+        each(callbacks, function(callback){
           callback.callback.call(self, ev);
         });
           
@@ -318,39 +406,40 @@
       };
 
       /* listen events of @type */
-      inheritor.listen = function(type, callback){
-        var self = this;
-        //handlers.set(this, type, callback);    
-        var handlers = this['$$handlers'] = this['$$handlers'] || [];
+      inheritor[names.listen] = function(type, callback){
+        var self = this,
+            handlers = this['$$handlers'] = this['$$handlers'] || [];
 
-        if(!handlers.filter(function(i){return i.type == type;}).length){
-          if(this[config.listener]){
+        if(this['$$handlers'].length<config.max){ 
+        
+          if(!handlers.filter(function(i){return i.type == type;}).length && this[config.listener]){
             this[config.listener].apply(this, [type, function(event){ 
               self.emit(event)
             }]);
           }
+        
+          this['$$handlers'].push({
+            type: type,
+            callback: callback
+          });
+        }else{
+          throw new Error("Maximal handlers limit reached");
         }
-
-        this['$$handlers'].push({
-          type: type,
-          callback: callback
-        });      
 
         return this;
       };
 
       
-      inheritor.unlisten = function(type, name){
+      inheritor[names.unlisten] = function(type, name){
         var self = this;
-        name = name.name || name;
         if(self['$$handlers']){
           var indexes = [];
-          forEach(self['$$handlers'], function(i, index){
-            if(i.callback.name == name){
+          each(self['$$handlers'], function(i, index){
+            if(i.callback.name == (name.name || name)){
               indexes.push(index);
             }
           });
-          forEach(indexes, function(i){
+          each(indexes, function(i){
             self['$$handlers'].splice(i,1);
           });
         }
@@ -358,17 +447,14 @@
       };
 
       /* Creates stream */
-      inheritor.stream = function(type, cnt) {
-        var stream = Warden.makeStream(type, cnt || this);
-
-        var handlers = this['$$handlers'] = this['$$handlers'] || [];
+      inheritor[names.stream] = function(type, cnt) {
+        var stream = Warden.makeStream(type, cnt || this),
+            handlers = this['$$handlers'] = this['$$handlers'] || [];
            
-        if(!handlers.filter(function(i){return i.type == type;}).length){
-          if(this[config.listener]){
-            this[config.listener].apply(this, [type, function(event){     
-              stream.eval(event);      
-            }]);
-          }
+        if(!handlers.filter(function(i){return i.type == type;}).length && this[config.listener]){
+          this[config.listener].apply(this, [type, function(event){     
+            stream.eval(event);      
+          }]);
         }
 
         this['$$handlers'].push({
@@ -383,7 +469,6 @@
 
       return obj;
     };
-
   })();
 
   /* 
@@ -493,7 +578,7 @@
   */
 
   Warden.makeStream = (function(){
-    var forEach = Utils.forEach, 
+    var each = Utils.each, 
         is = Utils.is;
 
     /* Stream constructor */
@@ -501,16 +586,13 @@
       var drive = [];
 
       return {
-        /*
-          For debugging:
-        */
-        $$id : Utils.$hash.set('s'),
-        $$context : context,
+        $$id : Utils.$hash.set('s'), // stream id
+        $$context : context, // saving context
         /* 
           Evaluating the stream with @data 
         */
         eval : function(data){
-          forEach(drive, function(bus){
+          each(drive, function(bus){
             bus.fire(data, context);
           });
         },
@@ -526,7 +608,7 @@
 
         pushAllUp : function(bus){
           var self = this;
-          forEach( drive.push(bus).children, function(child){
+          each(drive.push(bus).children, function(child){
             self.pushAllUp(child);
           });
         },
@@ -536,7 +618,7 @@
           Bus must be DataBus object.
         */
         pop : function(bus){
-          forEach(drive, function(b, i){
+          each(drive, function(b, i){
             if(bus.$$id == b.$$id){
               drive = drive.slice(0,i).concat(drive.slice(i+1,drive.length));
             }
@@ -550,7 +632,7 @@
         */
         popAllDown : function(bus){
           var self = this;
-          forEach(self.pop(bus).children, function(e){
+          each(self.pop(bus).children, function(e){
             self.popAllDown(e);
           });
         },
@@ -573,8 +655,8 @@
           var bus = new DataBus();
           bus.host(this);
           return bus;
-        },
-      }
+        }
+      };
     }
 
     /* 
@@ -601,10 +683,10 @@
               reserved.push(i);
           }
 
-          forEach(reserved, function(prop){
+          each(reserved, function(prop){
             if(xstr.indexOf("this."+prop)>=0){
               /* If there is a coincidence, we warn about it */
-              Analyze.MAP.warn(prop, context);
+              console.error("Coincidence: property: '" + prop + "' is already defined in stream context!", context);
             }
           });    
         }
@@ -612,6 +694,25 @@
         x.call(context, function(expectedData){
           stream.eval(expectedData);
         });  
+      }else
+      if(is.array(x)){
+        each((function(){
+          var res = [];
+          each(['pop', 'push', 'slice', 'splice', 'reverse', 'map', 'forEach', 'reduce', 'join', 'filter', 'concat', 'shift', 'unshift'], function(fn){
+            res.push({
+              name: fn,
+              fun: Array.prototype[fn] });
+          });
+          return res;
+        })(), function(item){
+          x[item.name] = function(){
+            item.fun.apply(x, arguments);
+            stream.eval({
+              type: arguments.callee.name,
+              data: arguments
+            });
+          }
+        });      
       }
 
       return stream;
@@ -634,7 +735,7 @@
   */
 
   var DataBus = (function(){
-    var forEach = Utils.forEach, is = Utils.is;
+    var each = Utils.each, is = Utils.is;
     var _private = (function(){
       var collection = {};
       return function (id, param, value){
@@ -669,7 +770,7 @@
       }
        /* Copying process */
       nprocess = [];
-      forEach(processor.process(), function(i){
+      each(processor.process(), function(i){
         nprocess.push(i);
       });
       nprocess.push(p);
@@ -732,7 +833,7 @@
         self.update(result);
 
         /* Executing all handlers of this DataBus */
-        forEach(handlers, function(handler){
+        each(handlers, function(handler){
           handler.apply(context, [result]);
         });
 
@@ -769,7 +870,6 @@
       return this;
     };
 
-
     /*
       Unbinds handler with name @x (if @x is string) or @x handler (if @x is function) 
       If in the handlers list 2 or more handlers with name @x (or @x handlers registered twice) it will remove all handlers
@@ -777,7 +877,7 @@
     DataBus.prototype.mute = function(x){
       x = is.fn(fn) ? x.name : x;
       
-      forEach(_private(this.$$id, 'handlers'), function(handler, index){
+      each(_private(this.$$id, 'handlers'), function(handler, index){
         if(handler.name == x){
            _private(this.$$id, 'handlers', function(handlers){
               return handlers.slice(0,index).concat(handlers.slice(index+1,handlers.length));
@@ -837,7 +937,7 @@
           if(is.array(x)){
             fn = function(e, drive){
               var res = [];
-              forEach(x, function(i){
+              each(x, function(i){
                 var t = e[i];
                 res.push(is.exist(t) ? t : i);
               }); 
@@ -1121,8 +1221,7 @@
       return bus;
     };
 
-    
-    
+
     /*
       Locking evaluation of current bus
     */
@@ -1172,7 +1271,7 @@
   */
   Warden.watcher = (function(){
   	return function(bus, a, b, c){
-  		var ta = typeof a, tb = typeof b, terr = "TypeError", fn, is = Utils.is;
+  		var fn, is = Utils.is;
 
   		if(!is.exist(b) && is.exist(a)){
   			if(ta == 'string' || ta == 'object'){
@@ -1184,30 +1283,21 @@
   				fn = function(event){
   					return a(event);
   				}
-  			}else{
-  				throw terr;
   			}
   		}else
 
   		if(is.exist(b)){
-  			if(ta == 'object' && tb == 'string'){
+  			if(is.obj(a) && is.str(b)){
   				fn = function(event){
   					return a[b] = event;
   				}
   			}else
 
-  			if(ta == 'object' && tb == 'function'){
+  			if(is.obj(a) && is.fn(b)){
   				fn = function(event){
   					return b.call(a, event);
   				}
-  			}else
-  			{
-  				throw terr;
   			}
-  		} else
-
-  		{
-  			throw "Arg Error"
   		}
 
   		bus.listen(fn);
