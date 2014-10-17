@@ -51,8 +51,20 @@ Warden.makeStream = (function(){
 
       pushAllUp : function(bus){
         var self = this;
-        each(drive.push(bus).children, function(child){
-          self.pushAllUp(child);
+        drive.push(bus);
+        function pParent(x){
+          if(is.exist(x.parent)){
+            drive.push(x.parent);
+            pParent(x.parent);
+          }
+        }
+        pParent(bus);
+      },
+
+      pushAllDown : function(bus){
+        var self = this;
+        each(self.push(bus).children, function(b){
+          self.pushAllDown(b);
         });
       },
 

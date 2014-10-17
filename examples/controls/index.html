@@ -13,9 +13,25 @@
 
     
   <body>
-  <div class='cont'>
-    <span class='item'></span>
+  
+  <div class="page">
+    <div class="slider">
+      <div class='cont'>
+        <span class='btn'></span>
+      </div>
+      <div class="template"><p>Current value is: {{value}}</p></div>
+    </div>
   </div>
-  <span class='value'></span>
+
+  <div class="page">
+    <div class='box'>
+      <div class='data-info'>
+        <p>Moved from last point: {{distance}}px</p>
+        <p>Current position: (X:{{x}}, Y:{{y}})</p>
+      </div>
+      <span class='dragndrop'></span>
+    </div>
+  </div>
+
   </body>
 </html>

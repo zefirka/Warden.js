@@ -268,7 +268,8 @@ var Utils, Analyze;
     debounce : [_NUM],
     getCollected : [_NUM],
     interpolate : [_STR],
-    mask : [_OBJ]
+    mask : [_OBJ],
+    lock : [_STR]
   }
 
 })();

@@ -293,7 +293,8 @@
       debounce : [_NUM],
       getCollected : [_NUM],
       interpolate : [_STR],
-      mask : [_OBJ]
+      mask : [_OBJ],
+      lock : [_STR]
     }
 
   })();
@@ -608,8 +609,20 @@
 
         pushAllUp : function(bus){
           var self = this;
-          each(drive.push(bus).children, function(child){
-            self.pushAllUp(child);
+          drive.push(bus);
+          function pParent(x){
+            if(is.exist(x.parent)){
+              drive.push(x.parent);
+              pParent(x.parent);
+            }
+          }
+          pParent(bus);
+        },
+
+        pushAllDown : function(bus){
+          var self = this;
+          each(self.push(bus).children, function(b){
+            self.pushAllDown(b);
           });
         },
 
@@ -735,8 +748,8 @@
   */
 
   var DataBus = (function(){
-    var each = Utils.each, is = Utils.is;
-    var _private = (function(){
+    var each = Utils.each, is = Utils.is,
+    _private = (function(){
       var collection = {};
       return function (id, param, value){
         if(is.exist(value)){
@@ -1221,12 +1234,26 @@
       return bus;
     };
 
-
     /*
       Locking evaluation of current bus
     */
-    DataBus.prototype.lock = function(){
-      this.host().pop(this);
+    DataBus.prototype.lock = function(params){
+      if(!is.exist(params)){
+        this.host().pop(this)
+      }else{
+        Analyze('lock', params);
+        switch(params){
+          case '-c':
+            this.lockChildren();
+          break;
+          case '-P':
+            this.lockParents();
+          break;
+          case '-p':
+            this.host().pop(this.parent);
+          break;
+        }
+      }
     };
 
     /*
@@ -1239,7 +1266,7 @@
     /*
       Locking evaluation of current bus' parent
     */
-    DataBus.prototype.lockParent = function() {
+    DataBus.prototype.lockParents = function() {
       this.host().popAllUp(this);
     };
 
@@ -1247,6 +1274,21 @@
     DataBus.prototype.unlock = function(){
       this.host().push(this);
     };
+
+    DataBus.prototype.unlockChildren = function(){
+      this.host().pushAllDown(this);
+    }
+
+    DataBus.prototype.unlockParents = function(){
+      this.host().push(this);
+      function unlock(bus){
+        if(is.exist(bus.parent)){
+          bus.host().push(bus.parent);
+          unlock(bus.parent);
+        }
+      }
+      unlock(this);
+    }
 
     Warden.configure.addToDatabus = function(fn, name, argc, toAnalyze){
       name = name || fn.name;
@@ -1271,15 +1313,21 @@
   */
   Warden.watcher = (function(){
   	return function(bus, a, b, c){
-  		var fn, is = Utils.is;
+  		var fn, is = Utils.is, each = Utils.each;
 
   		if(!is.exist(b) && is.exist(a)){
-  			if(ta == 'string' || ta == 'object'){
+  			if(is.str(a)){
   				fn = function(event){
   					return this[a] = event;
+  				}			
+
+  			}else
+  			if(is.obj(a)){
+  				fn = function(event){
+  					a = event;
   				}
   			}else
-  			if(ta == 'function'){
+  			if(is.fn(a)){
   				fn = function(event){
   					return a(event);
   				}
@@ -1288,8 +1336,27 @@
 
   		if(is.exist(b)){
   			if(is.obj(a) && is.str(b)){
-  				fn = function(event){
-  					return a[b] = event;
+  				if(b.split('/').length>1){
+  					var dest = "";
+  					each(b.split('/'), function(name){
+  						if(!is.exist(eval("a" + dest)[name])){
+  							throw "Unknown property: " + name + " from chain: " + b;
+  						}
+  						dest += ('["'+name+'"]');
+  					});
+  					fn = function(event){
+  						eval("a" + dest + "= event");
+  					}
+  				}else{
+  					if(is.fn(a[b])){
+  						fn = function(event){
+  							a[b](event);
+  						}
+  					}else{
+  						fn = function(event){
+  							return a[b] = event;
+  						}
+  					}
   				}
   			}else
 

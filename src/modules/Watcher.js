@@ -1,14 +1,20 @@
 Warden.watcher = (function(){
 	return function(bus, a, b, c){
-		var fn, is = Utils.is;
+		var fn, is = Utils.is, each = Utils.each;
 
 		if(!is.exist(b) && is.exist(a)){
-			if(ta == 'string' || ta == 'object'){
+			if(is.str(a)){
 				fn = function(event){
 					return this[a] = event;
+				}			
+
+			}else
+			if(is.obj(a)){
+				fn = function(event){
+					a = event;
 				}
 			}else
-			if(ta == 'function'){
+			if(is.fn(a)){
 				fn = function(event){
 					return a(event);
 				}
@@ -17,8 +23,27 @@ Warden.watcher = (function(){
 
 		if(is.exist(b)){
 			if(is.obj(a) && is.str(b)){
-				fn = function(event){
-					return a[b] = event;
+				if(b.split('/').length>1){
+					var dest = "";
+					each(b.split('/'), function(name){
+						if(!is.exist(eval("a" + dest)[name])){
+							throw "Unknown property: " + name + " from chain: " + b;
+						}
+						dest += ('["'+name+'"]');
+					});
+					fn = function(event){
+						eval("a" + dest + "= event");
+					}
+				}else{
+					if(is.fn(a[b])){
+						fn = function(event){
+							a[b](event);
+						}
+					}else{
+						fn = function(event){
+							return a[b] = event;
+						}
+					}
 				}
 			}else
 

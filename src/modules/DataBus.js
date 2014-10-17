@@ -10,8 +10,8 @@
 */
 
 var DataBus = (function(){
-  var each = Utils.each, is = Utils.is;
-  var _private = (function(){
+  var each = Utils.each, is = Utils.is,
+  _private = (function(){
     var collection = {};
     return function (id, param, value){
       if(is.exist(value)){
@@ -496,12 +496,26 @@ var DataBus = (function(){
     return bus;
   };
 
-
   /*
     Locking evaluation of current bus
   */
-  DataBus.prototype.lock = function(){
-    this.host().pop(this);
+  DataBus.prototype.lock = function(params){
+    if(!is.exist(params)){
+      this.host().pop(this)
+    }else{
+      Analyze('lock', params);
+      switch(params){
+        case '-c':
+          this.lockChildren();
+        break;
+        case '-P':
+          this.lockParents();
+        break;
+        case '-p':
+          this.host().pop(this.parent);
+        break;
+      }
+    }
   };
 
   /*
@@ -514,7 +528,7 @@ var DataBus = (function(){
   /*
     Locking evaluation of current bus' parent
   */
-  DataBus.prototype.lockParent = function() {
+  DataBus.prototype.lockParents = function() {
     this.host().popAllUp(this);
   };
 
@@ -522,6 +536,21 @@ var DataBus = (function(){
   DataBus.prototype.unlock = function(){
     this.host().push(this);
   };
+
+  DataBus.prototype.unlockChildren = function(){
+    this.host().pushAllDown(this);
+  }
+
+  DataBus.prototype.unlockParents = function(){
+    this.host().push(this);
+    function unlock(bus){
+      if(is.exist(bus.parent)){
+        bus.host().push(bus.parent);
+        unlock(bus.parent);
+      }
+    }
+    unlock(this);
+  }
 
   Warden.configure.addToDatabus = function(fn, name, argc, toAnalyze){
     name = name || fn.name;
