@@ -276,6 +276,32 @@ var DataBus = (function(){
     }
   };
 
+  
+  DataBus.prototype.include = function() {
+    var argv = arguments, argc = argv.length;
+
+    return process.call(this, function(data, drive){
+      var bus = drive.$host(), prop;
+      
+      for(var i=0, l=argc; i<l; i++){
+        prop = arguments[i];
+        if(is.array(prop)){
+          for(var j=0, k=prop.length;j<k;j++){
+            if(is.exist(bus._[prop[j]])){
+              data[prop[j]] = bus._[prop[j]]
+            }
+          }
+        }else{
+          if(is.exist(bus._[prop])){
+            data[prop] = bus._[prop[j]]
+          }
+        }
+      }
+    
+      return drive.$continue(data);
+    });  
+  };
+
   /*
     Skips data [Integer] @c times
   */

@@ -11,6 +11,7 @@
 Warden.extend = (function(){
   var each = Utils.each, 
     is = Utils.is,
+    map = Utils.map,
     extend = Utils.extend,
     nativeListener = "addEventListener",
     alternativeListener = "attachEvent",
@@ -52,6 +53,33 @@ Warden.extend = (function(){
       inheritor = obj.prototype;
     }else{
       isConstructor = false;
+
+      if(is.array(obj)){
+        var arrayMethods = ['pop', 'push', 'indexOf', 'lastIndexOf', 
+          'slice', 'splice',  'reverse', 'map', 
+          'forEach', 'reduce', 'reduceRight', 'join', 
+          'filter', 'concat', 'shift', 'sort', 'unshift'],
+
+          functionalObjects = map(arrayMethods, function(fn){
+            return {
+              name: fn,
+              fun: Array.prototype[fn] }
+          });
+
+        /* Extending methods of a current array with stream evaluation */
+        each(functionalObjects, function(item){
+          obj[item.name] = function(){
+            var argv = Array.prototype.slice.call(arguments);
+            item.fun.apply(obj, argv);
+            obj.emit({
+              type: item.name, 
+              current: obj,
+              data: argv
+            });
+          }
+        });      
+      }
+
     }
 
     var overwrite = inheritor[names.emit] || 
@@ -78,14 +106,16 @@ Warden.extend = (function(){
     }
         
     /* Emitter method */
-    inheritor[names.emit] = function(ev){
+    inheritor[names.emit] = function(ev, data){
       var self = this,
+          type = is.str(ev) ? ev : ev.type,
+          data = is.obj(ev) ? ev : data || ev,
           callbacks = this['$$handlers'].filter(function(i){
-            return i.type == ev || i.type == ev.type            
+            return i.type == type;
           });
       
       each(callbacks, function(callback){
-        callback.callback.call(self, ev);
+        callback.callback.call(self, data);
       });
         
       return this;

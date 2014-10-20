@@ -22,7 +22,8 @@
 
 Warden.makeStream = (function(){
   var each = Utils.each, 
-      is = Utils.is;
+      is = Utils.is,
+      map = Utils.map;
 
   /* Stream constructor */
   function Stream(context){
@@ -149,26 +150,31 @@ Warden.makeStream = (function(){
       x.call(context, function(expectedData){
         stream.eval(expectedData);
       });  
-    }else
-    if(is.array(x)){
-      each((function(){
-        var res = [];
-        each(['pop', 'push', 'slice', 'splice', 'reverse', 'map', 'forEach', 'reduce', 'join', 'filter', 'concat', 'shift', 'unshift'], function(fn){
-          res.push({
-            name: fn,
-            fun: Array.prototype[fn] });
-        });
-        return res;
-      })(), function(item){
-        x[item.name] = function(){
-          item.fun.apply(x, arguments);
-          stream.eval({
-            type: arguments.callee.name,
-            data: arguments
-          });
-        }
-      });      
     }
+    // }else
+    // if(is.array(x)){
+    //   x = Warden.extend(x);
+
+    //   var arrayMethods = ['pop', 'push', 'indexOf', 'lastIndexOf', 
+    //     'slice', 'splice',  'reverse', 'map', 
+    //     'forEach', 'reduce', 'reduceRight', 'join', 
+    //     'filter', 'concat', 'shift', 'sort', 'unshift'],
+
+    //     functionalObjects = map(arrayMethods, function(fn){
+    //       return {
+    //         name: fn,
+    //         fun: Array.prototype[fn] }
+    //     });
+
+
+    //   /* Extending methods of a current array with stream evaluation */
+    //   each(functionalObjects, function(item){
+    //     x[item.name] = function(){
+    //       item.fun.apply(x, arguments);
+    //       x.emit(item.name, arguments);
+    //     }
+    //   });      
+    // }
 
     return stream;
   };

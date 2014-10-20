@@ -83,7 +83,7 @@
       protoCheck = function(a, b){
         if(a.prototype[b]){
           return function(arr, fn){
-            a.prototype[b].call(arr, fn);
+           return a.prototype[b].call(arr, fn);
           }
         }else{
           return false
@@ -209,7 +209,7 @@
         filter : filter,
         map : map,
 
-        /* Extending objects */
+        /* Extending objects (deep-extend) */
         extend : function () {;
           function _extend(dest, source) {
             var key, _, _i, _len, _ref;
@@ -283,7 +283,7 @@
     }
 
     Analyze.MAP = {
-      extend : [_OBJ,_FUN],
+      extend : [_OBJ,_FUN, _ARR],
       reduce : [_FUN],
       take : [_FUN,_NUM],
       filter : [_FUN],
@@ -326,6 +326,7 @@
   Warden.extend = (function(){
     var each = Utils.each, 
       is = Utils.is,
+      map = Utils.map,
       extend = Utils.extend,
       nativeListener = "addEventListener",
       alternativeListener = "attachEvent",
@@ -367,6 +368,33 @@
         inheritor = obj.prototype;
       }else{
         isConstructor = false;
+
+        if(is.array(obj)){
+          var arrayMethods = ['pop', 'push', 'indexOf', 'lastIndexOf', 
+            'slice', 'splice',  'reverse', 'map', 
+            'forEach', 'reduce', 'reduceRight', 'join', 
+            'filter', 'concat', 'shift', 'sort', 'unshift'],
+
+            functionalObjects = map(arrayMethods, function(fn){
+              return {
+                name: fn,
+                fun: Array.prototype[fn] }
+            });
+
+          /* Extending methods of a current array with stream evaluation */
+          each(functionalObjects, function(item){
+            obj[item.name] = function(){
+              var argv = Array.prototype.slice.call(arguments);
+              item.fun.apply(obj, argv);
+              obj.emit({
+                type: item.name, 
+                current: obj,
+                data: argv
+              });
+            }
+          });      
+        }
+
       }
 
       var overwrite = inheritor[names.emit] || 
@@ -393,14 +421,16 @@
       }
           
       /* Emitter method */
-      inheritor[names.emit] = function(ev){
+      inheritor[names.emit] = function(ev, data){
         var self = this,
+            type = is.str(ev) ? ev : ev.type,
+            data = is.obj(ev) ? ev : data || ev,
             callbacks = this['$$handlers'].filter(function(i){
-              return i.type == ev || i.type == ev.type            
+              return i.type == type;
             });
         
         each(callbacks, function(callback){
-          callback.callback.call(self, ev);
+          callback.callback.call(self, data);
         });
           
         return this;
@@ -580,7 +610,8 @@
 
   Warden.makeStream = (function(){
     var each = Utils.each, 
-        is = Utils.is;
+        is = Utils.is,
+        map = Utils.map;
 
     /* Stream constructor */
     function Stream(context){
@@ -707,25 +738,6 @@
         x.call(context, function(expectedData){
           stream.eval(expectedData);
         });  
-      }else
-      if(is.array(x)){
-        each((function(){
-          var res = [];
-          each(['pop', 'push', 'slice', 'splice', 'reverse', 'map', 'forEach', 'reduce', 'join', 'filter', 'concat', 'shift', 'unshift'], function(fn){
-            res.push({
-              name: fn,
-              fun: Array.prototype[fn] });
-          });
-          return res;
-        })(), function(item){
-          x[item.name] = function(){
-            item.fun.apply(x, arguments);
-            stream.eval({
-              type: arguments.callee.name,
-              data: arguments
-            });
-          }
-        });      
       }
 
       return stream;
@@ -1012,6 +1024,32 @@
           }
         });
       }
+    };
+
+    
+    DataBus.prototype.include = function() {
+      var argv = arguments, argc = argv.length;
+
+      return process.call(this, function(data, drive){
+        var bus = drive.$host(), prop;
+        
+        for(var i=0, l=argc; i<l; i++){
+          prop = arguments[i];
+          if(is.array(prop)){
+            for(var j=0, k=prop.length;j<k;j++){
+              if(is.exist(bus._[prop[j]])){
+                data[prop[j]] = bus._[prop[j]]
+              }
+            }
+          }else{
+            if(is.exist(bus._[prop])){
+              data[prop] = bus._[prop[j]]
+            }
+          }
+        }
+      
+        return drive.$continue(data);
+      });  
     };
 
     /*

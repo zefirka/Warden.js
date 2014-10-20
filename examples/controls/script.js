@@ -92,8 +92,8 @@ $(function(){
         distance = moves.map(function(pos){
           return {
             distance : Math.sqrt(Math.pow((self.position.start.x - self.position.current.x), 2) + Math.pow((self.position.start.y - self.position.current.y), 2)) >> 0,
-            x : pos.x,
-            y : pos.y
+            x : obj.position().left >> 0,
+            y : obj.position().top >> 0
           }  
         });
 
@@ -103,10 +103,7 @@ $(function(){
       end : {}
     }    
 
-
-
     $(".data-info *").remove();
-
     
     self.bindings = {
       _downs : downs.bindTo(self, 'position/start'),
@@ -132,6 +129,120 @@ $(function(){
     return self;
   }
 
+  function PipNope(cnt){
+    var messageStreams = (function(){
+      var col = [];
+
+      cnt.find(".user[uid]").each(function(){
+        var res = {
+          selectbox : $(this).find('.selectbox'),
+          messages : [],
+          showMsg : true,
+          isShowing : false,
+          count : 0,
+          counter : $(this).find('.counter'),
+          elem : $(this).find('.about'),
+          tooltip : $(this).find('.tooltip'),
+          name : $(this).find('.about').text().split(',')[0],
+          bus : Warden.makeStream(function(trigger){
+            var self = this;
+
+            self.start = function(time){
+              setTimeout(function(){
+                trigger({
+                  msg: 'Ахалай махалай!',
+                  date : new Date()
+                });
+                var t = Math.random()*12000 >> 0;
+                self.start(t < 2000 ? 2000 : t);
+              }, time);
+            }
+
+            var t = Math.random()*12000 >> 0;
+            self.start(t < 2000 ? 2000 : t);
+
+          }).get(),
+          uid : $(this).attr('uid')
+        };
+
+        res.counts = Warden.makeStream(res.messages).get();
+
+        col.push(res);
+
+      });
+
+      return col;
+    })();
+
+    messageStreams.forEach(function(item){
+      
+      item.elem.find('.open').listen('click', function(){
+        $(".selectbox").hide();
+        item.selectbox[item.selectbox.css('display')=='none' ? 'show' : 'hide']();
+      });
+
+      item.elem.click(function(){
+        item.count=0;
+        item.counter.html(item.count);
+      });
+
+      var counting = item.counts.listen(function(e){
+        item.count++;
+        item.counter.html(item.count);
+      });
+
+      var arriving = item.bus.listen(function(data){
+
+        item.messages.push(data);
+
+        var timeout = null;
+
+        item.tooltip.text(data.msg);
+        if(item.isShowing){
+          
+          clearTimeout(timeout);
+
+          setTimeout(function(){
+            item.tooltip.fadeOut(200, function(){
+              item.isShowing = false;
+            });
+          }, 1500);
+
+        }else{
+
+          item.tooltip.fadeIn(200, function(){
+            item.isShowing = true;
+
+            setTimeout(function(){
+              item.tooltip.fadeOut(200, function(){
+                item.isShowing = false;
+              });
+            }, 1500);
+          });
+        }
+
+      });
+
+      item.selectbox.find('input[name="h"]').change(function(){
+        if(item.showMsg){
+          arriving.lock();
+        }else{
+          arriving.unlock();
+        } 
+
+        item.showMsg= !item.showMsg;
+      });
+
+      item.selectbox.find('input[name="c"]').change(function(){
+        item.counter[item.counter.css('display')=='none' ? 'show' : 'hide']();
+      });
+
+
+    });
+
+  }
+  
+  window.pnp = PipNope($('.users'));
   window.dnd = DragDrop("dragndrop");
   window.slider = Slider($(".slider"));
 

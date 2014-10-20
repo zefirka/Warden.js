@@ -58,7 +58,7 @@ var Utils, Analyze;
     protoCheck = function(a, b){
       if(a.prototype[b]){
         return function(arr, fn){
-          a.prototype[b].call(arr, fn);
+         return a.prototype[b].call(arr, fn);
         }
       }else{
         return false
@@ -184,7 +184,7 @@ var Utils, Analyze;
       filter : filter,
       map : map,
 
-      /* Extending objects */
+      /* Extending objects (deep-extend) */
       extend : function () {;
         function _extend(dest, source) {
           var key, _, _i, _len, _ref;
@@ -258,7 +258,7 @@ var Utils, Analyze;
   }
 
   Analyze.MAP = {
-    extend : [_OBJ,_FUN],
+    extend : [_OBJ,_FUN, _ARR],
     reduce : [_FUN],
     take : [_FUN,_NUM],
     filter : [_FUN],
