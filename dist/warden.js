@@ -261,7 +261,11 @@
           var res = arr || [],
               max = max || 16,
               oldpush = res.push;
-
+          
+          res.last = function(){
+            return res[res.length-1];
+          };
+          
           res.push = function(x){
             if(this.length>=max){
               this.shift();
@@ -339,7 +343,10 @@
   /* 
     Extend module: 
       docs: ./docs/Extend.md
-      version: v1.0.0
+      version: v1.0.1
+
+    -- v1.0.1 --
+      Removed maximal handlers counter
 
     -- v1.0.0 --
       Added array changes observation.
@@ -359,15 +366,15 @@
       alternativeListener = "attachEvent",
 
       defaultConfig = {
+        arrayMethods : ['pop', 'push', 'slice', 'splice',  'reverse', 'join', 'concat', 'shift', 'sort', 'unshift' ],
         names : {
           emit : 'emit',
           listen : 'listen',
           stream : 'stream',
           unlisten : 'unlisten'
         },
-        max : 512, // maximal handlers per object
-        emitter : null, // custom event emitter if exists
-        listener : null // custrom event listener if exists
+        emitter : null, /* custom event emitter if exists */
+        listener : null /* custrom event listener if exists */
       }
 
     Warden.configure.changeDefault = function(newConfig){
@@ -397,12 +404,7 @@
         isConstructor = false;
 
         if(is.array(obj)){
-          var arrayMethods = ['pop', 'push', 'indexOf', 'lastIndexOf', 
-            'slice', 'splice',  'reverse', 'map', 
-            'forEach', 'reduce', 'reduceRight', 'join', 
-            'filter', 'concat', 'shift', 'sort', 'unshift'],
-
-            functionalObjects = map(arrayMethods, function(fn){
+            var functionalObjects = map(config.arrayMethods, function(fn){
               return {
                 name: fn,
                 fun: Array.prototype[fn] }
@@ -465,22 +467,17 @@
       inheritor[names.listen] = function(type, callback){
         var self = this,
             handlers = this['$$handlers'] = this['$$handlers'] || [];
-
-        if(this['$$handlers'].length<config.max){
         
-          if(!filter(handlers, function(i){return i.type == type;}).length && this[config.listener]){
-            this[config.listener].apply(this, [type, function(event){ 
-              self.emit(event)
-            }]);
-          }
-        
-          this['$$handlers'].push({
-            type: type,
-            callback: callback
-          });
-        }else{
-          throw new Error("Maximal handlers limit reached");
+        if(!filter(handlers, function(i){return i.type == type;}).length && this[config.listener]){
+          this[config.listener].apply(this, [type, function(event){ 
+            self.emit(event)
+          }]);
         }
+      
+        this['$$handlers'].push({
+          type: type,
+          callback: callback
+        });
 
         return this;
       };
@@ -773,13 +770,15 @@
   */
   /*
     DataBus module.
-    Version: v1.0.0
+    Version: v1.0.1
     Implements data processing through stream. 
 
+    -- v1.0.1 --
+      Fixed bindings array
+
     -- v1.0.0 --
-      - Incapsulated properties of data bus [fire, process, binding, host, setup] 
-        and all these properties now configures from prototype's methods
-    ------------ 09.09.2014
+      Incapsulated properties of data bus [fire, process, binding, host, setup] 
+      and all these properties now configures from prototype's methods
   */
 
   var DataBus = (function(){
@@ -834,14 +833,13 @@
 
     function DataBus(proc){
       var self = this,
-          binding = null;
+          bindings = [];
 
       this.$$id = Utils.$hash.set('d');
 
       var priv = _private(this.$$id, {
         processor : new Processor(proc || [], self),
         host : 0,
-        binding : null,
         handlers : [],
         setup : function(x){ return x}
       });
@@ -854,15 +852,15 @@
       };
       
       this.bindTo = function(a,b,c) {
-        var bus = this;
-        if(!binding){
-          binding = Warden.watcher(bus, a, b, c);
-        }
+        var binding = Warden.watcher(this, a, b, c);
+        bindings.push(binding);      
         return binding;
       };
 
       this.update = function(e) {
-        binding && binding.update(e || this._.takes[this._.takes.length-1]);
+        each(bindings, function(binding){
+          binding.update(e || self._.takes.last());
+        });
       };
     }
 
@@ -927,9 +925,9 @@
       
       each(_private(this.$$id, 'handlers'), function(handler, index){
         if(handler.name == x){
-           _private(this.$$id, 'handlers', function(handlers){
-              return handlers.slice(0,index).concat(handlers.slice(index+1,handlers.length));
-            });
+          _private(this.$$id, 'handlers', function(handlers){
+            return handlers.slice(0,index).concat(handlers.slice(index+1,handlers.length));
+          });
         }
       });
       return this;
@@ -967,46 +965,42 @@
         reulst = x
     */
     DataBus.prototype.map = function(x) {
-      var fn, ctype = typeof x, res;
-      switch(ctype){
-        case 'function':
-          fn = function(e, drive){
-            return drive.$continue(x.call(this, e));
+      var fn, es;
+      if(is.fn(x)){
+        fn = function(e, drive){
+          return drive.$continue(x.call(this, e));
+        }
+      }else
+      if(is.str(x)){      
+        fn = function(e, drive){
+          var t = e[x], 
+              r = is.exist(t) ? t : x;
+          return drive.$continue(r);
+        }
+      }else
+      if(is.array(x)){      
+        fn = function(e, drive){
+          var res = [];
+          each(x, function(i){
+            var t = e[i];
+            res.push(is.exist(t) ? t : i);
+          }); 
+          return drive.$continue(res);
+        }
+      }else
+      if(is.obj(x)){
+        fn = function(e, drive){
+          var res = {}, t;
+          for(var prop in x){
+            t = e[x[prop]];
+            res[prop] = is.exist(t) ? t : x[prop];
           }
-        break;
-        case 'string':
-          fn = function(e, drive){
-            var t = e[x], 
-                r = is.exist(t) ? t : x;
-            return drive.$continue(r);
-          }
-        break;
-        case 'object':
-          if(is.array(x)){
-            fn = function(e, drive){
-              var res = [];
-              each(x, function(i){
-                var t = e[i];
-                res.push(is.exist(t) ? t : i);
-              }); 
-              return drive.$continue(res);
-            }
-          }else{
-            fn = function(e, drive){
-              var res = {}, t;
-              for(var prop in x){
-                t = e[x[prop]];
-                res[prop] = is.exist(t) ? t : x[prop];
-              }
-              return drive.$continue(res);
-            }
-          }
-        break;
-        default:
-          fn = function(e, drive){
-            return drive.$continue(x);
-          }
-        break;
+          return drive.$continue(res);
+        }
+      }else{
+        fn = function(e, drive){
+          return drive.$continue(x);
+        }
       }
       return process.call(this, fn);
     };
@@ -1016,14 +1010,16 @@
       If previous value is empty, then it is init or first value (or when init == 'first' or '-f')
     */
     DataBus.prototype.reduce = function(init, fn){
-      Analyze('reduce', fn, arguments.length);
+      if(arguments.length==1){
+        fn = init;
+        init = undefined;
+      }
+      Analyze('reduce', fn);
       return process.call(this, function(event, drive){
-        var bus = drive.$host(),
-            prev = init,
-            cur = event;
+        var bus = drive.$host(), prev = init, cur = event;
 
-        if(bus._.takes.length >= 1 || init == 'first' || init == '-f'){
-          prev = bus._.takes[bus._.takes.length-1];
+        if(bus._.takes.length > 0){
+          prev = bus._.takes.last();
         }
         return drive.$continue(fn.call(this, prev, cur));
       });   
@@ -1051,13 +1047,14 @@
 
     
     DataBus.prototype.include = function() {
-      var argv = arguments, argc = argv.length;
+      var argv = arguments, 
+          argc = argv.length;
 
       return process.call(this, function(data, drive){
         var bus = drive.$host(), prop;
         
         for(var i=0, l=argc; i<l; i++){
-          prop = arguments[i];
+          prop = argv[i];
           if(is.array(prop)){
             for(var j=0, k=prop.length;j<k;j++){
               if(is.exist(bus._[prop[j]])){
@@ -1066,7 +1063,7 @@
             }
           }else{
             if(is.exist(bus._[prop])){
-              data[prop] = bus._[prop[j]]
+              data[prop] = bus._[prop];
             }
           }
         }
@@ -1128,7 +1125,7 @@
       return process.call(this, function(event, drive){
         var fires = drive.$host()._.fires;
         var takes = drive.$host()._.takes;
-        if( (fires.length > 1 || takes.length > 0) && (cmp(event, fires[fires.length-2]) || cmp(event, takes[takes.length-1])) ){      
+        if( (fires.length > 1 || takes.length > 0) && (cmp(event, fires[fires.length-2]) || cmp(event, takes.last())) ){      
           return drive.$break();
         }else{
           return drive.$continue(event);

@@ -236,7 +236,11 @@ var Utils, Analyze;
         var res = arr || [],
             max = max || 16,
             oldpush = res.push;
-
+        
+        res.last = function(){
+          return res[res.length-1];
+        };
+        
         res.push = function(x){
           if(this.length>=max){
             this.shift();

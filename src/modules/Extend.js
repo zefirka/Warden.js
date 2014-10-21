@@ -1,7 +1,10 @@
 /* 
   Extend module: 
     docs: ./docs/Extend.md
-    version: v1.0.0
+    version: v1.0.1
+
+  -- v1.0.1 --
+    Removed maximal handlers counter
 
   -- v1.0.0 --
     Added array changes observation.
@@ -21,15 +24,15 @@ Warden.extend = (function(){
     alternativeListener = "attachEvent",
 
     defaultConfig = {
+      arrayMethods : ['pop', 'push', 'slice', 'splice',  'reverse', 'join', 'concat', 'shift', 'sort', 'unshift' ],
       names : {
         emit : 'emit',
         listen : 'listen',
         stream : 'stream',
         unlisten : 'unlisten'
       },
-      max : 512, // maximal handlers per object
-      emitter : null, // custom event emitter if exists
-      listener : null // custrom event listener if exists
+      emitter : null, /* custom event emitter if exists */
+      listener : null /* custrom event listener if exists */
     }
 
   Warden.configure.changeDefault = function(newConfig){
@@ -59,12 +62,7 @@ Warden.extend = (function(){
       isConstructor = false;
 
       if(is.array(obj)){
-        var arrayMethods = ['pop', 'push', 'indexOf', 'lastIndexOf', 
-          'slice', 'splice',  'reverse', 'map', 
-          'forEach', 'reduce', 'reduceRight', 'join', 
-          'filter', 'concat', 'shift', 'sort', 'unshift'],
-
-          functionalObjects = map(arrayMethods, function(fn){
+          var functionalObjects = map(config.arrayMethods, function(fn){
             return {
               name: fn,
               fun: Array.prototype[fn] }
@@ -127,22 +125,17 @@ Warden.extend = (function(){
     inheritor[names.listen] = function(type, callback){
       var self = this,
           handlers = this['$$handlers'] = this['$$handlers'] || [];
-
-      if(this['$$handlers'].length<config.max){
       
-        if(!filter(handlers, function(i){return i.type == type;}).length && this[config.listener]){
-          this[config.listener].apply(this, [type, function(event){ 
-            self.emit(event)
-          }]);
-        }
-      
-        this['$$handlers'].push({
-          type: type,
-          callback: callback
-        });
-      }else{
-        throw new Error("Maximal handlers limit reached");
+      if(!filter(handlers, function(i){return i.type == type;}).length && this[config.listener]){
+        this[config.listener].apply(this, [type, function(event){ 
+          self.emit(event)
+        }]);
       }
+    
+      this['$$handlers'].push({
+        type: type,
+        callback: callback
+      });
 
       return this;
     };
