@@ -165,7 +165,7 @@ $(function(){
           uid : $(this).attr('uid')
         };
 
-        res.counts = Warden.makeStream(res.messages).get();
+        res.counts = Warden.extend(res.messages).stream('push');
 
         col.push(res);
 

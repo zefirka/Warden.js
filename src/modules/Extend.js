@@ -1,17 +1,21 @@
 /* 
   Extend module: 
     docs: ./docs/Extend.md
-    version: v.0.3.1
+    version: v1.0.0
 
-  This methods extends @obj which can be both 
-  function or object with Warden.js methods .emit(), 
-  .listen() and .stream() 
+  -- v1.0.0 --
+    Added array changes observation.
+    Stabilized default configuration behavior with current deepExtend (Utils/extend) method.
+    Changed all functions from ES5 to Utils module analogues.
+
+  This methods extends @obj which can be function, object or array with Warden.js methods .emit(), .listen(), .unlisten() and .stream() 
 */
 
 Warden.extend = (function(){
   var each = Utils.each, 
     is = Utils.is,
     map = Utils.map,
+    filter = Utils.filter,
     extend = Utils.extend,
     nativeListener = "addEventListener",
     alternativeListener = "attachEvent",
@@ -82,10 +86,8 @@ Warden.extend = (function(){
 
     }
 
-    var overwrite = inheritor[names.emit] || 
-                    inheritor[names.listen] || 
-                    inheritor[names.unlisten] || 
-                    inheritor[names.stream];
+    var overwrite = inheritor[names.emit] || inheritor[names.listen] || 
+                    inheritor[names.unlisten] || inheritor[names.stream];
 
     /* Checking free namespace */
     if(is.exist(overwrite)){
@@ -97,7 +99,7 @@ Warden.extend = (function(){
       and emitters  function to not overwrite them 
       and user should do not use that in config 
     */
-    if(typeof jQuery!=="undefined"){
+    if(typeof jQuery!=="undefined" && (!isConstructor ? obj instanceof jQuery : true)){
       config.emitter = config.emitter || 'trigger';
       config.listener = config.listener || 'on';    
     }else
@@ -110,7 +112,7 @@ Warden.extend = (function(){
       var self = this,
           type = is.str(ev) ? ev : ev.type,
           data = is.obj(ev) ? ev : data || ev,
-          callbacks = this['$$handlers'].filter(function(i){
+          callbacks = filter(this['$$handlers'], function(i){
             return i.type == type;
           });
       
@@ -126,9 +128,9 @@ Warden.extend = (function(){
       var self = this,
           handlers = this['$$handlers'] = this['$$handlers'] || [];
 
-      if(this['$$handlers'].length<config.max){ 
+      if(this['$$handlers'].length<config.max){
       
-        if(!handlers.filter(function(i){return i.type == type;}).length && this[config.listener]){
+        if(!filter(handlers, function(i){return i.type == type;}).length && this[config.listener]){
           this[config.listener].apply(this, [type, function(event){ 
             self.emit(event)
           }]);
@@ -167,7 +169,7 @@ Warden.extend = (function(){
       var stream = Warden.makeStream(type, cnt || this),
           handlers = this['$$handlers'] = this['$$handlers'] || [];
          
-      if(!handlers.filter(function(i){return i.type == type;}).length && this[config.listener]){
+      if(!filter(handlers, function(i){return i.type == type;}).length && this[config.listener]){
         this[config.listener].apply(this, [type, function(event){     
           stream.eval(event);      
         }]);

@@ -1,14 +1,20 @@
 /* 
-  Utilities module  
-  v.1.1.0
+  Utilities module
+    specs: specs/src/utilsSpecs.js
+    version: 1.2.0
 
-  -- v.1.1.0 --
+  -- v1.2.0 --
+      Fixed data type analyzer. Now it checks not by typeof but by Utils.is[type] method.
+      Added .some and .every methods. 
+      Added specs for utils.
+
+  -- v1.1.0 --
     - Most of functional style reverted cause it is too slow.
 
-  -- v.1.0.0 --
+  -- v1.0.0 --
     - All checing methods changed with functional paradigm.
 
-  -- v.0.0.1 --
+  -- v0.0.1 --
     - Datatype checking functions. Array prototype forEach method wrap for ECMAScript 3. 
 */
 
@@ -28,15 +34,12 @@ var Utils, Analyze;
   Utils = (function(){
     var $let = function $let(predicate){
       var predicates = [predicate],
-          all = false;
+          all = false,
+          ans = function(x){
+            var res = map(predicates, function(pred){return pred(x)});
 
-      var ans = function(x){
-        var res = map(predicates, function(pred){
-            return pred(x);
-        });
-
-        return all ?  res.every(truthy) : res.some(truthy);   
-      }
+            return all ?  every(res, truthy) : some(res, truthy);   
+          }
 
       ans.or = function(predicate){
         predicates.push(predicate);
@@ -55,32 +58,28 @@ var Utils, Analyze;
       return ans;
     },
 
-    protoCheck = function(a, b){
-      if(a.prototype[b]){
-        return function(arr, fn){
-         return a.prototype[b].call(arr, fn);
-        }
-      }else{
-        return false
-      }
+    protoCheck = function(name, cfn){
+      return Array.prototype[name] ? function(arr, fn){return Array.prototype[name].call(arr, fn)} : cfn;
     },
 
-    each = protoCheck(Array, 'forEach') || function each(arr, fn){ 
+    each = protoCheck('forEach', function each(arr, fn){ 
       for(var i=0, l=arr.length; i<l;i++){ 
         fn(arr[i], i);
       }
-    },
+    }),
 
-    forWhile = function forWhile(arr, fn, preventValue){
+    forWhile = function forWhile(arr, fn, preventValue, depreventValue){
       preventValue = preventValue || false; 
+      depreventValue = depreventValue !== undefined ? depreventValue : true;
       for(var i=0, l=arr.length; i<l;i++){ 
         if(fn(arr[i], i) === preventValue){
-          return null;
+          return preventValue;
         }
       }
+      return depreventValue;
     },
 
-    filter = protoCheck(Array, 'filter')|| function filter(arr, fn){
+    filter = protoCheck('filter', function filter(arr, fn){
       var filtered = [];
       each(arr, function(i, index){
         if(fn(i, index)===true){
@@ -88,20 +87,27 @@ var Utils, Analyze;
         }
       });
       return filterd;
-    },
+    }),
     
-    map = protoCheck(Array, 'map') || function map(arr, fn){
+    map = protoCheck('map', function map(arr, fn){
       var mapped = [];
       each(arr, function(e, i){
         mapped[i] = fn(e, i);
       });
       return mapped;
-    },
+    }),
+
+    some = protoCheck('some', function some(arr, fn){
+      return forWhile(arr, fn, true, false);
+    }),
+
+    every = protoCheck('every', function every(arr, fn){
+      return forWhile(arr, fn);
+    }),
 
     truthy = function(x){
       return x ? true : false;
     },
-
 
     typeIs = function(n){
       return function(x){
@@ -165,6 +171,7 @@ var Utils, Analyze;
         Data type and logical statements checking methods
       */
       is : is,
+      not: not,
 
       /* Logical chining method to combine predicates and calculating a final expression like:
         $let([falsee function]).or([truthy function]) -> true
@@ -180,9 +187,16 @@ var Utils, Analyze;
       */ 
 
       forEach : each,
+      forWhile : forWhile,
       each : each, // synonym of forEach
       filter : filter,
+      some : some,
+      every : every,
       map : map,
+
+
+      /* Profiling method */
+      profile : profile,
 
       /* Extending objects (deep-extend) */
       extend : function () {;
@@ -198,7 +212,6 @@ var Utils, Analyze;
               if (is.obj(dest[property][0]) && is.obj(source[property][0])) {
                 _ref = source[property];
                 for (key = _i = 0, _len = _ref.length; _i < _len; key = ++_i) {
-                  _ = _ref[key];
                   dest[property][key] = _extend(dest[property][key] || {}, source[property][key]);
                 }
               } else {
@@ -251,25 +264,35 @@ var Utils, Analyze;
   /* Exception manager */
 
   Analyze = function(id, i, l){
-    var t = Analyze.MAP[id], yt = typeof i, tl = t[t.length-1];
-    if(t && t.indexOf(yt)==-1){
-      throw "TypeError: unexpected type of argument at: ." + id + "(). Expected type: " + t.join(' or ') + ". Your argument is type of: " + yt;
+    var t = Analyze.MAP[id],
+        res = !Utils.is.exist(t) ? true : Utils.some(t, function(type){return Utils.is[type](i)});
+
+    if(!res){
+      t = Utils.map(t, function(x){return Analyze.dict[x] || x;});
+      throw "TypeError: unexpected type of argument at: ." + id + "(). Expected type: " + t.join(' or ') + ". Your argument is type of: " + typeof i;
     }
   }
 
+  Analyze.dict = {
+    'obj' : _OBJ,
+    'fn' : _FUN,
+    'num' : _NUM,
+    'str' : _STR,
+  }
+
   Analyze.MAP = {
-    extend : [_OBJ,_FUN, _ARR],
-    reduce : [_FUN],
-    take : [_FUN,_NUM],
-    filter : [_FUN],
-    skip : [_NUM],
-    setup : [_FUN],
-    makeStream: [_STR,_FUN, _OBJ],
-    debounce : [_NUM],
-    getCollected : [_NUM],
-    interpolate : [_STR],
-    mask : [_OBJ],
-    lock : [_STR]
+    extend : ['obj','fn','array'],
+    reduce : ['fn'],
+    take : ['fn','num'],
+    filter : ['fn'],
+    skip : ['num'],
+    setup : ['fn'],
+    makeStream: ['str','fn', 'obj'],
+    debounce : ['num'],
+    getCollected : ['num'],
+    interpolate : ['str'],
+    mask : ['obj'],
+    lock : ['str']
   }
 
 })();

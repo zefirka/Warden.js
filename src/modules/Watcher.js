@@ -1,6 +1,14 @@
+/* 
+	Watcher module:
+		version: 0.1.0
+*/
+
 Warden.watcher = (function(){
+	var is = Utils.is,
+		each = Utils.each;
+
 	return function(bus, a, b, c){
-		var fn, is = Utils.is, each = Utils.each;
+		var fn;
 
 		if(!is.exist(b) && is.exist(a)){
 			if(is.str(a)){

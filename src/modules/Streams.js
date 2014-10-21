@@ -22,8 +22,7 @@
 
 Warden.makeStream = (function(){
   var each = Utils.each, 
-      is = Utils.is,
-      map = Utils.map;
+      is = Utils.is;
 
   /* Stream constructor */
   function Stream(context){
@@ -151,31 +150,6 @@ Warden.makeStream = (function(){
         stream.eval(expectedData);
       });  
     }
-    // }else
-    // if(is.array(x)){
-    //   x = Warden.extend(x);
-
-    //   var arrayMethods = ['pop', 'push', 'indexOf', 'lastIndexOf', 
-    //     'slice', 'splice',  'reverse', 'map', 
-    //     'forEach', 'reduce', 'reduceRight', 'join', 
-    //     'filter', 'concat', 'shift', 'sort', 'unshift'],
-
-    //     functionalObjects = map(arrayMethods, function(fn){
-    //       return {
-    //         name: fn,
-    //         fun: Array.prototype[fn] }
-    //     });
-
-
-    //   /* Extending methods of a current array with stream evaluation */
-    //   each(functionalObjects, function(item){
-    //     x[item.name] = function(){
-    //       item.fun.apply(x, arguments);
-    //       x.emit(item.name, arguments);
-    //     }
-    //   });      
-    // }
-
     return stream;
   };
 })();
