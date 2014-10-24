@@ -7,7 +7,7 @@ Warden.js provides a functionality for the development of event-driven applicati
 
 ##Why Warden.js?##
 
-<img src="https://raw.githubusercontent.com/zefirka/Warden.js/master/src/warden.png" align="right" width="301px" style='z-index: 32323; position: relative;'/>
+<img src="./src/warden.png" align="right" width="301px" style='z-index: 32323; position: relative;'/>
 
  - There is no dependencies with DOM, jQuery or other libraries or event emitting system in the Warden.js library. If you want to your object can emit, listen and creating streams of events you should use <code>Warden.extend</code> method to extend your objects (or constructor's prototypes) with Pub/Sub methods (`emit`, `listen`, `unlisten`, `stream`).
  - Simple combine, conjuncte and resolve concpetually connected events. If your application turns to tangled web of simple events and you spoiling time to resolve synchronization, combining and resolving problems - that Warden.js is for you.
