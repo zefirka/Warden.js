@@ -2,32 +2,32 @@ Utils
 =========
 
 Module at: 
- - `./src/modules/Utils.js` : Utilities module
+ - <code>./src/modules/Utils.js<code> : Utilities module
 
- ###Description###
+###Description###
  Warden.js provides utilities module which contains helping methods, cross-browser wrappers over array's prototype methods from ECMAScript5 ( forEach,  map, filter, some, any), functional programming logical methods (not, is, let) and other utilities you can use.
 
 ###List###
 <ul>
 	<li>
-		`Utils.is`: [Object] 
+		<code>Utils.is</code> [Object] 
 		<ul>
-			<li>`str`: is string</li>
-			<li>`num`: is number</li>
-			<li>`bool`: is boolean</li>
-			<li>`array`: is array</li>
-			<li>`fun`: is function</li>
-			<li>`obj`: is object</li>
-			<li>`exist`: is argument not equals to null and it's type is not undefined</li>
-			<li>`truthy`: result from constrction `argument ? true : false`</li>
-			<li>`falsee`: is not truthy</li>
-			<li>`equals`: return predicate of equality with argument</li>
+			<li><code>str</code> is string</li>
+			<li><code>num</code> is number</li>
+			<li><code>bool</code> is boolean</li>
+			<li><code>array</code> is array</li>
+			<li><code>fun</code> is function</li>
+			<li><code>obj</code> is object</li>
+			<li><code>exist</code> is argument not equals to null and it's type is not undefined</li>
+			<li><code>truthy</code> result from constrction <code>argument ? true : false<code></li>
+			<li><code>falsee</code> is not truthy</li>
+			<li><code>equals</code> return predicate of equality with argument</li>
 		</ul>
 	</li>
 	<li>
-		`Utils.is.not`: [Object] (similiar to `Utils.is` but negate all results)
+		<code>Utils.is.not</code> [Object] (similiar to <code>Utils.is<code> but negate all results)
 	</li>
 	<li>
-		`Utils.let`
+		<code>Utils.let<code>
 	</li>
 </ul>

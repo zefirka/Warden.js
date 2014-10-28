@@ -45,7 +45,7 @@
 
 
   /* Globals */
-  var Utils, Analyze;
+  var Utils, Analyze, UserMap = {};
 
   (function(){
     var _FUN = 'function',
@@ -291,24 +291,25 @@
 
     /* Exception manager */
 
-    Analyze = function(id, i, l){
-      var t = Analyze.MAP[id],
-          res = !Utils.is.exist(t) ? true : Utils.some(t, function(type){return Utils.is[type](i)});
+    function setAnalyzer(p){
+      var Dict = {
+        'obj' : _OBJ,
+        'fn' : _FUN,
+        'num' : _NUM,
+        'str' : _STR,
+      }
+      return function(id, i, l){
+        var t = p[id],
+            res = !Utils.is.exist(t) ? true : Utils.some(t, function(type){return Utils.is[type](i)});
 
-      if(!res){
-        t = Utils.map(t, function(x){return Analyze.dict[x] || x;});
-        throw "TypeError: unexpected type of argument at: ." + id + "(). Expected type: " + t.join(' or ') + ". Your argument is type of: " + typeof i;
+        if(!res){
+          t = Utils.map(t, function(x){return Dict[x] || x;});
+          throw "TypeError: unexpected type of argument at: ." + id + "(). Expected type: " + t.join(' or ') + ". Your argument is type of: " + typeof i;
+        }
       }
     }
 
-    Analyze.dict = {
-      'obj' : _OBJ,
-      'fn' : _FUN,
-      'num' : _NUM,
-      'str' : _STR,
-    }
-
-    Analyze.MAP = {
+    Analyze = setAnalyzer({
       extend : ['obj','fn','array'],
       reduce : ['fn'],
       take : ['fn','num'],
@@ -323,12 +324,15 @@
       lock : ['str'],
       nth : ['array'],
       get : ['str']
-    }
+    });
+
+    Warden.configure.exceptionMap = {};
+    Warden.configure.exceptionManager = setAnalyzer(Warden.configure.exceptionMap);
 
   })();
 
   Warden.Utils = Utils;
-  Warden.configure.exceptionManager = Analyze;
+
   Warden.configure.datatypes = function(name, types){
     if(Analyze.MAP[name]){
       throw "This name is already exist";
