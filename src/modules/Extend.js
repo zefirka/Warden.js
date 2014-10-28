@@ -5,6 +5,7 @@
 
   -- v1.0.1 --
     Removed maximal handlers counter
+    Changed array observation methods, now it's own properties of new array (extented)
 
   -- v1.0.0 --
     Added array changes observation.

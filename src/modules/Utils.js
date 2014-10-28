@@ -122,13 +122,12 @@ var Utils, Analyze;
     },
     
     profile = function(fn, n, gen, fname){
-      var t = n, 
-          name = fn.name || fname || "function",
-          m = [name, "have been ran", t,"times:"].join(" ");
+      var name = fn.name || fname || "function",
+          m = [name, "have been ran", n,"times:"].join(" ");
 
       console.time(m);
-      while(n--){
-        fn(gen());
+      for(var i=0; i<n; i++){
+        fn(gen ? gen(n) : n);
       }
       console.timeEnd(m);
     },
@@ -296,7 +295,9 @@ var Utils, Analyze;
     getCollected : ['num'],
     interpolate : ['str'],
     mask : ['obj'],
-    lock : ['str']
+    lock : ['str'],
+    nth : ['array'],
+    get : ['str']
   }
 
 })();

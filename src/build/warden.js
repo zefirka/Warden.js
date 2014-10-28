@@ -147,13 +147,12 @@
       },
       
       profile = function(fn, n, gen, fname){
-        var t = n, 
-            name = fn.name || fname || "function",
-            m = [name, "have been ran", t,"times:"].join(" ");
+        var name = fn.name || fname || "function",
+            m = [name, "have been ran", n,"times:"].join(" ");
 
         console.time(m);
-        while(n--){
-          fn(gen());
+        for(var i=0; i<n; i++){
+          fn(gen ? gen(n) : n);
         }
         console.timeEnd(m);
       },
@@ -321,7 +320,9 @@
       getCollected : ['num'],
       interpolate : ['str'],
       mask : ['obj'],
-      lock : ['str']
+      lock : ['str'],
+      nth : ['array'],
+      get : ['str']
     }
 
   })();
@@ -347,6 +348,7 @@
 
     -- v1.0.1 --
       Removed maximal handlers counter
+      Changed array observation methods, now it's own properties of new array (extented)
 
     -- v1.0.0 --
       Added array changes observation.
@@ -837,7 +839,7 @@
 
       this.$$id = Utils.$hash.set('d');
 
-      var priv = _private(this.$$id, {
+      _private(this.$$id, {
         processor : new Processor(proc || [], self),
         host : 0,
         handlers : [],
@@ -848,7 +850,8 @@
       this.children = [];
       this._ = {  
         fires : new Utils.Queue(),
-        takes : new Utils.Queue()
+        takes : new Utils.Queue(),
+        last : null
       };
       
       this.bindTo = function(a,b,c) {
@@ -858,7 +861,7 @@
       };
 
       this.update = function(e) {
-        each(bindings, function(binding){
+        bindings.length && each(bindings, function(binding){
           binding.update(e || self._.takes.last());
         });
       };
@@ -876,6 +879,7 @@
 
       processor.start(data, context, function(result){
         self._.takes.push(result); // pushing taked data to @takes queue 
+        self._.last = result;
         self.update(result);
 
         /* Executing all handlers of this DataBus */
@@ -885,7 +889,6 @@
 
       });
     };
-
     
     DataBus.prototype.setup = function(fn) {
       Analyze('setup', fn);
@@ -972,6 +975,11 @@
         }
       }else
       if(is.str(x)){      
+        
+        if(x.indexOf('/')>=0){
+          return this.get(x);
+        }
+
         fn = function(e, drive){
           var t = e[x], 
               r = is.exist(t) ? t : x;
@@ -1004,6 +1012,47 @@
       }
       return process.call(this, fn);
     };
+
+    DataBus.prototype.nth = function(x) {
+      Analyze('nth', x);
+      process.call(this, function(e, drive){
+        return drive.$continue(e[x]);
+      });
+    }
+
+    DataBus.prototype.get = function(s) {
+      Analyze('get', s);
+
+      var map = s.split('/');
+
+      return process.call(this, function(data, drive){
+        var current = data;
+
+        each(map, function(elem){
+          var cand, last = elem.length-1;
+
+          if(elem[0]=='[' && elem[last]==']'){
+            cand = elem.slice(1,last);
+            if(is.exist(cand)){
+              if(is.num(parseInt(cand))){
+                elem = parseInt(cand);
+              }else{
+                throw "Wrong syntax at DataBus.get() method";
+              }
+            }
+          }else{
+            if(!is.exist(current[elem])){
+              throw "Can't find " + elem + " property";
+            }
+          }
+
+          current=current[elem];
+
+        });
+
+        return drive.$continue(current);
+      });
+    }
 
     /* 
       Appying @fn function ot the previos and current value of recieved data 
@@ -1364,7 +1413,6 @@
     return DataBus;
   })();
 
-
   /*
     Globals:
       Warden.watcher
@@ -1447,4 +1495,54 @@
 
   	};
   })();
+
+  /* 
+  	Equilizer Module:
+  	version: 0.0.1
+  */
+
+  Warden.Equilizer = (function(){
+  	var each = Utils.each;
+
+  	var self = {},
+  		compractor,
+  		collection = {
+  			sortings : {
+  				data : [],
+  				bus : null
+  			}
+  		}
+
+
+  	
+  	self.sort = function(bus){
+  		var merged = Warden.makeStream().get();
+
+  		collection.sortings.data.push(bus);
+  		collection.sortings.bus = null;
+
+  		each(collection.sortings.data, function(i){
+  			merged =  merged.merge(i);
+  		});
+
+  		merged.listen(function(data){
+  			compractor(data);
+  		});
+
+  		collection.sortings.bus = merged;
+
+  		return self;
+  	}
+
+
+  	return function Equilizer(fn){
+  		Analyze('Equilizer', fn);
+
+  		compractor = fn;
+  		return self;
+  	}
+  })();
+
+
+  
 }));

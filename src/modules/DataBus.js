@@ -203,6 +203,11 @@ var DataBus = (function(){
       }
     }else
     if(is.str(x)){      
+      
+      if(x.indexOf('/')>=0){
+        return this.get(x);
+      }
+
       fn = function(e, drive){
         var t = e[x], 
             r = is.exist(t) ? t : x;
@@ -235,6 +240,47 @@ var DataBus = (function(){
     }
     return process.call(this, fn);
   };
+
+  DataBus.prototype.nth = function(x) {
+    Analyze('nth', x);
+    process.call(this, function(e, drive){
+      return drive.$continue(e[x]);
+    });
+  }
+
+  DataBus.prototype.get = function(s) {
+    Analyze('get', s);
+
+    var map = s.split('/');
+
+    return process.call(this, function(data, drive){
+      var current = data;
+
+      each(map, function(elem){
+        var cand, last = elem.length-1;
+
+        if(elem[0]=='[' && elem[last]==']'){
+          cand = elem.slice(1,last);
+          if(is.exist(cand)){
+            if(is.num(parseInt(cand))){
+              elem = parseInt(cand);
+            }else{
+              throw "Wrong syntax at DataBus.get() method";
+            }
+          }
+        }else{
+          if(!is.exist(current[elem])){
+            throw "Can't find " + elem + " property";
+          }
+        }
+
+        current=current[elem];
+
+      });
+
+      return drive.$continue(current);
+    });
+  }
 
   /* 
     Appying @fn function ot the previos and current value of recieved data 
