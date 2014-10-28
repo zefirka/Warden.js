@@ -25,9 +25,24 @@ Module at:
 		</ul>
 	</li>
 	<li>
-		<code>Utils.is.not</code> [Object] (similiar to <code>Utils.is<code> but negate all results)
+		<code>Utils.is.not</code> [Object] (similiar to <code>Utils.is</code> but negate all results)
 	</li>
 	<li>
-		<code>Utils.let<code>
+		<p><code>Utils.$let</code> : function </p>
+		<p>Description: it uses predicates to create predicate chain which return a function extented with methods: <code>.and</code>, <code>.or</code> and <code>.butNot</code> when each take predicate as argument and puts into chain with condition (respectively "predicate1 and predicate2", "predicate1 or predicate2" and "predicate1 butNot predicate2"). 
+		</p>
+		<p>You can concatenate more than 2 predicates, but you can't group them like <code>((a and b) or c) and d</code></p>
+	</li>
+	<li>
+		Array methods which implements ECMAScript5 methods as:
+			<ul>
+				<li><code>.each</code> or <code>.forEach</code></li>
+				<li><code>.map</code></li>
+				<li><code>.filter</code></li>
+				<li><code>.forWhile</code> (similiar to forEach, but takes last argument as value to prevent loop if applied function returns that value </li>
+				<li><code>.any</code></li>
+				<li><code>.some</code></li>
+
+			</ul>
 	</li>
 </ul>
