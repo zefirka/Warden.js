@@ -45,4 +45,7 @@ Module at:
 
 			</ul>
 	</li>
+	<li> 
+		<code>Utils.profile</code> profiling method
+	</li>
 </ul>

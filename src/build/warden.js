@@ -647,8 +647,10 @@
   /*
     Streams module:
       docs: ./docs/Streams.md
-      version: 0.3.3
-      
+      version: 1.0.0
+    
+    -- v1.0.0 --
+
     -- v0.3.3 -- 
       - Added $context in object. Removed class name.
     
@@ -686,6 +688,14 @@
           });
         },
         
+        transform : function(transformer){
+          if(is.fn(transformer)){
+            each(drive, function(bus){
+              transformer(bus);
+            });
+          }
+        },
+
         /* 
           Push into executable drive @bus.
           Bus is DataBus object.
@@ -756,6 +766,10 @@
           var bus = new DataBus();
           bus.host(this);
           return bus;
+        },
+
+        bus : function(){
+          return this.get();
         }
       };
     }
@@ -799,6 +813,8 @@
       return stream;
     };
   })();
+
+
 
   /*
     Globals:

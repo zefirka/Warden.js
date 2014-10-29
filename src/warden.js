@@ -54,7 +54,5 @@
       Warden.watcher
   */
   include "Watcher.js"
-
-  include "Equilizer.js"
   
 }));
