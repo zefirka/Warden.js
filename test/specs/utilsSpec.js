@@ -240,5 +240,23 @@ describe('Utilities', function(){
 		});
 	});
 
+	describe('$hash', function(){
+		it('$hash', function(){
+			var hash = Utils.$hash, o = 20;
+
+			expect(hash.set('chu')).toBe('1');
+			expect(hash.set('chu')).toBe('2');
+			expect(hash.set('chu')).toBe('3');
+			expect(hash.get('chu')).toBe('3');
+
+			while(o--){
+				hash.set('goo')
+			}
+
+			expect(hash.get('goo')).toBe('14');
+
+		})
+	})
+
 });
 

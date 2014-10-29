@@ -26,7 +26,11 @@
   /* 
     Utilities module
       specs: specs/src/utilsSpecs.js
-      version: 1.2.0
+      version: 1.2.1
+
+    -- v1.2.1
+        Added .log function (logging with interpolation)
+        Divided Warden core Analyzer with user's
 
     -- v1.2.0 --
         Fixed data type analyzer. Now it checks not by typeof but by Utils.is[type] method.
@@ -221,6 +225,32 @@
 
         /* Profiling method */
         profile : profile,
+
+        /* Logging with interpolation */
+        log : function log(str){
+          var data = {},
+            argc = arguments.length,
+            argv = Array.prototype.slice.call(arguments),
+            reg = /{{\s*[\w\.]+\s*}}/g;
+
+          if(argc==2 && Utils.is.obj(argv[1])){
+            data = argv[1];
+          }else{
+            argv.slice(1, argc).forEach(function(e, i){
+              data[i] = e;
+            });
+          }       
+
+          str = str.replace(reg, function(i){
+            var arg = data[i.slice(2,-2)];
+            if(Utils.is.obj(arg)){
+              arg=JSON.stringify(arg);
+            }
+            return arg;
+          });
+
+          console.log(str);
+        },
 
         /* Extending objects (deep-extend) */
         extend : function () {;
