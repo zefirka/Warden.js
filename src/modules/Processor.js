@@ -1,7 +1,7 @@
 /*
   Processor module: 
   Implements interface to processing all databus methods.
-  Version: v0.1.1;
+  Version: v1.0.0;
 */
 
 function Processor(proc, host){
@@ -56,7 +56,7 @@ function Processor(proc, host){
     },
 
     /* Ticking processor to the next process */
-    tick : function(event, breaked){        
+    tick : function(event, breaked){
       if(breaked){
         return i = 0;
       }

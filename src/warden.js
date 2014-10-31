@@ -15,6 +15,9 @@
 })(this, function(Warden){
   
   'use strict';
+
+  var jQueryInited = typeof jQuery != "undefined";
+
   Warden.version = "0.1.0"; 
   Warden.configure = {};
   
@@ -55,4 +58,8 @@
   */
   include "Watcher.js"
   
+  if(jQueryInited){
+    Warden.extend(jQuery);
+  }
+
 }));

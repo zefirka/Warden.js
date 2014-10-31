@@ -567,7 +567,7 @@
   /*
     Processor module: 
     Implements interface to processing all databus methods.
-    Version: v0.1.1;
+    Version: v1.0.0;
   */
 
   function Processor(proc, host){
@@ -622,7 +622,7 @@
       },
 
       /* Ticking processor to the next process */
-      tick : function(event, breaked){        
+      tick : function(event, breaked){
         if(breaked){
           return i = 0;
         }
@@ -690,7 +690,7 @@
         
         transform : function(transformer){
           if(is.fn(transformer)){
-            each(drive, function(bus){
+            drive = Utils.map(drive, function(bus){
               transformer(bus);
             });
           }
@@ -1545,54 +1545,5 @@
 
   	};
   })();
-
-  /* 
-  	Equilizer Module:
-  	version: 0.0.1
-  */
-
-  Warden.Equilizer = (function(){
-  	var each = Utils.each;
-
-  	var self = {},
-  		compractor,
-  		collection = {
-  			sortings : {
-  				data : [],
-  				bus : null
-  			}
-  		}
-
-
-  	
-  	self.sort = function(bus){
-  		var merged = Warden.makeStream().get();
-
-  		collection.sortings.data.push(bus);
-  		collection.sortings.bus = null;
-
-  		each(collection.sortings.data, function(i){
-  			merged =  merged.merge(i);
-  		});
-
-  		merged.listen(function(data){
-  			compractor(data);
-  		});
-
-  		collection.sortings.bus = merged;
-
-  		return self;
-  	}
-
-
-  	return function Equilizer(fn){
-  		Analyze('Equilizer', fn);
-
-  		compractor = fn;
-  		return self;
-  	}
-  })();
-
-
   
 }));

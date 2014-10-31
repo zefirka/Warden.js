@@ -98,7 +98,7 @@ Warden.extend = (function(){
       and emitters  function to not overwrite them 
       and user should do not use that in config 
     */
-    if(typeof jQuery!=="undefined" && (!isConstructor ? obj instanceof jQuery : true)){
+    if(jQueryInited && (!isConstructor ? obj instanceof jQuery : true)){
       config.emitter = config.emitter || 'trigger';
       config.listener = config.listener || 'on';    
     }else

@@ -44,7 +44,7 @@ Warden.makeStream = (function(){
       
       transform : function(transformer){
         if(is.fn(transformer)){
-          each(drive, function(bus){
+          drive = Utils.map(drive, function(bus){
             transformer(bus);
           });
         }

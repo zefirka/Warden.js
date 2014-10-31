@@ -255,8 +255,8 @@ describe('Utilities', function(){
 
 			expect(hash.get('goo')).toBe('14');
 
-		})
-	})
+		});
+	});
 
 });
 
