@@ -1,6 +1,4 @@
 $(function () {
-	Warden.extend($);
-
 	function Line(obj){
 		this.box = $('.box', obj);
 		this.box.append("<a href='#' class='mute'>Mute</a>");

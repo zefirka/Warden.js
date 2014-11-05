@@ -1,6 +1,4 @@
 $(function(){
-  Warden.extend($);
-
   function Slider(container){
 
     var btn = container.find(".btn"),
