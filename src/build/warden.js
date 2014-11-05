@@ -15,6 +15,9 @@
 })(this, function(Warden){
   
   'use strict';
+
+  var jQueryInited = typeof jQuery != "undefined";
+
   Warden.version = "0.1.0"; 
   Warden.configure = {};
   
@@ -241,15 +244,13 @@
             });
           }       
 
-          str = str.replace(reg, function(i){
+          console.log(str.replace(reg, function(i){
             var arg = data[i.slice(2,-2)];
             if(Utils.is.obj(arg)){
               arg=JSON.stringify(arg);
             }
             return arg;
-          });
-
-          console.log(str);
+          }));
         },
 
         /* Extending objects (deep-extend) */
@@ -475,7 +476,7 @@
         and emitters  function to not overwrite them 
         and user should do not use that in config 
       */
-      if(typeof jQuery!=="undefined" && (!isConstructor ? obj instanceof jQuery : true)){
+      if(jQueryInited && (!isConstructor ? obj instanceof jQuery : true)){
         config.emitter = config.emitter || 'trigger';
         config.listener = config.listener || 'on';    
       }else
@@ -518,7 +519,7 @@
         return this;
       };
 
-      
+      /* Unsubscribe from events of @type */
       inheritor[names.unlisten] = function(type, name){
         var self = this;
         if(self['$$handlers']){
@@ -535,7 +536,7 @@
         return this;
       };
 
-      /* Creates stream */
+      /* Creates stream of @type type events*/
       inheritor[names.stream] = function(type, cnt) {
         var stream = Warden.makeStream(type, cnt || this),
             handlers = this['$$handlers'] = this['$$handlers'] || [];
@@ -1546,4 +1547,8 @@
   	};
   })();
   
+  if(jQueryInited){
+    Warden.extend(jQuery);
+  }
+
 }));

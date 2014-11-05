@@ -216,15 +216,13 @@ var Utils, Analyze, UserMap = {};
           });
         }       
 
-        str = str.replace(reg, function(i){
+        console.log(str.replace(reg, function(i){
           var arg = data[i.slice(2,-2)];
           if(Utils.is.obj(arg)){
             arg=JSON.stringify(arg);
           }
           return arg;
-        });
-
-        console.log(str);
+        }));
       },
 
       /* Extending objects (deep-extend) */

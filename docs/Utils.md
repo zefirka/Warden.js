@@ -46,6 +46,9 @@ Module at:
 			</ul>
 	</li>
 	<li> 
-		<code>Utils.profile</code> profiling method
+		<code>Utils.profile(@function[fn], @integer[count], @function[generator], @string[name])</code> profiling method. Takes  function to profile, count (integer number to execute function), generator function (which creates argument for profiling function as <code>gen(count)</code>) and string (name of function). Profiler will log to console time spent on executing <code>fn</code> <code>count</code> times.
+	</li>
+	<li>
+		
 	</li>
 </ul>

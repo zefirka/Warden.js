@@ -141,7 +141,7 @@ Warden.extend = (function(){
       return this;
     };
 
-    
+    /* Unsubscribe from events of @type */
     inheritor[names.unlisten] = function(type, name){
       var self = this;
       if(self['$$handlers']){
@@ -158,7 +158,7 @@ Warden.extend = (function(){
       return this;
     };
 
-    /* Creates stream */
+    /* Creates stream of @type type events*/
     inheritor[names.stream] = function(type, cnt) {
       var stream = Warden.makeStream(type, cnt || this),
           handlers = this['$$handlers'] = this['$$handlers'] || [];
