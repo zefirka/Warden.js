@@ -1,9 +1,13 @@
 /* 
   Utilities module
     specs: specs/src/utilsSpecs.js
-    version: 1.2.1
+    version: 1.2.2
 
-  -- v1.2.1
+  -- v1.2.2 --
+      Added some props to analyzator's ,ap
+      Added Flatten method
+
+  -- v1.2.1 --
       Added .log function (logging with interpolation)
       Divided Warden core Analyzer with user's
 
@@ -225,6 +229,18 @@ var Utils, Analyze, UserMap = {};
         }));
       },
 
+      flatten : function(arr) {
+        var r = [];
+        each(arr, function(v){
+          if(is.array(v)){
+            arr.push.apply(flatten(v));
+          } else {
+            r.push(v);
+          }
+        });
+        return r;
+      },
+
       /* Extending objects (deep-extend) */
       extend : function () {;
         function _extend(dest, source) {
@@ -294,39 +310,33 @@ var Utils, Analyze, UserMap = {};
 
   /* Exception manager */
 
-  function setAnalyzer(p){
-    var Dict = {
-      'obj' : _OBJ,
-      'fn' : _FUN,
-      'num' : _NUM,
-      'str' : _STR,
-    }
+  function setAnalyzer(map){
     return function(id, i, l){
-      var t = p[id],
-          res = !Utils.is.exist(t) ? true : Utils.some(t, function(type){return Utils.is[type](i)});
+      var t = map[id],
+          res = !Utils.is.exist(t) ? true : Utils.some(t, function(type){return typeof i === type});
 
       if(!res){
-        t = Utils.map(t, function(x){return Dict[x] || x;});
         throw "TypeError: unexpected type of argument at: ." + id + "(). Expected type: " + t.join(' or ') + ". Your argument is type of: " + typeof i;
       }
     }
   }
 
   Analyze = setAnalyzer({
-    extend : ['obj','fn','array'],
-    reduce : ['fn'],
-    take : ['fn','num'],
-    filter : ['fn'],
-    skip : ['num'],
-    setup : ['fn'],
-    makeStream: ['str','fn', 'obj'],
-    debounce : ['num'],
-    getCollected : ['num'],
-    interpolate : ['str'],
-    mask : ['obj'],
-    lock : ['str'],
-    nth : ['array'],
-    get : ['str']
+    extend : [_OBJ,_FUN, _ARR],
+    reduce : [_FUN],
+    take : [_FUN,_NUM],
+    filter : [_FUN],
+    skip : [_NUM],
+    setup : [_FUN],
+    makeStream: [_STR, _FUN, _STR],
+    debounce : [_NUM],
+    getCollected : [_NUM],
+    interpolate : [_STR],
+    mask : [_STR],
+    unique : [_FUN, _UND],
+    lock : [_STR],
+    nth : [_OBJ],
+    get : [_STR]
   });
 
   Warden.configure.exceptionMap = {};

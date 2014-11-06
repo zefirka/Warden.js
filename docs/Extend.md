@@ -5,7 +5,7 @@ Module at: `./src/module/Extend.js`
 
 Usage : `Warden.extend(object, config)`
 
-Description: Extends object with `emit()`, `.listen()` and `.stream()` methods. And returns extented object;
+Description: Extends object with `emit()`, `.listen()`, `unlisten()`and `.stream()` methods. And returns extented object;
 
 
 ###Usage###
@@ -76,10 +76,9 @@ lols.listen(function(event){
 ####Configuration
 
 You can configure next terms:
--  `max` - Count of maximal handlers of unique event type per each object. Default: *512*. Note that every stream makes new handler.
 -  `emitter` - Name of native emitter function if you have such. For example $.trigger() for jQuery. Use it if your framework has already have event emitter method and you creating emittor from object that contains native emittor. If you use jQuery you can't dont use this configuration item because Warden automaticaly find it.
 -  `listener` - Name of native listener function if you have such. For example $.on() for jQuery, or .addEventListener for native browser's DOM API, both of them you can don't configure. 
--  `context` - Value of `this` variable in handler. Extented object by default.
+- `names` - Object of names you want to take your mathods. Can contain next properties: `emit`, `listen`, `stream`, `unlisten`.
 
 ###Methods###
 ####emit####
@@ -119,6 +118,13 @@ mod.listen('custom', function(event){
 ```
 
 Handlers will be started in same order which they was registered. If you reach maximal number of handlers for current object you'l recieve error : `Maximal handlers count` in console.
+
+####unlisten####
+Usage: `object.unlisten(type, handler)`
+
+Returns: `object`.
+
+`handler` can be both string or function. Unsubscribes handler from object's `type` events.
 
 ####stream####
 Usage: `object.stream(type, [context])`

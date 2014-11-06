@@ -1,7 +1,13 @@
 /*
   DataBus module.
-  Version: v1.0.1
+  Version: v1.0.2
   Implements data processing through stream. 
+
+  -- v1.0.2 --
+    Added DataBus.toggle method;
+    Added Unique to Analyzator;
+    Added DataBus.syncFlat method
+    Little optimizations
 
   -- v1.0.1 --
     Fixed bindings array
@@ -250,13 +256,9 @@ var DataBus = (function(){
 
   DataBus.prototype.get = function(s) {
     Analyze('get', s);
-
-    var map = s.split('/');
-
     return process.call(this, function(data, drive){
       var current = data;
-
-      each(map, function(elem){
+      each(s.split('/'), function(elem){
         var cand, last = elem.length-1;
 
         if(elem[0]=='[' && elem[last]==']'){
@@ -329,7 +331,6 @@ var DataBus = (function(){
 
     return process.call(this, function(data, drive){
       var bus = drive.$host(), prop;
-      
       for(var i=0, l=argc; i<l; i++){
         prop = argv[i];
         if(is.array(prop)){
@@ -343,8 +344,7 @@ var DataBus = (function(){
             data[prop] = bus._[prop];
           }
         }
-      }
-    
+      }    
       return drive.$continue(data);
     });  
   };
@@ -395,14 +395,17 @@ var DataBus = (function(){
 
     By default: @cmp compares arguments with === operator
   */
-  DataBus.prototype.unique = function(cmp){
-    cmp = is.fn(cmp) ? cmp : function(a,b){
-      return a===b;    
+  DataBus.prototype.unique = function(compractor){
+    Analyze('unique', compractor);
+
+    compractor = is.fn(compractor) ? compractor : function(a,b){
+      return a===b;
     }
+
     return process.call(this, function(event, drive){
       var fires = drive.$host()._.fires;
       var takes = drive.$host()._.takes;
-      if( (fires.length > 1 || takes.length > 0) && (cmp(event, fires[fires.length-2]) || cmp(event, takes.last())) ){      
+      if( (fires.length > 1 || takes.length > 0) && (compractor(event, fires[fires.length-2]) || compractor(event, takes.last())) ){      
         return drive.$break();
       }else{
         return drive.$continue(event);
@@ -415,6 +418,7 @@ var DataBus = (function(){
   */
   DataBus.prototype.debounce = function(t) {
     Analyze('debounce', t)
+
     return process.call(this, function(e, drive){
       var self = this, bus = drive.$host();
       clearTimeout(bus._.dbtimer);
@@ -456,6 +460,16 @@ var DataBus = (function(){
     });
   };
 
+  DataBus.prototype.toggle = function(a,b) {
+    var self = this;
+    this._.toggle = false;
+    return process.call(this, function(e, drive){
+      var fun = self._.toggle ? a : b;
+      self._.toggle = !self._.toggle;
+      return drive.$continue(fun.call(self, e));
+    });
+  };
+
   DataBus.prototype.after = function(bus, flush){
     var busExecuted = false;
     bus.listen(function(){
@@ -471,7 +485,7 @@ var DataBus = (function(){
       }
     });
   };
-
+  
   DataBus.prototype.waitFor = function(bus){
     var self = this;
     return Warden.makeStream(function(emit){
@@ -533,10 +547,9 @@ var DataBus = (function(){
   };
 
   /* Synchronizes two buses */
-
   DataBus.prototype.sync = function(bus){
     var self = this,
-    bus = Warden.makeStream(function(emit){
+    nbus = Warden.makeStream(function(emit){
       var exec1 = false, exec2 = false, val1, val2,
           clear = function(){
             val1 = null; 
@@ -564,48 +577,35 @@ var DataBus = (function(){
           exec1 = true;
         }
       })
-    }).get();
-    inheritFrom(bus, this);
-    return bus;
+    }).bus();
+    inheritFrom(nbus, this);
+    return nbus;
   };
 
-  /*
-    Locking evaluation of current bus
-  */
-  DataBus.prototype.lock = function(params){
-    if(!is.exist(params)){
-      this.host().pop(this)
-    }else{
-      Analyze('lock', params);
-      switch(params){
-        case '-c':
-          this.lockChildren();
-        break;
-        case '-P':
-          this.lockParents();
-        break;
-        case '-p':
-          this.host().pop(this.parent);
-        break;
-      }
-    }
+  DataBus.prototype.syncFlat = function(bus){
+    self = this,
+    nbus = Warden.makeStream(function(emit){
+      self.sync(bus).listen(function(arr){
+        emit(Utils.flatten(arr));
+      })
+    }).bus();
+    inheritFrom(nbus, this);
+    return nbus;    
   };
 
-  /*
-    Locking evaluation of current bus and all of his children buses
-  */
+  /* Lock/unlock methods */
+  DataBus.prototype.lock = function(){
+    this.host().pop(this);
+  };
+
   DataBus.prototype.lockChildren = function() {
     this.host().popAllDown(this);
   };
-
-  /*
-    Locking evaluation of current bus' parent
-  */
+  
   DataBus.prototype.lockParents = function() {
     this.host().popAllUp(this);
   };
-
-  /* Unlocks current bus */
+  
   DataBus.prototype.unlock = function(){
     this.host().push(this);
   };
@@ -631,9 +631,6 @@ var DataBus = (function(){
       var self = this, 
           argv = arguments;
       Analyze(name, arguments[toAnalyze || 0]);
-      if(argc && argc!=arguments.length){
-        throw "Unexpected arguments count";
-      }
       return process.call(this,fn(arguments))
     };
   }

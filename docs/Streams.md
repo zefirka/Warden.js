@@ -81,7 +81,6 @@ pulser.log(); // will log to console PULSE! every second
 Returns: Stream object.
 Descriptions: creates stream. If type of `@creator` is not `function`, then just creates stream, else it executes @creator, when first argument is Stream evaluation function. `context` is a context of all stream processing methods and final callback. If `@strict` argument is truly, than it checks the text of `@creator` and warns about the coincidence in properties name with `@context` properties.
 
-**Usage**
 ```js
 var stream = Warden.makeStream(function(trigger){
 	setTimeout(trigger, 2000); 

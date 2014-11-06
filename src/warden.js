@@ -18,7 +18,7 @@
 
   var jQueryInited = typeof jQuery != "undefined";
 
-  Warden.version = "0.1.0"; 
+  Warden.version = "0.1.1"; 
   Warden.configure = {};
   
   /* 

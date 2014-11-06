@@ -18,7 +18,7 @@
 
   var jQueryInited = typeof jQuery != "undefined";
 
-  Warden.version = "0.1.0"; 
+  Warden.version = "0.1.1"; 
   Warden.configure = {};
   
   /* 
@@ -29,9 +29,13 @@
   /* 
     Utilities module
       specs: specs/src/utilsSpecs.js
-      version: 1.2.1
+      version: 1.2.2
 
-    -- v1.2.1
+    -- v1.2.2 --
+        Added some props to analyzator's ,ap
+        Added Flatten method
+
+    -- v1.2.1 --
         Added .log function (logging with interpolation)
         Divided Warden core Analyzer with user's
 
@@ -253,6 +257,18 @@
           }));
         },
 
+        flatten : function(arr) {
+          var r = [];
+          each(arr, function(v){
+            if(is.array(v)){
+              arr.push.apply(flatten(v));
+            } else {
+              r.push(v);
+            }
+          });
+          return r;
+        },
+
         /* Extending objects (deep-extend) */
         extend : function () {;
           function _extend(dest, source) {
@@ -322,39 +338,33 @@
 
     /* Exception manager */
 
-    function setAnalyzer(p){
-      var Dict = {
-        'obj' : _OBJ,
-        'fn' : _FUN,
-        'num' : _NUM,
-        'str' : _STR,
-      }
+    function setAnalyzer(map){
       return function(id, i, l){
-        var t = p[id],
-            res = !Utils.is.exist(t) ? true : Utils.some(t, function(type){return Utils.is[type](i)});
+        var t = map[id],
+            res = !Utils.is.exist(t) ? true : Utils.some(t, function(type){return typeof i === type});
 
         if(!res){
-          t = Utils.map(t, function(x){return Dict[x] || x;});
           throw "TypeError: unexpected type of argument at: ." + id + "(). Expected type: " + t.join(' or ') + ". Your argument is type of: " + typeof i;
         }
       }
     }
 
     Analyze = setAnalyzer({
-      extend : ['obj','fn','array'],
-      reduce : ['fn'],
-      take : ['fn','num'],
-      filter : ['fn'],
-      skip : ['num'],
-      setup : ['fn'],
-      makeStream: ['str','fn', 'obj'],
-      debounce : ['num'],
-      getCollected : ['num'],
-      interpolate : ['str'],
-      mask : ['obj'],
-      lock : ['str'],
-      nth : ['array'],
-      get : ['str']
+      extend : [_OBJ,_FUN, _ARR],
+      reduce : [_FUN],
+      take : [_FUN,_NUM],
+      filter : [_FUN],
+      skip : [_NUM],
+      setup : [_FUN],
+      makeStream: [_STR, _FUN, _STR],
+      debounce : [_NUM],
+      getCollected : [_NUM],
+      interpolate : [_STR],
+      mask : [_STR],
+      unique : [_FUN, _UND],
+      lock : [_STR],
+      nth : [_OBJ],
+      get : [_STR]
     });
 
     Warden.configure.exceptionMap = {};
@@ -823,8 +833,14 @@
   */
   /*
     DataBus module.
-    Version: v1.0.1
+    Version: v1.0.2
     Implements data processing through stream. 
+
+    -- v1.0.2 --
+      Added DataBus.toggle method;
+      Added Unique to Analyzator;
+      Added DataBus.syncFlat method
+      Little optimizations
 
     -- v1.0.1 --
       Fixed bindings array
@@ -1073,13 +1089,9 @@
 
     DataBus.prototype.get = function(s) {
       Analyze('get', s);
-
-      var map = s.split('/');
-
       return process.call(this, function(data, drive){
         var current = data;
-
-        each(map, function(elem){
+        each(s.split('/'), function(elem){
           var cand, last = elem.length-1;
 
           if(elem[0]=='[' && elem[last]==']'){
@@ -1152,7 +1164,6 @@
 
       return process.call(this, function(data, drive){
         var bus = drive.$host(), prop;
-        
         for(var i=0, l=argc; i<l; i++){
           prop = argv[i];
           if(is.array(prop)){
@@ -1166,8 +1177,7 @@
               data[prop] = bus._[prop];
             }
           }
-        }
-      
+        }    
         return drive.$continue(data);
       });  
     };
@@ -1218,14 +1228,17 @@
 
       By default: @cmp compares arguments with === operator
     */
-    DataBus.prototype.unique = function(cmp){
-      cmp = is.fn(cmp) ? cmp : function(a,b){
-        return a===b;    
+    DataBus.prototype.unique = function(compractor){
+      Analyze('unique', compractor);
+
+      compractor = is.fn(compractor) ? compractor : function(a,b){
+        return a===b;
       }
+
       return process.call(this, function(event, drive){
         var fires = drive.$host()._.fires;
         var takes = drive.$host()._.takes;
-        if( (fires.length > 1 || takes.length > 0) && (cmp(event, fires[fires.length-2]) || cmp(event, takes.last())) ){      
+        if( (fires.length > 1 || takes.length > 0) && (compractor(event, fires[fires.length-2]) || compractor(event, takes.last())) ){      
           return drive.$break();
         }else{
           return drive.$continue(event);
@@ -1238,6 +1251,7 @@
     */
     DataBus.prototype.debounce = function(t) {
       Analyze('debounce', t)
+
       return process.call(this, function(e, drive){
         var self = this, bus = drive.$host();
         clearTimeout(bus._.dbtimer);
@@ -1279,6 +1293,16 @@
       });
     };
 
+    DataBus.prototype.toggle = function(a,b) {
+      var self = this;
+      this._.toggle = false;
+      return process.call(this, function(e, drive){
+        var fun = self._.toggle ? a : b;
+        self._.toggle = !self._.toggle;
+        return drive.$continue(fun.call(self, e));
+      });
+    };
+
     DataBus.prototype.after = function(bus, flush){
       var busExecuted = false;
       bus.listen(function(){
@@ -1294,7 +1318,7 @@
         }
       });
     };
-
+    
     DataBus.prototype.waitFor = function(bus){
       var self = this;
       return Warden.makeStream(function(emit){
@@ -1356,10 +1380,9 @@
     };
 
     /* Synchronizes two buses */
-
     DataBus.prototype.sync = function(bus){
       var self = this,
-      bus = Warden.makeStream(function(emit){
+      nbus = Warden.makeStream(function(emit){
         var exec1 = false, exec2 = false, val1, val2,
             clear = function(){
               val1 = null; 
@@ -1387,48 +1410,35 @@
             exec1 = true;
           }
         })
-      }).get();
-      inheritFrom(bus, this);
-      return bus;
+      }).bus();
+      inheritFrom(nbus, this);
+      return nbus;
     };
 
-    /*
-      Locking evaluation of current bus
-    */
-    DataBus.prototype.lock = function(params){
-      if(!is.exist(params)){
-        this.host().pop(this)
-      }else{
-        Analyze('lock', params);
-        switch(params){
-          case '-c':
-            this.lockChildren();
-          break;
-          case '-P':
-            this.lockParents();
-          break;
-          case '-p':
-            this.host().pop(this.parent);
-          break;
-        }
-      }
+    DataBus.prototype.syncFlat = function(bus){
+      self = this,
+      nbus = Warden.makeStream(function(emit){
+        self.sync(bus).listen(function(arr){
+          emit(Utils.flatten(arr));
+        })
+      }).bus();
+      inheritFrom(nbus, this);
+      return nbus;    
     };
 
-    /*
-      Locking evaluation of current bus and all of his children buses
-    */
+    /* Lock/unlock methods */
+    DataBus.prototype.lock = function(){
+      this.host().pop(this);
+    };
+
     DataBus.prototype.lockChildren = function() {
       this.host().popAllDown(this);
     };
-
-    /*
-      Locking evaluation of current bus' parent
-    */
+    
     DataBus.prototype.lockParents = function() {
       this.host().popAllUp(this);
     };
-
-    /* Unlocks current bus */
+    
     DataBus.prototype.unlock = function(){
       this.host().push(this);
     };
@@ -1454,9 +1464,6 @@
         var self = this, 
             argv = arguments;
         Analyze(name, arguments[toAnalyze || 0]);
-        if(argc && argc!=arguments.length){
-          throw "Unexpected arguments count";
-        }
         return process.call(this,fn(arguments))
       };
     }
