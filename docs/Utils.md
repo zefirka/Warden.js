@@ -49,6 +49,6 @@ Module at:
 		<code>Utils.profile(@function[fn], @integer[count], @function[generator], @string[name])</code> profiling method. Takes  function to profile, count (integer number to execute function), generator function (which creates argument for profiling function as <code>gen(count)</code>) and string (name of function). Profiler will log to console time spent on executing <code>fn</code> <code>count</code> times.
 	</li>
 	<li>
-		
+		<code>Utils.log(@string [str], @object [dict])</code> interpolate <code>dict</code>'s properties to the string in Mustache-templating style. Usage: <code>Utils.log('Hello, {{what}}', {what: 'World'})</code>. You can also use 
 	</li>
 </ul>

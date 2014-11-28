@@ -1,7 +1,12 @@
 /* 
   Extend module: 
     docs: ./docs/Extend.md
-    version: v1.0.1
+    version: v1.1.0
+  
+  -- v1.1.0 --
+    Incapsulated $$handlers and now shows only $$id of object
+    Added extended arrays methods sequentially and toBus
+    Added multiple events listenins, unlistening and streaming
 
   -- v1.0.1 --
     Removed maximal handlers counter
@@ -34,6 +39,20 @@ Warden.extend = (function(){
       },
       emitter : null, /* custom event emitter if exists */
       listener : null /* custrom event listener if exists */
+    },
+
+    ghandlers = {}, //global storage for handlers
+
+    setHandlers = function(id){
+      ghandlers[id] = ghandlers[id] || [];
+      each(Utils.toArray(arguments).slice(1), function(handler){
+        ghandlers[id].push(handler);
+      });
+      return ghandlers[id];
+    },
+
+    getHandlers = function(id){
+      return ghandlers[id] || [];
     }
 
   Warden.configure.changeDefault = function(newConfig){
@@ -63,24 +82,53 @@ Warden.extend = (function(){
       isConstructor = false;
 
       if(is.array(obj)){
-          var functionalObjects = map(config.arrayMethods, function(fn){
-            return {
-              name: fn,
-              fun: Array.prototype[fn] }
-          });
-
         /* Extending methods of a current array with stream evaluation */
-        each(functionalObjects, function(item){
-          obj[item.name] = function(){
-            var argv = Array.prototype.slice.call(arguments);
-            item.fun.apply(obj, argv);
-            obj.emit({
-              type: item.name, 
-              current: obj,
-              data: argv
-            });
+        each(
+          // functional objects
+          map(config.arrayMethods, function(fn){
+          return {
+            name: fn,
+            fun: Array.prototype[fn] }
+          }), 
+
+          //iteration
+          function(item){
+            obj[item.name] = function(){
+              var argv = Array.prototype.slice.call(arguments);
+              item.fun.apply(obj, argv);
+              obj.emit({
+                type: item.name, 
+                current: obj,
+                data: argv
+              });
+            }
           }
-        });      
+        );
+
+        Utils.extend(inheritor, {
+          sequentially : function(timeout){
+            var bus = Warden.makeStream().get(),
+                self = this,
+                i = 0,
+                interval = setInterval(function(){
+                  if(i==self.length){
+                    i=0;
+                    clearInterval(interval);                    
+                  }else{
+                    bus.fire(self[i++])
+                  }
+                }, timeout);
+
+            return bus;
+          },
+          toBus : function(){
+            var bus = Warden.makeStream().bus();
+            each(inheritor, function(item, index){
+              bus.data.last = bus.data.takes[index] = bus.data.fires[index] = item
+            });
+            return bus;
+          }
+        });
       }
 
     }
@@ -111,7 +159,7 @@ Warden.extend = (function(){
       var self = this,
           type = is.str(ev) ? ev : ev.type,
           data = is.obj(ev) ? ev : data || ev,
-          callbacks = filter(this['$$handlers'], function(i){
+          callbacks = filter(getHandlers(this['$$id'] = this['$$id'] || Utils.$hash.set('o')), function(i){
             return i.type == type;
           });
       
@@ -123,57 +171,77 @@ Warden.extend = (function(){
     };
 
     /* listen events of @type */
-    inheritor[names.listen] = function(type, callback){
+    inheritor[names.listen] = function(types, callback){
       var self = this,
-          handlers = this['$$handlers'] = this['$$handlers'] || [];
+          handlers = getHandlers(this['$$id'] = this['$$id'] || Utils.$hash.set('o'));
       
-      if(!filter(handlers, function(i){return i.type == type;}).length && this[config.listener]){
-        this[config.listener].apply(this, [type, function(event){ 
-          self.emit(event)
-        }]);
-      }
-    
-      this['$$handlers'].push({
-        type: type,
-        callback: callback
+      Analyze('listen', types);
+
+      each(types.split(','), function(type){
+        type = Utils.trim(type);
+        if(!filter(handlers, function(i){return i.type == type;}).length && self[config.listener]){
+          this[config.listener].apply(self, [type, function(event){ 
+            self.emit(event)
+          }]);
+        }
+      
+        setHandlers(self['$$id'], {
+          type: type,
+          callback: callback
+        });
       });
 
       return this;
     };
 
     /* Unsubscribe from events of @type */
-    inheritor[names.unlisten] = function(type, name){
-      var self = this;
-      if(self['$$handlers']){
-        var indexes = [];
-        each(self['$$handlers'], function(i, index){
-          if(i.callback.name == (name.name || name)){
-            indexes.push(index);
-          }
-        });
-        each(indexes, function(i){
-          self['$$handlers'].splice(i,1);
-        });
-      }
+    inheritor[names.unlisten] = function(types, name){
+      var self = this, handlers = getHandlers(this['$$id'] = this['$$id'] || Utils.$hash.set('o'));
+
+      Analyze('unlisten', types)
+
+      each(types.split(','), function(type){
+        type = Utils.trim(type);
+        if(handlers.length){
+          var indexes = [];
+          each(handlers, function(handler, index){
+            if(handler.callback.name == (name.name || name)){
+              indexes.push(index);
+            }
+          });
+          each(indexes, function(i){
+            handlers.splice(i,1);
+          });
+        }
+      });
+
       return this;
     };
 
     /* Creates stream of @type type events*/
-    inheritor[names.stream] = function(type, cnt) {
-      var stream = Warden.makeStream(type, cnt || this),
-          handlers = this['$$handlers'] = this['$$handlers'] || [];
-         
-      if(!filter(handlers, function(i){return i.type == type;}).length && this[config.listener]){
-        this[config.listener].apply(this, [type, function(event){     
-          stream.eval(event);      
-        }]);
-      }
+    inheritor[names.stream] = function(types, cnt) {
+      var self = this,
+          stream = Warden.makeStream(types, cnt || this),
+          handlers = getHandlers(this['$$id'] = this['$$id'] || Utils.$hash.set('o'));
 
-      this['$$handlers'].push({
-        type: type,
-        callback: function(event){
-          stream.eval(event);
+      Analyze('stream', types);
+
+      each(types.split(','), function(type){
+        type = Utils.trim(type);
+
+        if(!filter(handlers, function(i){return i.type == type;}).length && self[config.listener]){
+          self[config.listener].apply(self, [type, function(event){
+            stream.eval(event);      
+          }]);
         }
+
+        setHandlers(self['$$id'], {
+          type: type,
+          callback: function(event){
+            stream.eval(event);
+          }
+        });
+
       });
 
       return stream.get();

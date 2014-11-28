@@ -1,7 +1,12 @@
 /* 
   Utilities module
     specs: specs/src/utilsSpecs.js
-    version: 1.2.2
+    version: 1.2.3
+
+  -- v1.2.3 --
+      Derived .log  to .interpolate (common interpolation method) and .log (logs with interpolation)
+      Added toArray method
+      Added trim method
 
   -- v1.2.2 --
       Added some props to analyzator's ,ap
@@ -140,6 +145,36 @@ var Utils, Analyze, UserMap = {};
       console.timeEnd(m);
     },
 
+    toArray = function(a){
+      if(is.obj(a) && is.not.exist(a.length)){
+        a.length = Object.keys(a).length;
+      }
+      return Array.prototype.slice.call(a);
+    },
+
+    interpolate = function(str){
+      var data = {},
+        argc = arguments.length,
+        argv = toArray(arguments),
+        reg = /{{\s*[\w\.]+\s*}}/g;
+
+      if(argc==2 && is.obj(argv[1])){
+        data = argv[1];
+      }else{
+        each(argv.slice(1, argc), function(e, i){
+          data[i] = e;
+        });
+      }       
+
+      return str.replace(reg, function(i){
+        var arg = data[i.slice(2,-2)] || i;
+        if(is.obj(arg)){
+          arg=JSON.stringify(arg);
+        }
+        return arg;
+      });
+    },
+
     is = {
       exist : function(x){
         return typeof x != 'undefined' && x !== null;
@@ -202,31 +237,15 @@ var Utils, Analyze, UserMap = {};
       map : map,
 
 
+      toArray : toArray,
+
       /* Profiling method */
       profile : profile,
 
-      /* Logging with interpolation */
-      log : function log(str){
-        var data = {},
-          argc = arguments.length,
-          argv = Array.prototype.slice.call(arguments),
-          reg = /{{\s*[\w\.]+\s*}}/g;
-
-        if(argc==2 && Utils.is.obj(argv[1])){
-          data = argv[1];
-        }else{
-          argv.slice(1, argc).forEach(function(e, i){
-            data[i] = e;
-          });
-        }       
-
-        console.log(str.replace(reg, function(i){
-          var arg = data[i.slice(2,-2)];
-          if(Utils.is.obj(arg)){
-            arg=JSON.stringify(arg);
-          }
-          return arg;
-        }));
+      /* Interpolation */
+      interpolate : interpolate, 
+      log : function(){
+        console.log(interpolate.apply(this, arguments));
       },
 
       flatten : function(arr) {
@@ -241,33 +260,35 @@ var Utils, Analyze, UserMap = {};
         return r;
       },
 
+      trim: function(str){return str.replace(/^\s+|\s+$/g, '');},    
+
       /* Extending objects (deep-extend) */
       extend : function () {;
         function _extend(dest, source) {
           var key, _, _i, _len, _ref;
 
-          for (var property in source) {
-            if (source[property] && is.obj(source[property])) {
-              dest[property] = dest[property] || {};
-              _extend(dest[property], source[property]);
-            } else if (is.array(source[property])) {
-              dest[property] = dest[property] || [];
-              if (is.obj(dest[property][0]) && is.obj(source[property][0])) {
-                _ref = source[property];
+          for (var prop in source) {
+            if (source[prop] && is.obj(source[prop])) {
+              dest[prop] = dest[prop] || {};
+              _extend(dest[prop], source[prop]);
+            } else if (is.array(source[prop])) {
+              dest[prop] = dest[prop] || [];
+              if (is.obj(dest[prop][0]) && is.obj(source[prop][0])) {
+                _ref = source[prop];
                 for (key = _i = 0, _len = _ref.length; _i < _len; key = ++_i) {
-                  dest[property][key] = _extend(dest[property][key] || {}, source[property][key]);
+                  dest[prop][key] = _extend(dest[prop][key] || {}, source[prop][key]);
                 }
               } else {
-                dest[property] = source[property];
+                dest[prop] = source[prop];
               }
             } else {
-              dest[property] = source[property];
+              dest[prop] = source[prop];
             }
           }
           return dest;
         };
 
-        var args = Array.prototype.slice.call(arguments);
+        var args = toArray(arguments);
         return args.reduce(function(dest, src) {
           return _extend(dest, src);
         });
@@ -323,12 +344,15 @@ var Utils, Analyze, UserMap = {};
 
   Analyze = setAnalyzer({
     extend : [_OBJ,_FUN, _ARR],
+    listen : [_STR],
+    stream : [_STR],
+    unlisten : [_STR],
     reduce : [_FUN],
     take : [_FUN,_NUM],
     filter : [_FUN],
     skip : [_NUM],
     setup : [_FUN],
-    makeStream: [_STR, _FUN, _STR],
+    makeStream: [_UND, _STR, _FUN, _ARR],
     debounce : [_NUM],
     getCollected : [_NUM],
     interpolate : [_STR],

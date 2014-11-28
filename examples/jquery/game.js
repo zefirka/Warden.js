@@ -146,7 +146,7 @@ var BlockFactory = (function(){
         
           return object;
         }       
-         object.checkedCells = [];
+        object.checkedCells = [];
         object.cell = function(x,y){
               return $($('.cell', $($(".row")[y]))[x]);
         };
@@ -181,8 +181,7 @@ var BlockFactory = (function(){
               x: cellsToCheck[i].x,
               y: cellsToCheck[i].y
             };
-           // debugger;
-               var cells = [
+                var cells = [
                    {cell : object.cell(pos.x+1, pos.y), position: {x: pos.x+1, y: pos.y}},
                    {cell : object.cell(pos.x+1, pos.y+1), position: {x: pos.x+1, y: pos.y+1}},
                    {cell : object.cell(pos.x, pos.y+1), position: {x: pos.x, y: pos.y+1}},
@@ -427,7 +426,7 @@ $(function(){
       playerMoves.lock();
       redraws.forEach(function(r){
         r.lock();
-      })
+      });
       enemy.clear();
   });
   

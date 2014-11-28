@@ -163,7 +163,7 @@ describe('Lock/Unlock methods ', function () {
 
 		clear();
 
-		parent.lock('-c');
+		parent.lockChildren();
 
 		Context.sync(666);
 

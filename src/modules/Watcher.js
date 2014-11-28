@@ -8,7 +8,9 @@ Warden.watcher = (function(){
 		each = Utils.each;
 
 	return function(bus, a, b, c){
-		var fn;
+		var argv = Utils.toArray(arguments).split(1,arguments.length),
+			argc = argv.length,
+			fn;
 
 		if(!is.exist(b) && is.exist(a)){
 			if(is.str(a)){

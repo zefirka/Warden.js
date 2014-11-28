@@ -1,7 +1,14 @@
 /*
   DataBus module.
-  Version: v1.0.2
+  Version: v1.1.0
   Implements data processing through stream. 
+
+  -- v.1.1.0 --
+    Added .delay and .repeat methods. 
+    Changed incapsulation method to more efficient
+
+  -- v1.0.3 --
+    Added comments
 
   -- v1.0.2 --
     Added DataBus.toggle method;
@@ -19,27 +26,17 @@
 
 var DataBus = (function(){
   var each = Utils.each, is = Utils.is,
-  _private = (function(){
-    var collection = {};
-    return function (id, param, value){
-      if(is.exist(value)){
-        if(is.fn(value)){
-          collection[id][param] = value(collection[id][param]);  
-        }else{
-          collection[id][param] = value;
-        }         
-      }else{
-        if(collection[id] && is.exist(collection[id][param])){
-          return collection[id][param]
-        }else{
-          collection[id] = param;
-          return collection[id];
-        }
+  priv = {
+    set: function(id, e, val){
+      if(is.obj(e) && !is.exist(val)){
+        return this[id] = e;
       }
-      return collection[id][param];
+      return this[id][e] = is.fn(val) ? val(this[id][e]) : val;
+    },
+    get: function(id, e){
+      return is.exist(e) ? this[id][e] : this[id];
     }
-  })();
-
+  }
   
   function inheritFrom(child, parent){
     child.parent = parent;
@@ -47,7 +44,7 @@ var DataBus = (function(){
   }
 
   function process(p){
-    var nprocess, nbus, processor = _private(this.$$id, 'processor');
+    var nprocess, nbus, processor = priv.get(this.$$id, 'processor');
     if(!p){
       return processor;
     }
@@ -69,56 +66,49 @@ var DataBus = (function(){
 
   function DataBus(proc){
     var self = this,
-        bindings = [];
-
-    this.$$id = Utils.$hash.set('d');
-
-    _private(this.$$id, {
-      processor : new Processor(proc || [], self),
-      host : 0,
-      handlers : [],
-      setup : function(x){ return x}
-    });
+        id = this.$$id = Utils.$hash.set('d');
 
     this.parent = null;
     this.children = [];
-    this._ = {  
+    this.data = {  
       fires : new Utils.Queue(),
       takes : new Utils.Queue(),
       last : null
     };
     
-    this.bindTo = function(a,b,c) {
-      var binding = Warden.watcher(this, a, b, c);
-      bindings.push(binding);      
-      return binding;
-    };
-
-    this.update = function(e) {
-      bindings.length && each(bindings, function(binding){
-        binding.update(e || self._.takes.last());
-      });
-    };
+    priv.set(id, {
+      bindings : [],
+      processor : new Processor(proc || [], self),
+      host : 0,
+      handlers : [],
+      setup : function(x){ return x}
+    });
   }
+
+  DataBus.prototype.update = function(e) {
+    var bindings = priv.get(this.$$id, 'bindings');
+    bindings.length && each(bindings, function(binding){
+      binding.update(e || self.data.takes.last());
+    });
+  };
 
   DataBus.prototype.fire = function(data, context) {
     var id = this.$$id,
         self = this,
-        handlers = _private(id, 'handlers'),
-        processor = _private(id, 'processor');
+        handlers = priv.get(id, 'handlers'),
+        processor = priv.get(id, 'processor');
 
-    data = _private(id, 'setup')(is.exist(data) ? data : {}); //setting up data
+    data = priv.get(id, 'setup')(is.exist(data) ? data : {}); //setting up data
 
-    this._.fires.push(data); // pushing fired data to @fires queue
+    this.data.fires.push(data); // pushing fired data to @fires queue
 
     processor.start(data, context, function(result){
-      self._.takes.push(result); // pushing taked data to @takes queue 
-      self._.last = result;
-      self.update(result);
+      self.data.takes.push(result); // pushing taked data to @takes queue 
+      self.update(self.data.last = result); 
 
       /* Executing all handlers of this DataBus */
       each(handlers, function(handler){
-        handler.apply(context, [result]);
+        handler.call(context, result);
       });
 
     });
@@ -126,13 +116,13 @@ var DataBus = (function(){
   
   DataBus.prototype.setup = function(fn) {
     Analyze('setup', fn);
-    _private(this.$$id, 'setup', function(setup){
+    priv.set(this.$$id, 'setup', function(){
       return fn
     });
   };  
 
   DataBus.prototype.host = function(host) {
-    return host ? _private(this.$$id, 'host', host) : _private(this.$$id, 'host');
+    return host ? priv.set(this.$$id, 'host', host) : priv.get(this.$$id, 'host');
   };
 
   /* 
@@ -143,7 +133,7 @@ var DataBus = (function(){
   */
   DataBus.prototype.listen = function(x){
     var self = this;
-    _private(this.$$id, 'handlers' , function(handlers){
+    priv.set(this.$$id, 'handlers' , function(handlers){
       handlers.push(is.fn(x) ? x : function(){console.log(x)});
       if(handlers.length<=1){
         self.host().push(self);
@@ -160,9 +150,9 @@ var DataBus = (function(){
   DataBus.prototype.mute = function(x){
     x = is.fn(fn) ? x.name : x;
     
-    each(_private(this.$$id, 'handlers'), function(handler, index){
+    each(priv.get(this.$$id, 'handlers'), function(handler, index){
       if(handler.name == x){
-        _private(this.$$id, 'handlers', function(handlers){
+        priv.set(this.$$id, 'handlers', function(handlers){
           return handlers.slice(0,index).concat(handlers.slice(index+1,handlers.length));
         });
       }
@@ -297,8 +287,8 @@ var DataBus = (function(){
     return process.call(this, function(event, drive){
       var bus = drive.$host(), prev = init, cur = event;
 
-      if(bus._.takes.length > 0){
-        prev = bus._.takes.last();
+      if(bus.data.takes.length > 0){
+        prev = bus.data.takes.last();
       }
       return drive.$continue(fn.call(this, prev, cur));
     });   
@@ -314,8 +304,8 @@ var DataBus = (function(){
     }else{
       return process.call(this, function(e, drive){
         var bus = drive.$host();
-        bus._.limit = bus._.limit || x;
-        if(bus._.takes.length === bus._.limit){
+        bus.data.limit = bus.data.limit || x;
+        if(bus.data.takes.length === bus.data.limit){
           return drive.$break();
         }else{
           return drive.$continue(e);
@@ -335,13 +325,13 @@ var DataBus = (function(){
         prop = argv[i];
         if(is.array(prop)){
           for(var j=0, k=prop.length;j<k;j++){
-            if(is.exist(bus._[prop[j]])){
-              data[prop[j]] = bus._[prop[j]]
+            if(is.exist(bus.data[prop[j]])){
+              data[prop[j]] = bus.data[prop[j]]
             }
           }
         }else{
-          if(is.exist(bus._[prop])){
-            data[prop] = bus._[prop];
+          if(is.exist(bus.data[prop])){
+            data[prop] = bus.data[prop];
           }
         }
       }    
@@ -356,7 +346,7 @@ var DataBus = (function(){
     Analyze('skip', c);
     return process.call(this, function(e, drive){
       var bus = drive.$host();
-      if(bus._.fires.length <= c){
+      if(bus.data.fires.length <= c){
         drive.$break();
       }else{
         return drive.$continue(e);
@@ -403,8 +393,8 @@ var DataBus = (function(){
     }
 
     return process.call(this, function(event, drive){
-      var fires = drive.$host()._.fires;
-      var takes = drive.$host()._.takes;
+      var fires = drive.$host().data.fires;
+      var takes = drive.$host().data.takes;
       if( (fires.length > 1 || takes.length > 0) && (compractor(event, fires[fires.length-2]) || compractor(event, takes.last())) ){      
         return drive.$break();
       }else{
@@ -421,9 +411,9 @@ var DataBus = (function(){
 
     return process.call(this, function(e, drive){
       var self = this, bus = drive.$host();
-      clearTimeout(bus._.dbtimer);
-      bus._.dbtimer = setTimeout(function(){
-        delete bus._.dbtimer;
+      clearTimeout(bus.data.dbtimer);
+      bus.data.dbtimer = setTimeout(function(){
+        delete bus.data.dbtimer;
         drive.$unlock();
         drive.$continue(e);
       }, t);      
@@ -439,16 +429,16 @@ var DataBus = (function(){
     return process.call(this, function(e, drive){
       var self = this, 
           bus = drive.$host(),
-          fired = bus._.fires.length-1;
-      bus._.tmpCollection = bus._.tmpCollection || [];
-      bus._.tmpCollection.push(e);
-      if(!bus._.timer){
-        bus._.timer = setTimeout(function(){
-          var collection = bus._.tmpCollection;
+          fired = bus.data.fires.length-1;
+      bus.data.tmpCollection = bus.data.tmpCollection || [];
+      bus.data.tmpCollection.push(e);
+      if(!bus.data.timer){
+        bus.data.timer = setTimeout(function(){
+          var collection = bus.data.tmpCollection;
 
-          clearTimeout(bus._.timer);
-          delete bus._.timer;
-          delete bus._.tmpCollection
+          clearTimeout(bus.data.timer);
+          delete bus.data.timer;
+          delete bus.data.tmpCollection
           
           drive.$unlock();
           drive.$continue(collection);
@@ -460,12 +450,36 @@ var DataBus = (function(){
     });
   };
 
+  DataBus.prototype.delay = function(time) {
+    Analyze('delay', time);
+    return process.call(this, function(e, drive){
+      setTimeout(function(){
+        drive.$continue(e)
+      }, time);
+    });
+  };
+
+  DataBus.prototype.repeat = function(time) {
+    var interval;
+    Analyze('repeat', time);
+    
+    this.stopRepeating = function(){
+      clearInterval(interval);
+    }
+
+    return process.call(this, function(e, drive){
+      interval = setInterval(function(){
+        drive.$continue(e)
+      }, time);
+    });
+  };
+
   DataBus.prototype.toggle = function(a,b) {
     var self = this;
-    this._.toggle = false;
+    this.data.toggle = false;
     return process.call(this, function(e, drive){
-      var fun = self._.toggle ? a : b;
-      self._.toggle = !self._.toggle;
+      var fun = self.data.toggle ? a : b;
+      self.data.toggle = !self.data.toggle;
       return drive.$continue(fun.call(self, e));
     });
   };
@@ -583,7 +597,7 @@ var DataBus = (function(){
   };
 
   DataBus.prototype.syncFlat = function(bus){
-    self = this,
+    var self = this,
     nbus = Warden.makeStream(function(emit){
       self.sync(bus).listen(function(arr){
         emit(Utils.flatten(arr));

@@ -4,6 +4,7 @@
     version: 1.0.0
   
   -- v1.0.0 --
+    - Added sprint/stop method.
 
   -- v0.3.3 -- 
     - Added $context in object. Removed class name.
@@ -28,7 +29,8 @@ Warden.makeStream = (function(){
 
   /* Stream constructor */
   function Stream(context){
-    var drive = [];
+    var drive = [],
+        interval;
 
     return {
       $$id : Utils.$hash.set('s'), // stream id
@@ -113,6 +115,22 @@ Warden.makeStream = (function(){
         }
       },
 
+      sprint : function(time, gen){
+        var iter = 0, self = this;
+        interval = setInterval(function(){
+          if(drive[iter]){
+            drive[iter].fire(gen ? gen(iter) : iter);
+          }else{
+            self.stop();
+          }
+          iter++;
+        }, time);
+      },
+
+      stop : function(){
+        clearInterval(interval)
+      },
+
       /*
         Creates empty DataBus object and hoist it to the current stream
       */
@@ -167,4 +185,3 @@ Warden.makeStream = (function(){
     return stream;
   };
 })();
-

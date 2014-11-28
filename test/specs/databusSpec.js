@@ -746,7 +746,7 @@ describe('Warden DataBus methods', function () {
 
 			clear();
 
-			parent.lock('-c');
+			parent.lockChildren();
 
 			Context.sync(666);
 
