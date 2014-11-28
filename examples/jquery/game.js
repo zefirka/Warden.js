@@ -28,7 +28,7 @@ var LEVELS = [
 ];
 
 var BlockFactory = (function(){
-  var doc = Warden.extend($(document));
+  var doc = $(document);
   var id = 0;
   var Block = Warden.extend(function Block(x,y){
     this.x = x;

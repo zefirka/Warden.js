@@ -180,7 +180,7 @@ Warden.extend = (function(){
       each(types.split(','), function(type){
         type = Utils.trim(type);
         if(!filter(handlers, function(i){return i.type == type;}).length && self[config.listener]){
-          this[config.listener].apply(self, [type, function(event){ 
+          self[config.listener].apply(self, [type, function(event){ 
             self.emit(event)
           }]);
         }

@@ -85,6 +85,12 @@ var DataBus = (function(){
     });
   }
 
+  DataBus.prototype.bindTo = function(a,b,c) {
+    var binding = Warden.watcher(this, a, b, c);
+    priv.get(this.$$id, 'bindings').push(binding);
+    return binding;
+  };
+
   DataBus.prototype.update = function(e) {
     var bindings = priv.get(this.$$id, 'bindings');
     bindings.length && each(bindings, function(binding){

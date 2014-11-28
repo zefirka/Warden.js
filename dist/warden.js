@@ -34,6 +34,7 @@
     -- v1.2.3 --
         Derived .log  to .interpolate (common interpolation method) and .log (logs with interpolation)
         Added toArray method
+        Added trim method
 
     -- v1.2.2 --
         Added some props to analyzator's ,ap
@@ -588,7 +589,7 @@
         each(types.split(','), function(type){
           type = Utils.trim(type);
           if(!filter(handlers, function(i){return i.type == type;}).length && self[config.listener]){
-            this[config.listener].apply(self, [type, function(event){ 
+            self[config.listener].apply(self, [type, function(event){ 
               self.emit(event)
             }]);
           }
@@ -974,7 +975,6 @@
         return is.exist(e) ? this[id][e] : this[id];
       }
     }
-
     
     function inheritFrom(child, parent){
       child.parent = parent;
@@ -1022,6 +1022,12 @@
         setup : function(x){ return x}
       });
     }
+
+    DataBus.prototype.bindTo = function(a,b,c) {
+      var binding = Warden.watcher(this, a, b, c);
+      priv.get(this.$$id, 'bindings').push(binding);
+      return binding;
+    };
 
     DataBus.prototype.update = function(e) {
       var bindings = priv.get(this.$$id, 'bindings');
@@ -1604,7 +1610,7 @@
   		each = Utils.each;
 
   	return function(bus, a, b, c){
-  		var argv = Utils.toArray(arguments).split(1,arguments.length),
+  		var argv = Utils.toArray(arguments).slice(1,arguments.length),
   			argc = argv.length,
   			fn;
 
@@ -1657,7 +1663,7 @@
   				fn = function(event){
   					return b.call(a, event);
   				}
-  			}
+  			} 
   		}
 
   		bus.listen(fn);

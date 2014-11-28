@@ -8,7 +8,7 @@ Warden.watcher = (function(){
 		each = Utils.each;
 
 	return function(bus, a, b, c){
-		var argv = Utils.toArray(arguments).split(1,arguments.length),
+		var argv = Utils.toArray(arguments).slice(1,arguments.length),
 			argc = argv.length,
 			fn;
 
@@ -61,7 +61,7 @@ Warden.watcher = (function(){
 				fn = function(event){
 					return b.call(a, event);
 				}
-			}
+			} 
 		}
 
 		bus.listen(fn);
