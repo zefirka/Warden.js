@@ -23,7 +23,7 @@ Warden.js provides a functionality for the development of event-driven applicati
   
 ##Installation (NodeJS)##
 
-    npm install git+https://git@github.com/zefirka/Warden.js
+    npm install warden.js
   
 ##Contribute##
 We're always glad to new pull reqests or issues. Feel free to make contributions.
