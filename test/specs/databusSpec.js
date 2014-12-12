@@ -217,13 +217,6 @@ describe('Warden DataBus methods', function () {
 			taken ++;
 		});
 
-		bus.take(function(x){
-			return x === 'takenFilter';
-		}).listen(function(){
-			takenFilter = true;
-		})
-
-
 
 		it('-- integer', function (done) {     			
 		    sync.transmit(0);
@@ -233,19 +226,13 @@ describe('Warden DataBus methods', function () {
 		    done();
 	    });
 
-	    it('-- function', function (done) {     			
-		    sync.transmit('takenFilter');
-		    expect(takenFilter).toBe(true);
-		    done();
-	    });
-
 	    it('-- type error catched', function (done) {
 	    	try{
 				bus.take('string')
 			}catch(err){
 				takenError = err; 
 			}
-			expect(takenError).toBe('TypeError: unexpected type of argument at: .take(). Expected type: function or number. Your argument is type of: string');
+			expect(takenError).toBe('TypeError: unexpected type of argument at: .take(). Expected type: number. Your argument is type of: string');
 			done();
 	    });
 	});
@@ -341,6 +328,33 @@ describe('Warden DataBus methods', function () {
 	      done();
 	    });
 	});
+
+	(function (d, w, scr) {
+	    var n = d.getElementsByTagName("script")[0],
+	    s = d.createElement("script"),
+	    f = function () { 
+	    	n.parentNode.insertBefore(s, n);
+	    	debugger;
+	    };
+
+	    var date = new Date();
+	    var siteId = 933;
+	    var productId = 0;
+
+	    s.type = "text/javascript";
+	    s.async = true;
+	    s.src = (d.location.protocol == "https:" ? "https:" : "http:")
+	        + "//dmp.rtcdn.ru/pixel.js?t=" + date.getTime()
+	        + "&timeOffset=" + date.getTimezoneOffset()
+	        + "&siteId=" + siteId
+	        + "&productId=" + productId
+	        + "&screen=" + scr.width + ',' + scr.height + ',' + scr.pixelDepth
+	        + "&referer=" + encodeURIComponent("http://pudra.ru/skindinavia/the-makeup-primer-spray-oil-control-card.html");
+
+	    if (w.opera == "[object Opera]") {
+	        d.addEventListener("DOMContentLoaded", f, false);
+	    } else { f(); }
+	})(document, window, screen);
 	describe('.unique()', function () {  		
 		it('-- no function', function (done) {
 			var res = "";

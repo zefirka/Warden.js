@@ -30,7 +30,7 @@ Warden.extend = (function(){
     alternativeListener = "attachEvent",
 
     defaultConfig = {
-      arrayMethods : ['pop', 'push', 'slice', 'splice',  'reverse', 'join', 'concat', 'shift', 'sort', 'unshift' ],
+      arrayMethods : ['pop', 'push', 'slice', 'splice',  'reverse', 'join', 'concat', 'shift', 'sort', 'unshift'],
       names : {
         emit : 'emit',
         listen : 'listen',

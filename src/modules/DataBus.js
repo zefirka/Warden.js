@@ -1,7 +1,13 @@
 /*
   DataBus module.
-  Version: v1.1.0
+  Version: v1.1.1
   Implements data processing through stream. 
+
+  -- v.1.1.1 --
+    Added method .equals which     
+    Optimized fire, get, reduce, include, skip, unique
+    Removed logging strings via .listen([string]) method, now it possible to log string via .log([string]) method
+    
 
   -- v.1.1.0 --
     Added .delay and .repeat methods. 
@@ -28,10 +34,7 @@ var DataBus = (function(){
   var each = Utils.each, is = Utils.is,
   priv = {
     set: function(id, e, val){
-      if(is.obj(e) && !is.exist(val)){
-        return this[id] = e;
-      }
-      return this[id][e] = is.fn(val) ? val(this[id][e]) : val;
+      return is.obj(e) && !is.exist(val) ? this[id] = e : this[id][e] = is.fn(val) ? val(this[id][e]) : val;
     },
     get: function(id, e){
       return is.exist(e) ? this[id][e] : this[id];
@@ -99,21 +102,17 @@ var DataBus = (function(){
   };
 
   DataBus.prototype.fire = function(data, context) {
-    var id = this.$$id,
-        self = this,
-        handlers = priv.get(id, 'handlers'),
-        processor = priv.get(id, 'processor');
+    var id = this.$$id, self = this;
 
     data = priv.get(id, 'setup')(is.exist(data) ? data : {}); //setting up data
-
     this.data.fires.push(data); // pushing fired data to @fires queue
 
-    processor.start(data, context, function(result){
+    priv.get(id, 'processor').start(data, context, function(result){
       self.data.takes.push(result); // pushing taked data to @takes queue 
       self.update(self.data.last = result); 
 
       /* Executing all handlers of this DataBus */
-      each(handlers, function(handler){
+      each(priv.get(id, 'handlers'), function(handler){
         handler.call(context, result);
       });
 
@@ -140,7 +139,7 @@ var DataBus = (function(){
   DataBus.prototype.listen = function(x){
     var self = this;
     priv.set(this.$$id, 'handlers' , function(handlers){
-      handlers.push(is.fn(x) ? x : function(){console.log(x)});
+      handlers.push(x);
       if(handlers.length<=1){
         self.host().push(self);
       }
@@ -167,9 +166,9 @@ var DataBus = (function(){
   };
 
   /* Logging recieved data to console or logger */
-  DataBus.prototype.log = function(){
+  DataBus.prototype.log = function(x){
     return this.listen(function(data){
-      return console.log(data);
+      return console.log(x || data);
     });
   };
 
@@ -179,7 +178,7 @@ var DataBus = (function(){
   DataBus.prototype.filter = function(x) {
     Analyze('filter', x);
     return process.call(this, function(e, drive){
-      return x.apply(this, [e]) === true ? drive.$continue(e) : drive.$break();
+      return x.call(this, e) === true ? drive.$continue(e) : drive.$break();
     });
   };
 
@@ -216,7 +215,7 @@ var DataBus = (function(){
         return drive.$continue(r);
       }
     }else
-    if(is.array(x)){      
+    if(is.array(x)){
       fn = function(e, drive){
         var res = [];
         each(x, function(i){
@@ -245,7 +244,7 @@ var DataBus = (function(){
 
   DataBus.prototype.nth = function(x) {
     Analyze('nth', x);
-    process.call(this, function(e, drive){
+    return process.call(this, function(e, drive){
       return drive.$continue(e[x]);
     });
   }
@@ -255,10 +254,10 @@ var DataBus = (function(){
     return process.call(this, function(data, drive){
       var current = data;
       each(s.split('/'), function(elem){
-        var cand, last = elem.length-1;
+        var cand;
 
-        if(elem[0]=='[' && elem[last]==']'){
-          cand = elem.slice(1,last);
+        if(elem[0]=='[' && elem[elem.length-1]==']'){
+          cand = elem.slice(1,-1);
           if(is.exist(cand)){
             if(is.num(parseInt(cand))){
               elem = parseInt(cand);
@@ -285,17 +284,17 @@ var DataBus = (function(){
     If previous value is empty, then it is init or first value (or when init == 'first' or '-f')
   */
   DataBus.prototype.reduce = function(init, fn){
+    Analyze('reduce', fn);
+
     if(arguments.length==1){
       fn = init;
-      init = undefined;
+      init = void 0;
     }
-    Analyze('reduce', fn);
     return process.call(this, function(event, drive){
-      var bus = drive.$host(), prev = init, cur = event;
+      var bus = drive.$host(), 
+          cur = event, 
+          prev = bus.data.takes.length > 0 ? bus.data.takes.last() : init;
 
-      if(bus.data.takes.length > 0){
-        prev = bus.data.takes.last();
-      }
       return drive.$continue(fn.call(this, prev, cur));
     });   
   };
@@ -305,42 +304,31 @@ var DataBus = (function(){
   */
   DataBus.prototype.take = function(x){
     Analyze('take', x);
-    if(is.fn(x)){
-      return this.filter(x);
-    }else{
-      return process.call(this, function(e, drive){
-        var bus = drive.$host();
-        bus.data.limit = bus.data.limit || x;
-        if(bus.data.takes.length === bus.data.limit){
-          return drive.$break();
-        }else{
-          return drive.$continue(e);
-        }
-      });
-    }
-  };
+
+    return process.call(this, function(e, drive){
+      var bus = drive.$host();
+      bus.data.limit = bus.data.limit || x;
+      if(bus.data.takes.length === bus.data.limit){
+        return drive.$break();
+      }else{
+        return drive.$continue(e);
+      }
+    }); 
+  }
 
   
   DataBus.prototype.include = function() {
-    var argv = arguments, 
+    var argv = Utils.toArray(arguments), 
         argc = argv.length;
-
     return process.call(this, function(data, drive){
-      var bus = drive.$host(), prop;
-      for(var i=0, l=argc; i<l; i++){
-        prop = argv[i];
-        if(is.array(prop)){
-          for(var j=0, k=prop.length;j<k;j++){
-            if(is.exist(bus.data[prop[j]])){
-              data[prop[j]] = bus.data[prop[j]]
-            }
-          }
-        }else{
-          if(is.exist(bus.data[prop])){
-            data[prop] = bus.data[prop];
-          }
+      var bus = drive.$host();
+
+      each(argv, function(prop){
+        Analyze('include', prop);
+        if(is.exist(bus.data[prop])){
+          data[prop] = bus.data[prop];
         }
-      }    
+      });      
       return drive.$continue(data);
     });  
   };
@@ -352,11 +340,7 @@ var DataBus = (function(){
     Analyze('skip', c);
     return process.call(this, function(e, drive){
       var bus = drive.$host();
-      if(bus.data.fires.length <= c){
-        drive.$break();
-      }else{
-        return drive.$continue(e);
-      }
+      return bus.data.fires.length > c ? drive.$continue(e) : drive.$break();
     });  
   };
 
@@ -366,8 +350,7 @@ var DataBus = (function(){
   DataBus.prototype.interpolate = function(s, reg){
     Analyze('interpolate', s);
     return process.call(this, function(event, drive){
-      var regex = reg || /{{\s*[\w\.]+\s*}}/g;
-      return drive.$continue(s.replace(regex, function(i){return event[i.slice(2,-2)]}));
+      return drive.$continue(Utils.interpolate(s, event))
     })
   };
 
@@ -377,10 +360,7 @@ var DataBus = (function(){
   DataBus.prototype.mask = function(o, reg){
     Analyze('mask', o);
     return process.call(this, function(event, drive){
-      var regex = reg || /{{\s*[\w\.]+\s*}}/g;
-      return drive.$continue(event.replace(regex, function(i){
-        return o[i.slice(2,-2)];
-      }));
+      return drive.$continue(is.str(event) ? Utils.interpolate(event, o) : event);
     });
   };
 
@@ -394,18 +374,12 @@ var DataBus = (function(){
   DataBus.prototype.unique = function(compractor){
     Analyze('unique', compractor);
 
-    compractor = is.fn(compractor) ? compractor : function(a,b){
-      return a===b;
-    }
+    compractor = compractor || function(a,b){return a===b;}
 
     return process.call(this, function(event, drive){
-      var fires = drive.$host().data.fires;
-      var takes = drive.$host().data.takes;
-      if( (fires.length > 1 || takes.length > 0) && (compractor(event, fires[fires.length-2]) || compractor(event, takes.last())) ){      
-        return drive.$break();
-      }else{
-        return drive.$continue(event);
-      }  
+      var data = drive.$host().data, fires = data.fires, takes = data.takes,
+          cons = (fires.length > 1 || takes.length > 0) && (compractor(event, fires[fires.length-2]) || compractor(event, takes.last()));
+        return cons ? drive.$break() : drive.$continue(event);
     });
   };
 
@@ -455,6 +429,12 @@ var DataBus = (function(){
       }
     });
   };
+
+  DataBus.prototype.equals = function(x){
+    return this.filter(function(y){
+      return x === y;
+    });
+  }
 
   DataBus.prototype.delay = function(time) {
     Analyze('delay', time);
@@ -606,7 +586,7 @@ var DataBus = (function(){
     var self = this,
     nbus = Warden.makeStream(function(emit){
       self.sync(bus).listen(function(arr){
-        emit(Utils.flatten(arr));
+        emit.call(this, Utils.flatten(arr));
       })
     }).bus();
     inheritFrom(nbus, this);

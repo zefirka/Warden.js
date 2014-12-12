@@ -134,17 +134,6 @@ var Utils, Analyze, UserMap = {};
       }
     },
     
-    profile = function(fn, n, gen, fname){
-      var name = fn.name || fname || "function",
-          m = [name, "have been ran", n,"times:"].join(" ");
-
-      console.time(m);
-      for(var i=0; i<n; i++){
-        fn(gen ? gen(n) : n);
-      }
-      console.timeEnd(m);
-    },
-
     toArray = function(a){
       if(is.obj(a) && is.not.exist(a.length)){
         a.length = Object.keys(a).length;
@@ -239,9 +228,6 @@ var Utils, Analyze, UserMap = {};
 
       toArray : toArray,
 
-      /* Profiling method */
-      profile : profile,
-
       /* Interpolation */
       interpolate : interpolate, 
       log : function(){
@@ -252,7 +238,7 @@ var Utils, Analyze, UserMap = {};
         var r = [];
         each(arr, function(v){
           if(is.array(v)){
-            arr.push.apply(flatten(v));
+            r = r.concat(Utils.flatten(v));
           } else {
             r.push(v);
           }
@@ -348,7 +334,8 @@ var Utils, Analyze, UserMap = {};
     stream : [_STR],
     unlisten : [_STR],
     reduce : [_FUN],
-    take : [_FUN,_NUM],
+    include : [_STR],
+    take : [_NUM],
     filter : [_FUN],
     skip : [_NUM],
     setup : [_FUN],
@@ -356,10 +343,10 @@ var Utils, Analyze, UserMap = {};
     debounce : [_NUM],
     getCollected : [_NUM],
     interpolate : [_STR],
-    mask : [_STR],
+    mask : [_OBJ],
     unique : [_FUN, _UND],
     lock : [_STR],
-    nth : [_OBJ],
+    nth : [_NUM],
     get : [_STR]
   });
 
