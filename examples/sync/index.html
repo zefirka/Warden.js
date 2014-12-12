@@ -48,8 +48,8 @@
         $(".console").html('Clicked at link, now asynchronized, waiting for click to second link');
       })
 
-      btn1Clicks.waitFor(btn2Clicks).take(1).listen("Clicked second after first");
-      btn2Clicks.waitFor(btn1Clicks).listen("Clicked first after second");
+      btn1Clicks.waitFor(btn2Clicks).take(1).log("Clicked second after first");
+      btn2Clicks.waitFor(btn1Clicks).log("Clicked first after second");
 
       var synced = btn1Clicks.sync(btn2Clicks).listen(function(e){
         clear.start();
