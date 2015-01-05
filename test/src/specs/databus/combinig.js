@@ -137,4 +137,33 @@ describe('Combining methods ', function () {
 		
 	});
 
+	it('-- sync 4 streams (with intreval of 300 ms);', function (done) { 
+		var cl;
+
+		var bus1 = bus.filter(function(x){return x==1}).map('a'),
+			bus2 = bus.filter(function(x){return x==2}).map('b'),
+			bus3 = bus.filter(function(x){return x==3}).map('c'),
+			bus4 = bus.filter(function(x){return x==4}).map('d'),			
+			synced = bus1.sync(bus2, bus3, bus4);
+
+		synced.listen(function(x){
+			cl = x;
+		});
+
+		sync.transmit(1);
+		setTimeout(function(){
+			sync.transmit(2);	
+			setTimeout(function(){
+				sync.transmit(3);
+				setTimeout(function(){
+					sync.transmit(4)
+					expect(cl).toEqual(['a', 'b', 'c', 'd']);
+					synced.lock();
+					done();
+				}, 300);
+			}, 300);
+		}, 300)
+		
+	});
+
 });

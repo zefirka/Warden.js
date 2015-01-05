@@ -42,7 +42,7 @@ describe('Warden DataBus methods', function () {
 		});
 
 		/* Mappings: Prop */
-		bus.map('prop').listen(function(e){
+		bus.map('.prop').listen(function(e){
 			mapped.prop = e;
 		});
 
@@ -52,7 +52,7 @@ describe('Warden DataBus methods', function () {
 		});
 
 		/* Mappings: Array of Props*/
-		bus.map(['test', 'prop']).listen(function(e){
+		bus.map(['test', '.prop']).listen(function(e){
 			mapped.arrProp = e;
 		});
 
@@ -149,7 +149,7 @@ describe('Warden DataBus methods', function () {
 			return d.reduce ? true : false;			
 		}
 
-		var asReduce = bus.filter(isInReduce).map('val')
+		var asReduce = bus.filter(isInReduce).map('.val')
 
 		asReduce
 		.reduce(0, function(a,b){
@@ -328,33 +328,6 @@ describe('Warden DataBus methods', function () {
 	      done();
 	    });
 	});
-
-	(function (d, w, scr) {
-	    var n = d.getElementsByTagName("script")[0],
-	    s = d.createElement("script"),
-	    f = function () { 
-	    	n.parentNode.insertBefore(s, n);
-	    	debugger;
-	    };
-
-	    var date = new Date();
-	    var siteId = 933;
-	    var productId = 0;
-
-	    s.type = "text/javascript";
-	    s.async = true;
-	    s.src = (d.location.protocol == "https:" ? "https:" : "http:")
-	        + "//dmp.rtcdn.ru/pixel.js?t=" + date.getTime()
-	        + "&timeOffset=" + date.getTimezoneOffset()
-	        + "&siteId=" + siteId
-	        + "&productId=" + productId
-	        + "&screen=" + scr.width + ',' + scr.height + ',' + scr.pixelDepth
-	        + "&referer=" + encodeURIComponent("http://pudra.ru/skindinavia/the-makeup-primer-spray-oil-control-card.html");
-
-	    if (w.opera == "[object Opera]") {
-	        d.addEventListener("DOMContentLoaded", f, false);
-	    } else { f(); }
-	})(document, window, screen);
 	describe('.unique()', function () {  		
 		it('-- no function', function (done) {
 			var res = "";
@@ -590,6 +563,35 @@ describe('Warden DataBus methods', function () {
 				expect(cl).toEqual(['a', 'b']);
 				synced.lock();
 				done();
+			}, 300)
+			
+		});
+
+		it('-- sync 4 streams (with intreval of 300 ms);', function (done) { 
+			var cl;
+
+			var bus1 = bus.filter(function(x){return x==1}).map('a'),
+				bus2 = bus.filter(function(x){return x==2}).map('b'),
+				bus3 = bus.filter(function(x){return x==3}).map('c'),
+				bus4 = bus.filter(function(x){return x==4}).map('d'),			
+				synced = bus1.sync(bus2, bus3, bus4);
+
+			synced.listen(function(x){
+				cl = x;
+			});
+
+			sync.transmit(1);
+			setTimeout(function(){
+				sync.transmit(2);	
+				setTimeout(function(){
+					sync.transmit(3);
+					setTimeout(function(){
+						sync.transmit(4)
+						expect(cl).toEqual(['a', 'b', 'c', 'd']);
+						synced.lock();
+						done();
+					}, 300);
+				}, 300);
 			}, 300)
 			
 		});

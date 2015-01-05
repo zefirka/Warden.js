@@ -1,7 +1,7 @@
 Utils
 =========
 
-Module at: 
+Module at:
  - <code>./src/modules/Utils.js<code> : Utilities module
 
 ###Description###
@@ -10,7 +10,7 @@ Module at:
 ###List###
 <ul>
 	<li>
-		<code>Utils.is</code> [Object] 
+		<code>Utils.is</code> [Object]
 		<ul>
 			<li><code>str</code> is string</li>
 			<li><code>num</code> is number</li>
@@ -28,16 +28,11 @@ Module at:
 		<code>Utils.is.not</code> [Object] (similiar to <code>Utils.is</code> but negate all results)
 	</li>
 	<li>
-		<p><code>Utils.$let</code> : function </p>
-		<p>Description: it uses predicates to create predicate chain which return a function extented with methods: <code>.and</code>, <code>.or</code> and <code>.butNot</code> when each take predicate as argument and puts into chain with condition (respectively "predicate1 and predicate2", "predicate1 or predicate2" and "predicate1 butNot predicate2"). 
-		</p>
-		<p>You can concatenate more than 2 predicates, but you can't group them like <code>((a and b) or c) and d</code></p>
-	</li>
-	<li>
 		Array methods which implements ECMAScript5 methods as:
 			<ul>
 				<li><code>.each</code> or <code>.forEach</code></li>
 				<li><code>.map</code></li>
+        <li><code>.reduce</code></li>
 				<li><code>.filter</code></li>
 				<li><code>.forWhile</code> (similiar to forEach, but takes last argument as value to prevent loop if applied function returns that value </li>
 				<li><code>.any</code></li>
@@ -45,10 +40,7 @@ Module at:
 
 			</ul>
 	</li>
-	<li> 
-		<code>Utils.profile(@function[fn], @integer[count], @function[generator], @string[name])</code> profiling method. Takes  function to profile, count (integer number to execute function), generator function (which creates argument for profiling function as <code>gen(count)</code>) and string (name of function). Profiler will log to console time spent on executing <code>fn</code> <code>count</code> times.
-	</li>
 	<li>
-		<code>Utils.log(@string [str], @object [dict])</code> interpolate <code>dict</code>'s properties to the string in Mustache-templating style. Usage: <code>Utils.log('Hello, {{what}}', {what: 'World'})</code>. You can also use 
+		<code>Utils.log(@string [str], @object [dict])</code> interpolate <code>dict</code>'s properties to the string in Mustache-templating style. Usage: <code>Utils.log('Hello, {{what}}', {what: 'World'})</code>. 
 	</li>
 </ul>

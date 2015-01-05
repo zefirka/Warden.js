@@ -12,7 +12,7 @@ describe('.map()', function () {
 	});
 
 	/* Mappings: Prop */
-	bus.map('prop').listen(function(e){
+	bus.map('.prop').listen(function(e){
 		mapped.prop = e;
 	});
 
@@ -22,7 +22,7 @@ describe('.map()', function () {
 	});
 
 	/* Mappings: Array of Props*/
-	bus.map(['test', 'prop']).listen(function(e){
+	bus.map(['test', '.prop']).listen(function(e){
 		mapped.arrProp = e;
 	});
 

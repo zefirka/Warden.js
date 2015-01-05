@@ -1,5 +1,5 @@
 /*
-  Processor module: 
+  Processor module:
   Implements interface to processing all databus methods.
   Version: v1.0.0;
 */
@@ -33,20 +33,20 @@ function Processor(proc, host){
           return host;
         }
       };
-  
+
   var self = {
     /* Add process if @p exists or return all processes of this Processor */
     process : function(p){
-      return Utils.is.exist(p) ? processes.push(p) : processes;
+      return p ? processes.push(p) : processes;
     },
 
     /* Start processing */
     start : function(event, context, fin){
       self.ctx = context;
-      self.fin = fin;    
-      
+      self.fin = fin;
+
       i = locked ? 0 : i;
-      
+
       if(i==processes.length){
         i = 0;
         return fin(event);
@@ -60,15 +60,15 @@ function Processor(proc, host){
       if(breaked){
         return i = 0;
       }
-      
+
       if(i==processes.length){
         i = 0;
         return self.fin(event);
       }
 
-      i++;      
+      i++;
       processes[i-1].apply(self.ctx, [event, fns]);
-      
+
     }
   }
   return self;

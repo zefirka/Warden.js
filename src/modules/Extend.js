@@ -1,8 +1,12 @@
-/* 
-  Extend module: 
+/*
+  Extend module:
     docs: ./docs/Extend.md
-    version: v1.1.0
-  
+    version: v2.0.0
+
+  -- v2.0.0
+    Added regext for events (listen and emit)
+    Fixed array extension usage (now simplier)
+
   -- v1.1.0 --
     Incapsulated $$handlers and now shows only $$id of object
     Added extended arrays methods sequentially and toBus
@@ -17,20 +21,19 @@
     Stabilized default configuration behavior with current deepExtend (Utils/extend) method.
     Changed all functions from ES5 to Utils module analogues.
 
-  This methods extends @obj which can be function, object or array with Warden.js methods .emit(), .listen(), .unlisten() and .stream() 
+  This methods extends @obj which can be function, object or array with Warden.js methods .emit(), .listen(), .unlisten() and .stream()
 */
 
 Warden.extend = (function(){
-  var each = Utils.each, 
+  var each = Utils.each,
     is = Utils.is,
-    map = Utils.map,
     filter = Utils.filter,
     extend = Utils.extend,
     nativeListener = "addEventListener",
     alternativeListener = "attachEvent",
 
     defaultConfig = {
-      arrayMethods : ['pop', 'push', 'slice', 'splice',  'reverse', 'join', 'concat', 'shift', 'sort', 'unshift'],
+      arrays : ['pop', 'push', 'splice', 'reverse', 'shift', 'unshift', 'sort'], //only not-pure methods
       names : {
         emit : 'emit',
         listen : 'listen',
@@ -67,15 +70,16 @@ Warden.extend = (function(){
   return function(obj, conf) {
     Analyze('extend', obj);
 
-    var config = extend({}, defaultConfig, conf || {}), // default configuration 
-        inheritor = obj, // final object to expand
+    var config = extend({}, defaultConfig, conf || {}), // default configuration
+        inheritor = obj || {}, // final object to extend
         isConstructor = true, //obj is constructor
         names = config.names;
-    /* 
+
+    /*
       Choose object to extend,
       if fn is constructor function, then that's prototype, else
-      use actual object element 
-    */    
+      use actual object element
+    */
     if(is.fn(obj)){
       inheritor = obj.prototype;
     }else{
@@ -83,29 +87,18 @@ Warden.extend = (function(){
 
       if(is.array(obj)){
         /* Extending methods of a current array with stream evaluation */
-        each(
-          // functional objects
-          map(config.arrayMethods, function(fn){
-          return {
-            name: fn,
-            fun: Array.prototype[fn] }
-          }), 
-
-          //iteration
-          function(item){
-            obj[item.name] = function(){
-              var argv = Array.prototype.slice.call(arguments);
-              item.fun.apply(obj, argv);
-              obj.emit({
-                type: item.name, 
-                current: obj,
-                data: argv
-              });
-            }
+        each(config.arrays, function(fn){
+          obj[fn] = function(){
+            obj.constructor.prototype[fn].apply(obj, arguments);
+            obj.emit({
+              type: fn,
+              current: obj,
+              data: Utils.toArray(arguments)
+            });
           }
-        );
+        });
 
-        Utils.extend(inheritor, {
+        extend(inheritor, {
           sequentially : function(timeout){
             var bus = Warden.makeStream().get(),
                 self = this,
@@ -113,7 +106,7 @@ Warden.extend = (function(){
                 interval = setInterval(function(){
                   if(i==self.length){
                     i=0;
-                    clearInterval(interval);                    
+                    clearInterval(interval);
                   }else{
                     bus.fire(self[i++])
                   }
@@ -133,62 +126,70 @@ Warden.extend = (function(){
 
     }
 
-    var overwrite = inheritor[names.emit] || inheritor[names.listen] || 
+    var overwrite = inheritor[names.emit] || inheritor[names.listen] ||
                     inheritor[names.unlisten] || inheritor[names.stream];
 
     /* Checking free namespace */
     if(is.exist(overwrite)){
       throw new Error("Can't overwrite: " + (overwrite.name ? overwrite.name : overwrite) + " of object");
     }
-    
-    /* 
-      Setting up standart DOM event listener 
-      and emitters  function to not overwrite them 
-      and user should do not use that in config 
+
+    /*
+      Setting up standart DOM event listener
+      and emitters  function to not overwrite them
+      and user should do not use that in config
     */
     if(jQueryInited && (!isConstructor ? obj instanceof jQuery : true)){
       config.emitter = config.emitter || 'trigger';
-      config.listener = config.listener || 'on';    
+      config.listener = config.listener || 'on';
     }else
     if(is.fn(inheritor[nativeListener]) || is.fn(inheritor[alternativeListener])){
       config.listener = config.listener || (is.fn(inheritor[nativeListener]) ? nativeListener : alternativeListener);
     }
-        
+
     /* Emitter method */
     inheritor[names.emit] = function(ev, data){
       var self = this,
           type = is.str(ev) ? ev : ev.type,
           data = is.obj(ev) ? ev : data || ev,
           callbacks = filter(getHandlers(this['$$id'] = this['$$id'] || Utils.$hash.set('o')), function(i){
-            return i.type == type;
+            return i.type == type  || (i.rx ? i.rx.test(type) : false );
           });
-      
+
       each(callbacks, function(callback){
         callback.callback.call(self, data);
       });
-        
+
       return this;
     };
 
-    /* listen events of @type */
+    /* Listen events of @type */
     inheritor[names.listen] = function(types, callback){
       var self = this,
-          handlers = getHandlers(this['$$id'] = this['$$id'] || Utils.$hash.set('o'));
-      
+          handlers = getHandlers(this['$$id'] = this['$$id'] || Utils.$hash.set('o')),
+          bind = function(type, rx){
+            var results = filter(handlers, function(i){
+              return (i.type == type) || (i.rx ? i.rx.test(type) : false );
+            });
+
+            if(!results.length && self[config.listener]){
+              self[config.listener].apply(self, [type, function(event){
+                self.emit(event)
+              }]);
+            }
+
+            setHandlers(self['$$id'], {
+              type: type,
+              rx: rx,
+              callback: callback
+            });
+          }
+
       Analyze('listen', types);
 
       each(types.split(','), function(type){
         type = Utils.trim(type);
-        if(!filter(handlers, function(i){return i.type == type;}).length && self[config.listener]){
-          self[config.listener].apply(self, [type, function(event){ 
-            self.emit(event)
-          }]);
-        }
-      
-        setHandlers(self['$$id'], {
-          type: type,
-          callback: callback
-        });
+        bind(type, type.indexOf('*')>=0 ? new RegExp(type) : null);
       });
 
       return this;
@@ -231,7 +232,7 @@ Warden.extend = (function(){
 
         if(!filter(handlers, function(i){return i.type == type;}).length && self[config.listener]){
           self[config.listener].apply(self, [type, function(event){
-            stream.eval(event);      
+            stream.eval(event);
           }]);
         }
 

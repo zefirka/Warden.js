@@ -21,7 +21,7 @@ describe('Warden streams: synchronious', function () {
 		val2 = data.data;
 	});
 
-	bus.map('data').listen(function(e){
+	bus.map('.data').listen(function(e){
 		mapped = e;
 	});
 

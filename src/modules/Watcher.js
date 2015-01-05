@@ -2,79 +2,60 @@
 	Watcher module:
 		version: 0.1.0
 */
-
 Warden.watcher = (function(){
 	var is = Utils.is,
 		each = Utils.each;
 
-	return function(bus, a, b, c){
+	return function(bus, a, b){
 		var argv = Utils.toArray(arguments).slice(1,arguments.length),
 			argc = argv.length,
 			fn;
 
-		if(!is.exist(b) && is.exist(a)){
+		if(argc===1){
 			if(is.str(a)){
-				fn = function(event){
-					return this[a] = event;
-				}			
-
-			}else
+				fn = function(event){this[a] = event;}			
+			}else	
 			if(is.obj(a)){
-				fn = function(event){
-					a = event;
-				}
+				fn = function(event){a = event;}
 			}else
 			if(is.fn(a)){
-				fn = function(event){
-					return a(event);
-				}
+				fn = function(event){a(event);}
 			}
-		}else
-
-		if(is.exist(b)){
+		}else{
 			if(is.obj(a) && is.str(b)){
-				if(b.split('/').length>1){
+				if(b.indexOf('/')>=0){
 					var dest = "";
+
 					each(b.split('/'), function(name){
 						if(!is.exist(eval("a" + dest)[name])){
 							throw "Unknown property: " + name + " from chain: " + b;
 						}
 						dest += ('["'+name+'"]');
 					});
+
 					fn = function(event){
 						eval("a" + dest + "= event");
 					}
 				}else{
-					if(is.fn(a[b])){
-						fn = function(event){
-							a[b](event);
-						}
-					}else{
-						fn = function(event){
-							return a[b] = event;
-						}
-					}
+					fn = is.fn(a[b]) ? function(event){a[b](event);} : fn = function(event){a[b] = event} ;
 				}
 			}else
-
-			if(is.obj(a) && is.fn(b)){
-				fn = function(event){
-					return b.call(a, event);
-				}
+			if(is.fn(b)){
+				fn = function(event){b.call(a, event);}
 			} 
 		}
 
 		bus.listen(fn);
 
-		return Utils.extend(new (function Observable(){}), {
+		return {
 			update : fn,
 			unbind : function(name){
 				bus.mute(name);
 			},
 			bind : function(f){
-				bus.listen(fn || fn)
+				bus.listen(f || fn)
 			}
-		});
+		};
 
 	};
 })();

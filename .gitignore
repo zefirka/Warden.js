@@ -10,3 +10,9 @@ node_modules
 
 _SpecRunner.html
 test/_SpecRunner.html
+
+moscowjs/*
+moscowjs
+
+examples/*
+examples

@@ -13,16 +13,18 @@
     }
   }
 })(this, function(Warden){
-  
+
   'use strict';
 
   var jQueryInited = typeof jQuery != "undefined";
 
-  Warden.version = "0.1.2"; 
-  Warden.configure = {};
-  
-  /* 
-    Globals: 
+  Warden.version = "0.1.4";
+  Warden.configure = {
+    cmp : function(x,y){ return x === y; }
+  };
+
+  /*
+    Globals:
       Utils
       Analyze
   */
@@ -32,13 +34,13 @@
     Globals:
       Warden.extend
   */
-  include "Extend.js" 
+  include "Extend.js"
 
-  /* 
+  /*
     Globals:
       Processor
   */
-  include "Processor.js" 
+  include "Processor.js"
 
   /*
     Globals:
@@ -57,7 +59,7 @@
       Warden.watcher
   */
   include "Watcher.js"
-  
+
   if(jQueryInited){
     Warden.extend(jQuery);
   }

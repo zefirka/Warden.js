@@ -1,27 +1,27 @@
 Warden.extend
 =========
 
-Module at: `./src/module/Extend.js`
+Source at: `./src/module/Extend.js`
 
-Usage : `Warden.extend(object, config)`
+Usage : `Warden.extend([inheritor], [config])`
 
-Description: Extends object with `emit()`, `.listen()`, `unlisten()`and `.stream()` methods. And returns extented object;
+Description: Extends `inheritor` with `emit()`, `.listen()`, `unlisten()`and `.stream()` methods. And returns extented object. If inheritor is empty than returns extended empty object. Inheritor can be function, object or array.
 
 
-###Usage###
-####Extend objects with Warden.extend()###
-Extension method is the base method of Warden, that extends objects or object constructors by methods that implements custom event triggering/listening for Pub/Sub pattern. You can extend simple JS objects, then that object will be transmitter for Pub/Sub or you can extend constructor of objects and then `emit`, `listen`  and `stream` will be methods of prototype.
+## Usage
 
-#####With constructors#####
+Extension method is the base method of Warden, that takes objects/constructors/arrays and returns them extended by methods that implements event triggering/listening for Pub/Sub pattern. You can extend simple JS objects, then that object will be transmitter for Pub/Sub or you can extend constructor of objects and then `emit`, `listen`  and `stream` will be methods of prototype. If you extending array then you will get new array item with own Pub/Sub methods ([look here](#with-arrays)).
+
+##### With constructors
 ```js
 var Box = Warden.extend(function Box(){
 	//constructor of box
-	this.addToBox = function(itemname){
+	this.addToBox = function(item){
 		var self = this;
 		return setTimeout(function(){
 			self.emit({
 				type: "added",
-				item: itemname
+				item: item
 			});
 		}, 2000);
 	}
@@ -39,17 +39,18 @@ myBox.addToBox("watermellon");
 // --> Into box added watermellon item.
 
 ```
-or function that inctanced as constructo (like jQuery): 
-```
-Warden.extend($);
-var clicks = $('body').stream('click');
-clicks.listen("Hey, clicked to body")
-```
+or function that instanced as constructor, like jQuery (actually Warden extending jQuery automatically if find it):
 
-####With simple objects####
 ```js
+var clicks = $(document).stream('click');
+clicks.log("Hey, user clicked to page")
+```
 
+#### With simple objects
+Than Pub/Sub methods is own properties of object.
+```js
 var module = Warden.extend({
+	value : 'some value',
 	asyncLol : function(data){
 		var self = this;
 		setInterval(function(){
@@ -66,70 +67,103 @@ module.listen('lol', function(event){
 	console.log("I lol'd! And recieved data is " + event.data);
 });
 
-var lols = module.stream('lol', {value: 'Value of other object'});
+var lols = module.stream('lol');
 
 lols.listen(function(event){
-	console.log("Now i'm lold inside of object that have value: "  + this.value);
+	console.log("I'm lold inside of object that have value: "  + this.value);
 });
 ```
+#### With arrays
+By default array extension allows to listen next methods calls: 'pop', 'push', 'splice', 'reverse', 'shift', 'unshift', 'sort' (only destructing methods). [You can configure it](#arrconfig).
 
-####Configuration
+```js
+var personas = Warden.extend(['Jack', 'Bob', 'Alice']);
+
+personas.listen('push', function(changes){
+	console.log('To the array was pushed names: ' + changes.data.join(', '));
+});
+
+personas.push('Fonzee', 'Jane');
+// -> To the array was pushed names: Fonzee, Jane
+
+```
+
+### Configuration
 
 You can configure next terms:
 -  `emitter` - Name of native emitter function if you have such. For example $.trigger() for jQuery. Use it if your framework has already have event emitter method and you creating emittor from object that contains native emittor. If you use jQuery you can't dont use this configuration item because Warden automaticaly find it.
--  `listener` - Name of native listener function if you have such. For example $.on() for jQuery, or .addEventListener for native browser's DOM API, both of them you can don't configure. 
+-  `listener` - Name of native listener function if you have such. For example $.on() for jQuery, or .addEventListener for native browser's DOM API, both of them you can don't configure.
 - `names` - Object of names you want to take your mathods. Can contain next properties: `emit`, `listen`, `stream`, `unlisten`.
+- <a name="arrconfig"></a> 'arrays' - Array of array's method names which should be listened in extended arrays. By default: `['pop', 'push', 'splice', 'reverse', 'shift', 'unshift', 'sort']`  
 
-###Methods###
-####emit####
-Usage: `object.emit(event)`
+
+## Methods
+
+### .emit
+Usage: `object.emit(event)` or `object.emit(name, [data])`
 
 Returns: `object`
 
-Emits custom event. If you use `emit([string])`, than it will emit event of `[string]` type empty event. To transfer data though event - use JSON:
+Description: Emits event.
 ```js
-
 mod.emit({
 	type : 'custom',
 	data : 'some data!'
 });
 
+// is equivalent
+
+mod.emit('custom', {data: 'some data!'});
 ```
 
-If you use JSON, event type is on `type` property and it's required. Note that `emit` - is method of object that emits event which you will can subscibe on same object.
+If you use JSON, event type is on `type` property and it's required. Note that `emit` - is method of object that emits event which you will should subscribe on same object.
 
-####listen####
+### .listen
 Usage: `object.listen(type, handler)`
 
 Returns: `object`.
 
-Attaching to the object handler that proces all events of `@type` type.
+Description: Attaching to the object handler that process all events of `type` type.
 ```js
-mod.emit({
-	type: 'custom',
-	greet: 'Hello world!'
+mod.emit('greet', 'Hello World!');
+
+mod.listen('greet', function(greeting){
+	console.log(greeting);
 });
 
-mod.listen('custom', function(event){
-	console.log(event.greet);
+// --> Hello World!
+```
+<a name="asterisk-notation"></a>You can also use `pattern*` notation. Example:
+```js
+mod.listen('get:*', function(e){
+	console.log(e);
 });
 
-// --> Hello world!
+mod.emit('get:one', 'foo');
+//--> foo
+mod.emit('get:two', 'bar');
+//--> bar
 ```
 
-Handlers will be started in same order which they was registered. If you reach maximal number of handlers for current object you'l recieve error : `Maximal handlers count` in console.
+Handlers will be started in same order which they was registered.
 
-####unlisten####
+__Deprecated__: If you reach maximal number of handlers for current object you'l recieve error : `Maximal handlers count` in console.
+
+### .unlisten
 Usage: `object.unlisten(type, handler)`
 
 Returns: `object`.
 
-`handler` can be both string or function. Unsubscribes handler from object's `type` events.
+Description: Unsubscribes handler from object's `type` events. `handler` can be both string or function. Note: if you handled lambda-function to the event you can't unsubscribe it, because functions comparing by name property.
+Allowed [asterisk notation](#asterisk-notation)
 
-####stream####
+### .stream
 Usage: `object.stream(type, [context])`
 
 Returns: `DataBus` object associated with created stream
+
+Description: Creates stream of events and associated to it new DataBus object. Allowed [asterisk notation](#asterisk-notation).
+
 ```js
 var recievedTweets = socket.stream('tweet'),
 	recievedPosts = socket.stream('post');
@@ -140,12 +174,40 @@ recievedTweets
 		time : 'timestamp'
 	})
 	.listen(function(data){
-		console.log("@" + data.user + " has been tweeted at " + data.time);
+		console.log("@" + data.user + " has been tweeted at " + new Date(data.time));
 	});
 
-recievedTweets.merge(recievedPosts).map(['author','type']).listen(function(data){
-	console.log('@'+data[0]+" have made " + data[2]);
-});
+recievedTweets
+	.merge(recievedPosts)
+	.map(['author','type'])
+	.listen(function(data){
+		console.log('@'+data[0]+" have made " + data[2]);
+	});
 
 ```
-Creates stream of data. 
+
+__Configuration of context:__
+By default context of evaluation is equal object which takes stream.
+```js
+var module = Warden.extend({
+	foo: 'bar'
+});
+
+module.stream('ev').listen(function(data){
+	console.log(this);
+});
+
+module.emit('ev');
+
+//--> {foo: 'bar'}
+```
+But you can set your own context:
+```js
+module.stream('goo', {baz: 'Hello!'}).listen(function(){
+	console.log(this);
+});
+
+module.emit('goo');
+
+//--> {baz: 'Hello!'}
+```

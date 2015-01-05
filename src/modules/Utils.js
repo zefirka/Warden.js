@@ -1,7 +1,11 @@
 /* 
   Utilities module
     specs: specs/src/utilsSpecs.js
-    version: 1.2.3
+    version: 1.3.0
+  
+  -- v.1.3.0
+    Added reduce
+    Make global optiomization
 
   -- v1.2.3 --
       Derived .log  to .interpolate (common interpolation method) and .log (logs with interpolation)
@@ -45,64 +49,45 @@ var Utils, Analyze, UserMap = {};
       _UND = 'undefined';
 
   Utils = (function(){
-    var $let = function $let(predicate){
-      var predicates = [predicate],
-          all = false,
-          ans = function(x){
-            var res = map(predicates, function(pred){return pred(x)});
-
-            return all ?  every(res, truthy) : some(res, truthy);   
-          }
-
-      ans.or = function(predicate){
-        predicates.push(predicate);
-        return ans;
-      }
-
-      ans.and = function(predicate){
-        all = true;
-        return ans.or(predicate);
-      }
-
-      ans.butNot = function(predicate){
-        return ans.and(not(predicate));
-      }
-
-      return ans;
-    },
-
-    protoCheck = function(name, cfn){
+    function protoCheck(name, cfn){
       return Array.prototype[name] ? function(arr, fn){return Array.prototype[name].call(arr, fn)} : cfn;
-    },
+    }
 
-    each = protoCheck('forEach', function each(arr, fn){ 
+    var each = protoCheck('forEach', function(arr, fn){ 
       for(var i=0, l=arr.length; i<l;i++){ 
         fn(arr[i], i);
       }
     }),
 
-    forWhile = function forWhile(arr, fn, preventValue, depreventValue){
+    forWhile = function(arr, fn, preventValue, depreventValue){
       preventValue = preventValue || false; 
-      depreventValue = depreventValue !== undefined ? depreventValue : true;
       for(var i=0, l=arr.length; i<l;i++){ 
         if(fn(arr[i], i) === preventValue){
           return preventValue;
         }
       }
-      return depreventValue;
+      return depreventValue !== undefined ? depreventValue : true;
     },
 
-    filter = protoCheck('filter', function filter(arr, fn){
+    filter = protoCheck('filter', function(arr, fn){
       var filtered = [];
       each(arr, function(i, index){
         if(fn(i, index)===true){
           filtered.push(i);
         }
       });
-      return filterd;
+      return filtered;
     }),
     
-    map = protoCheck('map', function map(arr, fn){
+    reduce = protoCheck('reduce', function(arr, fn){
+      var res = arr[0];
+      for(var i=1,l=arr.length;i<l;i++){
+        res = fn(res, arr[i]);
+      }
+      return res;
+    }),
+
+    map = protoCheck('map', function(arr, fn){
       var mapped = [];
       each(arr, function(e, i){
         mapped[i] = fn(e, i);
@@ -110,11 +95,11 @@ var Utils, Analyze, UserMap = {};
       return mapped;
     }),
 
-    some = protoCheck('some', function some(arr, fn){
+    some = protoCheck('some', function(arr, fn){
       return forWhile(arr, fn, true, false);
     }),
 
-    every = protoCheck('every', function every(arr, fn){
+    every = protoCheck('every', function(arr, fn){
       return forWhile(arr, fn);
     }),
 
@@ -134,36 +119,6 @@ var Utils, Analyze, UserMap = {};
       }
     },
     
-    toArray = function(a){
-      if(is.obj(a) && is.not.exist(a.length)){
-        a.length = Object.keys(a).length;
-      }
-      return Array.prototype.slice.call(a);
-    },
-
-    interpolate = function(str){
-      var data = {},
-        argc = arguments.length,
-        argv = toArray(arguments),
-        reg = /{{\s*[\w\.]+\s*}}/g;
-
-      if(argc==2 && is.obj(argv[1])){
-        data = argv[1];
-      }else{
-        each(argv.slice(1, argc), function(e, i){
-          data[i] = e;
-        });
-      }       
-
-      return str.replace(reg, function(i){
-        var arg = data[i.slice(2,-2)] || i;
-        if(is.obj(arg)){
-          arg=JSON.stringify(arg);
-        }
-        return arg;
-      });
-    },
-
     is = {
       exist : function(x){
         return typeof x != 'undefined' && x !== null;
@@ -204,19 +159,10 @@ var Utils, Analyze, UserMap = {};
       is : is,
       not: not,
 
-      /* Logical chining method to combine predicates and calculating a final expression like:
-        $let([falsee function]).or([truthy function]) -> true
-        $let([truthy function]).and([falses function]) -> false
-        $let([truthy function]).or([falsee function]).butNot([falsee function]) -> true
-
-        $let(@function predicate) returns object with methods .and, .or, .butNot 
-      */
-      $let : $let,
 
       /* 
         Array.prototype functional methods: 
       */ 
-
       forEach : each,
       forWhile : forWhile,
       each : each, // synonym of forEach
@@ -224,12 +170,39 @@ var Utils, Analyze, UserMap = {};
       some : some,
       every : every,
       map : map,
+      reduce : reduce,
 
-
-      toArray : toArray,
+      toArray : function(a){
+        if(is.obj(a) && is.not.exist(a.length)){
+          a.length = Object.keys(a).length;
+        }
+        return Array.prototype.slice.call(a);
+      },
 
       /* Interpolation */
-      interpolate : interpolate, 
+      interpolate : function(str){
+        var data = {},
+            argc = arguments.length,
+            argv = Utils.toArray(arguments),
+            reg = /{{\s*[\w\.]+\s*}}/g;
+
+        if(argc==2 && is.obj(argv[1])){
+          data = argv[1];
+        }else{
+          each(argv.slice(1, argc), function(e, i){
+            data[i] = e;
+          });
+        }       
+
+        return str.replace(reg, function(i){
+          var arg = data[i.slice(2,-2)] || i;
+          if(is.obj(arg)){
+            arg=JSON.stringify(arg);
+          }
+          return arg;
+        });
+      }, 
+
       log : function(){
         console.log(interpolate.apply(this, arguments));
       },
@@ -246,39 +219,25 @@ var Utils, Analyze, UserMap = {};
         return r;
       },
 
-      trim: function(str){return str.replace(/^\s+|\s+$/g, '');},    
+      trim: function(str){return str.replace(/^\s+|\s+$/g, '')},    
 
-      /* Extending objects (deep-extend) */
+      /* Extending objects (not deep extend) */
       extend : function () {;
-        function _extend(dest, source) {
-          var key, _, _i, _len, _ref;
+        function _extend(origin, add) {
+          if (!add || typeof add !== 'object') return origin;
+          var keys = Object.keys(add),
+              i = keys.length;
 
-          for (var prop in source) {
-            if (source[prop] && is.obj(source[prop])) {
-              dest[prop] = dest[prop] || {};
-              _extend(dest[prop], source[prop]);
-            } else if (is.array(source[prop])) {
-              dest[prop] = dest[prop] || [];
-              if (is.obj(dest[prop][0]) && is.obj(source[prop][0])) {
-                _ref = source[prop];
-                for (key = _i = 0, _len = _ref.length; _i < _len; key = ++_i) {
-                  dest[prop][key] = _extend(dest[prop][key] || {}, source[prop][key]);
-                }
-              } else {
-                dest[prop] = source[prop];
-              }
-            } else {
-              dest[prop] = source[prop];
-            }
+          while (i--) {
+            origin[keys[i]] = add[keys[i]];
           }
-          return dest;
-        };
-
-        var args = toArray(arguments);
-        return args.reduce(function(dest, src) {
+          return origin;
+        }
+        return Utils.toArray(arguments).reduce(function(dest, src) {
           return _extend(dest, src);
         });
-      } ,
+      },
+
       /* 
         Queue class @arr is Array, @maxlength is Number
       */
@@ -307,8 +266,7 @@ var Utils, Analyze, UserMap = {};
             return hash[n];
           },
           set : function(i){
-            var current = parseInt(hash[i], 16) || 0;      
-            return hash[i] = (current+1) . toString(16);
+            return hash[i] = ((parseInt(hash[i], 16) || 0 )+1) . toString(16);
           }
         }
       })()
