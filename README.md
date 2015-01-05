@@ -19,7 +19,6 @@ General idea of Warden.js that to make composing, combining and resolving concur
 
 <img src="./src/logo.png" align="right" width="301px" style='z-index: 32323; position: relative;'/>
 
-<<<<<<< HEAD
  - There are no dependencies with DOM, jQuery or other libraries or event emitting system in the Warden.js. You can use it on the front and on the back. With jQuery or with Node's Event Emiter or without anything.  
  - Simple combine, conjuncte and resolve concpetually connected events. If your application turns to tangled web of simple events and you spoiling time to resolve synchronization, combining events in time and resolving problems - that Warden.js is for you.
  - Pretty flexible API. There are no much of ready solutions, but there is way to add your own data stream processing method, combine methods and construct application in your way.

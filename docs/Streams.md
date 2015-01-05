@@ -48,7 +48,7 @@ someTypeStream.listen(function(event){
 module.sync("Hello world!");
 ```
 
-##Creating custom events streams##
+## Creating custom events streams
 You can create not only event streams. Streams can contain data of any type. These notation allows you to wrap all changes in system's state as data transmissions (synchronious or not), so you can manipulate your system easy with pure function without any side effects in while processing data.
 General method to create custom data streams is [`Warden.makeStream`](#Warden.makeStream)
 
@@ -147,18 +147,18 @@ var http = (function(){
         error: response('error')
       }));
     }
-  }, res);
+  }, ctx);
 
-  res.httpBus = res.ajax.bus();
+  ctx.httpBus = ctx.ajax.bus();
 
-  res.errors = res.httpBus.filter(function(e){
+  ctx.errors = ctx.httpBus.filter(function(e){
     return e.type == 'error';
   });
-  res.successes = res.httpBus.filter(function(e){
+  ctx.successes = ctx.httpBus.filter(function(e){
     return e.type == 'success';
   });
 
-  return res;
+  return ctx;
 })();
 
 /* Now lets bind side-effects */
