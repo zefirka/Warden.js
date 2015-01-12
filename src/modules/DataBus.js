@@ -35,10 +35,10 @@
 */
 
 var DataBus = (function(){
-  var each = Utils.each, 
-      is = Utils.is, 
+  var each = Utils.each,
+      is = Utils.is,
       toArray = Utils.toArray;
-  
+
   var priv = {
     set: function(id, e, val){
       return is.obj(e) && !is.exist(val) ? this[id] = e : this[id][e] = is.fn(val) ? val(this[id][e]) : val;
@@ -217,10 +217,21 @@ var DataBus = (function(){
           return this.get(x);
         }
 
-        fn = x[0]!=='.' ? simple : function(e, drive){
-          var t = e[x.slice(1)],
-              r = is.exist(t) ? t : x;
-          return drive.$continue(r);
+        if(x[0]=='.'){
+          fn = function(e, drive){
+            var t = e[x.slice(1)],
+            r = is.exist(t) ? t : x;
+            return drive.$continue(r);
+          }
+        }else
+        if(x[0]=='@'){
+          fn = function(e, drive){
+            var t = this[x.slice(1)],
+            r = is.exist(t) ? t : x;
+            return drive.$continue(r);
+          }
+        }else{
+          fn = simple;
         }
       break;
       case "object":

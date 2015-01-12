@@ -28,11 +28,11 @@
       Utils
       Analyze
   */
-  /* 
+  /*
     Utilities module
       specs: specs/src/utilsSpecs.js
       version: 1.3.0
-    
+
     -- v.1.3.0
       Added reduce
       Make global optiomization
@@ -52,7 +52,7 @@
 
     -- v1.2.0 --
         Fixed data type analyzer. Now it checks not by typeof but by Utils.is[type] method.
-        Added .some and .every methods. 
+        Added .some and .every methods.
         Added specs for utils.
 
     -- v1.1.0 --
@@ -62,7 +62,7 @@
       - All checing methods changed with functional paradigm.
 
     -- v0.0.1 --
-      - Datatype checking functions. Array prototype forEach method wrap for ECMAScript 3. 
+      - Datatype checking functions. Array prototype forEach method wrap for ECMAScript 3.
   */
 
 
@@ -83,15 +83,15 @@
         return Array.prototype[name] ? function(arr, fn){return Array.prototype[name].call(arr, fn)} : cfn;
       }
 
-      var each = protoCheck('forEach', function(arr, fn){ 
-        for(var i=0, l=arr.length; i<l;i++){ 
+      var each = protoCheck('forEach', function(arr, fn){
+        for(var i=0, l=arr.length; i<l;i++){
           fn(arr[i], i);
         }
       }),
 
       forWhile = function(arr, fn, preventValue, depreventValue){
-        preventValue = preventValue || false; 
-        for(var i=0, l=arr.length; i<l;i++){ 
+        preventValue = preventValue || false;
+        for(var i=0, l=arr.length; i<l;i++){
           if(fn(arr[i], i) === preventValue){
             return preventValue;
           }
@@ -108,7 +108,7 @@
         });
         return filtered;
       }),
-      
+
       reduce = protoCheck('reduce', function(arr, fn){
         var res = arr[0];
         for(var i=1,l=arr.length;i<l;i++){
@@ -148,7 +148,7 @@
           return !predicate(x);
         }
       },
-      
+
       is = {
         exist : function(x){
           return typeof x != 'undefined' && x !== null;
@@ -168,7 +168,7 @@
           }
         }
       }
-            
+
       is.obj = function(x){
         return typeIs(_OBJ)(x) && !is.array(x);
       }
@@ -180,19 +180,19 @@
         }
         return obj;
       })();
-      
-                 
+
+
       return {
-        /* 
+        /*
           Data type and logical statements checking methods
         */
         is : is,
         not: not,
 
 
-        /* 
-          Array.prototype functional methods: 
-        */ 
+        /*
+          Array.prototype functional methods:
+        */
         forEach : each,
         forWhile : forWhile,
         each : each, // synonym of forEach
@@ -222,7 +222,7 @@
             each(argv.slice(1, argc), function(e, i){
               data[i] = e;
             });
-          }       
+          }
 
           return str.replace(reg, function(i){
             var arg = data[i.slice(2,-2)] || i;
@@ -231,7 +231,7 @@
             }
             return arg;
           });
-        }, 
+        },
 
         log : function(){
           console.log(interpolate.apply(this, arguments));
@@ -249,7 +249,7 @@
           return r;
         },
 
-        trim: function(str){return str.replace(/^\s+|\s+$/g, '')},    
+        trim: function(str){return str.replace(/^\s+|\s+$/g, '')},
 
         /* Extending objects (not deep extend) */
         extend : function () {;
@@ -268,18 +268,18 @@
           });
         },
 
-        /* 
+        /*
           Queue class @arr is Array, @maxlength is Number
         */
         Queue : function Queue(max, arr){
           var res = arr || [],
               max = max || 16,
               oldpush = res.push;
-          
+
           res.last = function(){
             return res[res.length-1];
           };
-          
+
           res.push = function(x){
             if(this.length>=max){
               this.shift();
@@ -701,20 +701,20 @@
     Streams module:
       docs: ./docs/Streams.md
       version: 1.0.0
-    
+
     -- v1.0.0 --
       - Added sprint/stop method.
 
-    -- v0.3.3 -- 
+    -- v0.3.3 --
       - Added $context in object. Removed class name.
-    
+
     -- v0.3.2 --
       - Fixed mistakes in pop and push down and up
 
     -- v0.3.0 --
       - Stream strict checking argument now must be only boolean true
-      
-    -- v0.2.0 -- 
+
+    -- v0.2.0 --
       Added @popAllDown and @popAllUp methods;
 
     Creates stream of data.
@@ -723,7 +723,7 @@
   */
 
   Warden.makeStream = (function(){
-    var each = Utils.each, 
+    var each = Utils.each,
         is = Utils.is;
 
     /* Stream constructor */
@@ -735,17 +735,17 @@
         $$id : Utils.$hash.set('s'), // stream id
         $$context : context, // saving context
         $$type : type,
-        /* 
-          Evaluating the stream with @data 
+        /*
+          Evaluating the stream with @data
         */
         eval : function(data){
           each(drive, function(bus){
             bus.fire(data, context);
           });
         },
-        
-        /* 
-          Transforms evety bus in drive 
+
+        /*
+          Transforms evety bus in drive
         */
         transform : function(transformer){
           if(is.fn(transformer)){
@@ -753,7 +753,7 @@
           }
         },
 
-        /* 
+        /*
           Push into executable drive @bus.
           Bus is DataBus object.
         */
@@ -781,7 +781,7 @@
           });
         },
 
-        /* 
+        /*
           Removes from executable drive @bus.
           Bus must be DataBus object.
         */
@@ -794,7 +794,7 @@
           return bus;
         },
 
-        /* 
+        /*
           Removes from executable drive @bus and all @bus children;
           @bus must be DataBus object.
         */
@@ -805,7 +805,7 @@
           });
         },
 
-        /* 
+        /*
           Removes from executable drive @bus, @bus.parent and @bus.parent.parent etc
           @bus must be DataBus object
         */
@@ -831,17 +831,17 @@
       };
     }
 
-    /* 
+    /*
       Creates stream of @x on context @context;
-      If @strict argument is truly, than it warns about the coincidence 
+      If @strict argument is truly, than it warns about the coincidence
       in the context to prevent overwriting;
     */
     return function(x, context, strict){
       var stream, xstr, reserved = [], i;
 
       Analyze("makeStream", x);
-      
-      context = context || {};  
+
+      context = context || {};
       stream = Stream(context);
 
       if(is.fn(x)){
@@ -860,12 +860,12 @@
               /* If there is a coincidence, we warn about it */
               console.error("Coincidence: property: '" + prop + "' is already defined in stream context!", context);
             }
-          });    
+          });
         }
 
         x.call(context, function(expectedData){
           stream.eval(expectedData);
-        });  
+        });
       }
       return stream;
     };
@@ -912,10 +912,10 @@
   */
 
   var DataBus = (function(){
-    var each = Utils.each, 
-        is = Utils.is, 
+    var each = Utils.each,
+        is = Utils.is,
         toArray = Utils.toArray;
-    
+
     var priv = {
       set: function(id, e, val){
         return is.obj(e) && !is.exist(val) ? this[id] = e : this[id][e] = is.fn(val) ? val(this[id][e]) : val;
@@ -1583,7 +1583,7 @@
     Globals:
       Warden.watcher
   */
-  /* 
+  /*
   	Watcher module:
   		version: 0.1.0
   */
@@ -1598,8 +1598,8 @@
 
   		if(argc===1){
   			if(is.str(a)){
-  				fn = function(event){this[a] = event;}			
-  			}else	
+  				fn = function(event){this[a] = event;}
+  			}else
   			if(is.obj(a)){
   				fn = function(event){a = event;}
   			}else
@@ -1627,7 +1627,7 @@
   			}else
   			if(is.fn(b)){
   				fn = function(event){b.call(a, event);}
-  			} 
+  			}
   		}
 
   		bus.listen(fn);
