@@ -1,0 +1,9 @@
+@font-face {
+    font-family: 'coolvetica';
+    src: url('../font/coolvetica_rg.eot');
+    src: url('../font/coolvetica_rg.eot?#iefix') format('embedded-opentype'),
+         url('../font/coolvetica_rg.woff') format('woff'),
+         url('../font/coolvetica_rg.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
