@@ -98,7 +98,7 @@ Usage: `object.stream(type, [context])`
 
 Returns: `DataBus` object associated with created stream
 
-Description: Creates stream of events and associated to it new DataBus object. Allowed asterisk notation.
+Description: Creates stream of events and associated to it new DataBus object. Allowed regexp notation in `type` value.
 
 [`Warden.extend`](https://github.com/zefirka/Warden.js/blob/master/docs/Extend.md) gives you a Pub/Sub object from given, so your objects will have method `.stream` which listens all events of given type and evaluates all streams conjuncted with adequate object (look [DataBuses](https://github.com/zefirka/Warden.js/blob/master/docs/DataBus.md)). This method returns first DataBus associated with stream. To get stream use:
 ```js

@@ -1,5 +1,10 @@
 describe('Warden DataBus methods', function () {  
-	var sync = {}, 
+	var sync = {
+			contextItem: 'hello context item',
+			contextMethod: function(){
+				return 'hello context method'
+			}
+		}, 
 		value = 0, 
 		mapped = {}, 
 		filtered = {},
@@ -46,6 +51,15 @@ describe('Warden DataBus methods', function () {
 			mapped.prop = e;
 		});
 
+		bus.map('@contextItem').listen(function(e){
+			mapped.ctxi = e;
+		});
+
+		bus.map('@contextMethod()').listen(function(e){
+			mapped.ctxm = e;
+		})
+
+
 		/* Mappings: Array of Simple*/
 		bus.map([10, 12]).listen(function(e){
 			mapped.arrSimple = e;
@@ -58,7 +72,7 @@ describe('Warden DataBus methods', function () {
 
 		/* Mappings: Object*/
 		bus.map({
-			name: 'value'
+			name: '.value'
 		}).listen(function(e){
 			mapped.obj = e;
 		});
@@ -104,6 +118,22 @@ describe('Warden DataBus methods', function () {
 		    expect(mapped.obj).toEqual({name : 20});
 		    done();
 	    }); 
+
+	    it('-- context item', function (done) {     
+			sync.transmit({
+				prop: 'val'
+			});
+		    expect(mapped.ctxi).toEqual('hello context item');
+		    done();
+	    }); 
+
+	    it('-- context method', function (done) {     
+			sync.transmit({
+				prop: 'val'
+			});
+		    expect(mapped.ctxm).toEqual('hello context method');
+		    done();
+	    }); 
 	});
 	describe('.filter()', function () {  
 		bus.filter(function(x){
@@ -137,7 +167,7 @@ describe('Warden DataBus methods', function () {
 			}catch(err){
 				filterError = err; 
 			}
-			expect(filterError).toBe('TypeError: unexpected type of argument at: .filter(). Expected type: function. Your argument is type of: number');
+			expect(filterError).toBe('TypeError: invalid arg in: .filter(). Expected: function. Your argument is type of: number');
 			done();
 	    });
 	});
@@ -200,17 +230,6 @@ describe('Warden DataBus methods', function () {
 		    expect(reduced.sort).toBe(40);
 		    done();
 	    }); 
-
-	    it('-- type error catched', function (done) {
-	    	var reduceError;
-	    	try{
-				bus.reduce('string', 'dsds')
-			}catch(err){
-				reduceError = err; 
-			}
-			expect(reduceError).toBe('TypeError: unexpected type of argument at: .reduce(). Expected type: function. Your argument is type of: string');
-			done();
-	    });
 	});
 	describe('.take()', function () {  
 		bus.take(2).listen(function(){
@@ -226,15 +245,6 @@ describe('Warden DataBus methods', function () {
 		    done();
 	    });
 
-	    it('-- type error catched', function (done) {
-	    	try{
-				bus.take('string')
-			}catch(err){
-				takenError = err; 
-			}
-			expect(takenError).toBe('TypeError: unexpected type of argument at: .take(). Expected type: number. Your argument is type of: string');
-			done();
-	    });
 	});
 	describe('.skip()', function () {  
 		var emitted = 0;	
@@ -249,17 +259,6 @@ describe('Warden DataBus methods', function () {
 		    sync.transmit(0);
 		    expect(emitted).toBe(1);
 		    done();
-	    });
-
-	    it('-- type error catched', function (done) {
-	    	var skipError;
-	    	try{
-				bus.skip(function(){})
-			}catch(err){
-				skipError = err; 
-			}
-			expect(skipError).toBe('TypeError: unexpected type of argument at: .skip(). Expected type: number. Your argument is type of: function');
-			done();
 	    });
 	});
 	describe('.interpolate() and .mask()', function () {  		

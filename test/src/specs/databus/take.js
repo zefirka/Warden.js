@@ -12,13 +12,4 @@ describe('.take()', function () {
 	    done();
     });
 
-    it('-- type error catched', function (done) {
-    	try{
-			bus.take('string')
-		}catch(err){
-			takenError = err; 
-		}
-		expect(takenError).toBe('TypeError: unexpected type of argument at: .take(). Expected type: number. Your argument is type of: string');
-		done();
-    });
 });

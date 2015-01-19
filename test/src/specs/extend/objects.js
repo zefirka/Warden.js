@@ -96,4 +96,31 @@ describe('Using JS objects', function () {
 		
 	});
 
+	describe('Emitting and listening events by regexs', function () {  
+		var mod = Warden.extend({}),
+			catched = [];
+
+		mod.listen('cl[io]ck', function(e){
+			catched.push(e);
+		});
+
+		mod.listen('rom*', function(e){
+			catched.push(e);
+		});
+
+		it('Two data two events', function(done){ 
+			mod.emit('click', 'click')
+			mod.emit('clock', 'clock')
+			mod.emit('clack', 'clack')
+			mod.emit('romarg', 'romarg')
+
+			expect(catched).toEqual(['click', 'clock', 'romarg']);
+
+			done()
+		});
+
+		catched = [];
+
+	});
+
 });

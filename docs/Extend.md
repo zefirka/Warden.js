@@ -133,7 +133,8 @@ mod.listen('greet', function(greeting){
 
 // --> Hello World!
 ```
-<a name="asterisk-notation"></a>You can also use `pattern*` notation. Example:
+#### Regular Expressions
+<a name="regexp-notation"></a>You can also use regular expressions notation, which mean that you can listening methods in terms of matching of JS RegExp objects. Example:
 ```js
 mod.listen('get:*', function(e){
 	console.log(e);
@@ -143,6 +144,17 @@ mod.emit('get:one', 'foo');
 //--> foo
 mod.emit('get:two', 'bar');
 //--> bar
+```
+
+or
+
+```js
+mod.listen('^cl[io]ck(ed)?(\\d+)?$', function(type){
+	console.log(type);
+});
+
+// it will be called for every event type that match to given regex.
+// For example: 'click', 'clock', 'clicked', 'clicked2', 'clicked232323'
 ```
 
 Handlers will be started in same order which they was registered.
@@ -155,14 +167,14 @@ Usage: `object.unlisten(type, handler)`
 Returns: `object`.
 
 Description: Unsubscribes handler from object's `type` events. `handler` can be both string or function. Note: if you handled lambda-function to the event you can't unsubscribe it, because functions comparing by name property.
-Allowed [asterisk notation](#asterisk-notation)
+Allowed [regexp notation](#regexp-notation)
 
 ### .stream
 Usage: `object.stream(type, [context])`
 
 Returns: `DataBus` object associated with created stream
 
-Description: Creates stream of events and associated to it new DataBus object. Allowed [asterisk notation](#asterisk-notation).
+Description: Creates stream of events and associated to it new DataBus object. Allowed [regex notation](#regexp-notation).
 
 ```js
 var recievedTweets = socket.stream('tweet'),
@@ -184,6 +196,12 @@ recievedTweets
 		console.log('@'+data[0]+" have made " + data[2]);
 	});
 
+```
+
+or with comma notation:
+
+```js
+var userActions = document.stream('click, mousemove, keypress, user:*');
 ```
 
 __Configuration of context:__

@@ -16,6 +16,15 @@ describe('.map()', function () {
 		mapped.prop = e;
 	});
 
+	bus.map('@contextItem').listen(function(e){
+		mapped.ctxi = e;
+	});
+
+	bus.map('@contextMethod()').listen(function(e){
+		mapped.ctxm = e;
+	})
+
+
 	/* Mappings: Array of Simple*/
 	bus.map([10, 12]).listen(function(e){
 		mapped.arrSimple = e;
@@ -28,7 +37,7 @@ describe('.map()', function () {
 
 	/* Mappings: Object*/
 	bus.map({
-		name: 'value'
+		name: '.value'
 	}).listen(function(e){
 		mapped.obj = e;
 	});
@@ -72,6 +81,22 @@ describe('.map()', function () {
 			value : 20
 		});
 	    expect(mapped.obj).toEqual({name : 20});
+	    done();
+    }); 
+
+    it('-- context item', function (done) {     
+		sync.transmit({
+			prop: 'val'
+		});
+	    expect(mapped.ctxi).toEqual('hello context item');
+	    done();
+    }); 
+
+    it('-- context method', function (done) {     
+		sync.transmit({
+			prop: 'val'
+		});
+	    expect(mapped.ctxm).toEqual('hello context method');
 	    done();
     }); 
 });

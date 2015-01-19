@@ -18,7 +18,7 @@
 
   var jQueryInited = typeof jQuery != "undefined";
 
-  Warden.version = "0.1.4";
+  Warden.version = "0.2.0-prerelease";
   Warden.configure = {
     cmp : function(x,y){ return x === y; }
   };
@@ -234,7 +234,7 @@
         }, 
 
         log : function(){
-          console.log(interpolate.apply(this, arguments));
+          console.log(this.interpolate.apply(this, arguments));
         },
 
         flatten : function(arr) {
@@ -304,25 +304,22 @@
     })();
 
     /* Exception manager */
-
-    function setAnalyzer(map){
+    Analyze = (function(map){
       return function(id, i, l){
         var t = map[id],
             res = !Utils.is.exist(t) ? true : Utils.some(t, function(type){return typeof i === type});
 
         if(!res){
-          throw "TypeError: unexpected type of argument at: ." + id + "(). Expected type: " + t.join(' or ') + ". Your argument is type of: " + typeof i;
+          throw "TypeError: invalid arg in: ." + id + "(). Expected: " + t.join(' or ') + ". Your argument is type of: " + typeof i;
         }
-      }
-    }
-
-    Analyze = setAnalyzer({
+      } 
+    })({
       extend : [_OBJ,_FUN, _ARR],
       listen : [_STR],
       stream : [_STR],
       unlisten : [_STR],
       reduce : [_FUN],
-      include : [_STR],
+      include : [_OBJ, _FUN],
       take : [_NUM],
       filter : [_FUN],
       skip : [_NUM],
@@ -337,9 +334,6 @@
       nth : [_NUM],
       get : [_STR]
     });
-
-    Warden.configure.exceptionMap = {};
-    Warden.configure.exceptionManager = setAnalyzer(Warden.configure.exceptionMap);
 
   })();
 
@@ -360,7 +354,10 @@
   /*
     Extend module:
       docs: ./docs/Extend.md
-      version: v2.0.0
+      version: v2.1.0
+    
+    -- v2.1.0
+      Added full regexp notation for listen/stream/emit/unlisten
 
     -- v2.0.0
       Added regext for events (listen and emit)
@@ -388,6 +385,7 @@
       is = Utils.is,
       filter = Utils.filter,
       extend = Utils.extend,
+      hashc = Utils.$hash,
       nativeListener = "addEventListener",
       alternativeListener = "attachEvent",
 
@@ -417,17 +415,33 @@
         return ghandlers[id] || [];
       }
 
-    Warden.configure.changeDefault = function(newConfig){
-      return Utils.extend(defaultConfig, newConfig);
-    }
-
-    Warden.configure.natives = function(obj){
-      nativeListener = obj.listener;
-      alternativeListener = obj.altenativeListener;
-    }
+      function isRegExp(str){
+        return /.?[\*\[\]\{\}\.\?\$\^\\\|].?/g.test(str);
+      }
 
     return function(obj, conf) {
       Analyze('extend', obj);
+
+      function binder (fn, handlers, callback){
+        return function(type){
+          var self = this;
+
+          if(!filter(handlers, function(i){return is.str(type) ? i.type == type : i.type.test(type)}).length && self[config.listener]){
+            if(is.not.str(type)){
+              throw new Error("Invalid format in: " + config.listener);
+            }
+            this[config.listener].apply(this, [type, function(event){
+              fn.call(self, event)
+            }]);
+          }
+
+          setHandlers(self['$$id'], {
+            type: type,
+            callback: callback
+          });
+        }
+      }
+
 
       var config = extend({}, defaultConfig, conf || {}), // default configuration
           inheritor = obj || {}, // final object to extend
@@ -457,30 +471,21 @@
             }
           });
 
-          extend(inheritor, {
-            sequentially : function(timeout){
-              var bus = Warden.makeStream().get(),
-                  self = this,
-                  i = 0,
-                  interval = setInterval(function(){
-                    if(i==self.length){
-                      i=0;
-                      clearInterval(interval);
-                    }else{
-                      bus.fire(self[i++])
-                    }
-                  }, timeout);
+          inheritor.sequentially = function(timeout){
+            var stream = Warden.makeStream(),
+                self = this,
+                i = 0,
+                interval = setInterval(function(){
+                  if(i==self.length){
+                    i=0;
+                    clearInterval(interval);
+                  }else{
+                    stream.eval(self[i++])
+                  }
+                }, timeout);
 
-              return bus;
-            },
-            toBus : function(){
-              var bus = Warden.makeStream().bus();
-              each(inheritor, function(item, index){
-                bus.data.last = bus.data.takes[index] = bus.data.fires[index] = item
-              });
-              return bus;
-            }
-          });
+            return stream.bus();
+          }
         }
 
       }
@@ -511,8 +516,8 @@
         var self = this,
             type = is.str(ev) ? ev : ev.type,
             data = is.obj(ev) ? ev : data || ev,
-            callbacks = filter(getHandlers(this['$$id'] = this['$$id'] || Utils.$hash.set('o')), function(i){
-              return i.type == type  || (i.rx ? i.rx.test(type) : false );
+            callbacks = filter(getHandlers(this['$$id'] = this['$$id'] || hashc.set('o')), function(i){
+              return is.str(i.type) ? i.type == type : i.type.test(type);
             });
 
         each(callbacks, function(callback){
@@ -525,30 +530,15 @@
       /* Listen events of @type */
       inheritor[names.listen] = function(types, callback){
         var self = this,
-            handlers = getHandlers(this['$$id'] = this['$$id'] || Utils.$hash.set('o')),
-            bind = function(type, rx){
-              var results = filter(handlers, function(i){
-                return (i.type == type) || (i.rx ? i.rx.test(type) : false );
-              });
-
-              if(!results.length && self[config.listener]){
-                self[config.listener].apply(self, [type, function(event){
-                  self.emit(event)
-                }]);
-              }
-
-              setHandlers(self['$$id'], {
-                type: type,
-                rx: rx,
-                callback: callback
-              });
-            }
+          reactor = binder(function(event){
+            this.emit(event);
+          }, getHandlers(this['$$id'] = this['$$id'] || hashc.set('o')), callback);
 
         Analyze('listen', types);
 
         each(types.split(','), function(type){
           type = Utils.trim(type);
-          bind(type, type.indexOf('*')>=0 ? new RegExp(type) : null);
+          reactor.call(self, isRegExp(type) ? new RegExp(type) : type);
         });
 
         return this;
@@ -556,7 +546,7 @@
 
       /* Unsubscribe from events of @type */
       inheritor[names.unlisten] = function(types, name){
-        var self = this, handlers = getHandlers(this['$$id'] = this['$$id'] || Utils.$hash.set('o'));
+        var self = this, handlers = getHandlers(this['$$id'] = this['$$id'] || hashc.set('o'));
 
         Analyze('unlisten', types)
 
@@ -565,7 +555,7 @@
           if(handlers.length){
             var indexes = [];
             each(handlers, function(handler, index){
-              if(handler.callback.name == (name.name || name)){
+              if(handler.callback.name == (name.name || name) && ( is.str(handler.type) ? handler.type == type : handler.type.test(type))){
                 indexes.push(index);
               }
             });
@@ -579,29 +569,19 @@
       };
 
       /* Creates stream of @type type events*/
-      inheritor[names.stream] = function(types, cnt) {
-        var self = this,
-            stream = Warden.makeStream(types, cnt || this),
-            handlers = getHandlers(this['$$id'] = this['$$id'] || Utils.$hash.set('o'));
-
+      inheritor[names.stream] = function(types, cnt){
         Analyze('stream', types);
 
+        var self = this,
+            stream = Warden.makeStream(types, cnt || this),
+            seval = function(event){
+              stream.eval(event)
+            },
+            reactor = binder(seval, getHandlers(this['$$id'] = this['$$id'] || hashc.set('o')), seval);
+        
         each(types.split(','), function(type){
           type = Utils.trim(type);
-
-          if(!filter(handlers, function(i){return i.type == type;}).length && self[config.listener]){
-            self[config.listener].apply(self, [type, function(event){
-              stream.eval(event);
-            }]);
-          }
-
-          setHandlers(self['$$id'], {
-            type: type,
-            callback: function(event){
-              stream.eval(event);
-            }
-          });
-
+          reactor.call(self, isRegExp(type) ? new RegExp(type) : type);
         });
 
         return stream.get();
@@ -955,9 +935,6 @@
     /* **************************************************** */
 
     function DataBus(proc){
-      var self = this,
-          id = this.$$id = Utils.$hash.set('d');
-
       this.parent = null;
       this.children = [];
       this.data = {
@@ -966,9 +943,9 @@
         last : null
       };
 
-      priv.set(id, {
+      priv.set(this.$$id = Utils.$hash.set('d'), {
         bindings : [],
-        processor : new Processor(proc || [], self),
+        processor : new Processor(proc || [], this),
         handlers : [],
         setup : function(x){ return x}
       });
@@ -1096,16 +1073,26 @@
 
           if(x[0]=='.'){
             fn = function(e, drive){
-              var t = e[x.slice(1)],
-              r = is.exist(t) ? t : x;
-              return drive.$continue(r);
+              var t = x.indexOf("()") > 0 ?  e[x.slice(1,-2)] : e[x.slice(1)],
+              r = is.exist(t) ? t : x,
+              res = r;
+
+              if(is.fn(r) && x.indexOf("()")>0){
+                res = r();
+              }
+              return drive.$continue(res);
             }
           }else
           if(x[0]=='@'){
             fn = function(e, drive){
-              var t = this[x.slice(1)],
-              r = is.exist(t) ? t : x;
-              return drive.$continue(r);
+              var t = x.indexOf("()") > 0 ?  this[x.slice(1,-2)] : this[x.slice(1)],
+              r = is.exist(t) ? t : x,
+              res = r;
+
+              if(is.fn(r) && x.indexOf("()")>0){
+                res = r.call(this);
+              }
+              return drive.$continue(res);
             }
           }else{
             fn = simple;
@@ -1123,10 +1110,23 @@
             }
           }else{
             fn = function(e, drive){
-              var res = {}, t;
+              var res = {}, val, name;
               for(var prop in x){
-                t = e[x[prop]];
-                res[prop] = is.exist(t) ? t : x[prop];
+                name = x[prop];
+
+                if(name.indexOf('.')==0 && e[name.slice(1)]){
+                  val = e[name.slice(1)];
+                }
+
+                if(name.indexOf('@')==0 && (this[name.slice(1)] || this[name.slice(1,-2)])){
+                  if(name.indexOf('()')>0){
+                    val = this[name.slice(1,-2)]()
+                  }else{
+                    val = this[name.slice(1)]
+                  }
+                }
+
+                res[prop] = val;
               }
               return drive.$continue(res);
             }
@@ -1144,7 +1144,7 @@
     DataBus.prototype.nth = function(n) {
       Analyze('nth', n);
       return process.call(this, function(e, drive){
-        return drive.$continue(e[n]);
+        return drive.$continue(e[n+1]);
       });
     }
 
@@ -1194,18 +1194,16 @@
       If previous value is empty, then it is init or first value (or when init == 'first' or '-f')
     */
     DataBus.prototype.reduce = function(init, fn){
-      Analyze('reduce', fn);
-
       if(arguments.length==1){
         fn = init;
         init = void 0;
       }
-      return process.call(this, function(event, drive){
-        var bus = drive.$host(),
-            cur = event,
-            prev = bus.data.takes.length > 0 ? bus.data.takes.last() : init;
 
-        return drive.$continue(fn.call(this, prev, cur));
+      Analyze('reduce', fn);
+
+      return process.call(this, function(event, drive){
+        var bus = drive.$host();
+        return (bus.data.takes.length == 0 && !is.exist(init)) ?  drive.$continue(event) : drive.$continue(fn.call(this, bus.data.takes.last() || init, event)) ;
       });
     };
 
@@ -1233,11 +1231,18 @@
       return process.call(this, function(data, drive){
         var bus = drive.$host();
 
-        each(argv, function(prop){
-          Analyze('include', prop);
-          if(is.exist(bus.data[prop])){
-            data[prop] = bus.data[prop];
+        each(argv, function(arg){
+          Analyze('include', arg);
+
+          if(is.obj(arg)){
+            data[arg.name] = arg.bus.data.takes.last();
           }
+
+          if(is.fn(arg)){
+            var res = fn(bus);
+            data[res.name] = res.value;
+          }
+
         });
         return drive.$continue(data);
       });
@@ -1339,6 +1344,26 @@
       });
     };
 
+    DataBus.prototype.filterFor = function(fn) {
+      var data = null;
+      return process.call(this, function(e, drive){
+        var pipe = {
+          get : function(fn){
+            return fn ? fn(data) : data;
+          },
+          next: function(e){
+            data = e;
+            drive.$continue(e);
+          },
+
+          stop: function(e){
+            drive.$break();
+          }
+        }
+        return fn(e, pipe);
+      });
+    };
+
     DataBus.prototype.collectFor = function(bus){
       var collection = [];
 
@@ -1371,12 +1396,15 @@
     };
 
     DataBus.prototype.toggle = function(a,b) {
-      var self = this;
-      this.data.toggle = false;
-      return process.call(this, function(e, drive){
-        var fun = self.data.toggle ? a : b;
-        self.data.toggle = !self.data.toggle;
-        return drive.$continue(fun.call(self, e));
+      var toggled = false;
+      
+      return this.listen(function(data){
+        if(toggled){
+          a.call(this, data);
+        }else{
+          b.call(this, data);
+        }
+        toggled = !toggled;
       });
     };
 
@@ -1501,6 +1529,8 @@
 
       argv.unshift(this);
 
+      values.length = executions.length = argv.length;
+
       nbus = Warden.makeStream(function(emit){
         each(argv, function(bus, index){
           bus.listen(function(data){
@@ -1520,6 +1550,9 @@
 
             if(exec){
               emit(values);
+              values = [];
+              executions = [];
+              values.length = executions.length = argv.length;
             }else{
               executions[index] = true;
             }

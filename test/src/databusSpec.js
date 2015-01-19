@@ -1,5 +1,10 @@
 describe('Warden DataBus methods', function () {  
-	var sync = {}, 
+	var sync = {
+			contextItem: 'hello context item',
+			contextMethod: function(){
+				return 'hello context method'
+			}
+		}, 
 		value = 0, 
 		mapped = {}, 
 		filtered = {},

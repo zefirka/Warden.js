@@ -1,7 +1,10 @@
 /*
   Extend module:
     docs: ./docs/Extend.md
-    version: v2.0.0
+    version: v2.1.0
+  
+  -- v2.1.0
+    Added full regexp notation for listen/stream/emit/unlisten
 
   -- v2.0.0
     Added regext for events (listen and emit)
@@ -29,6 +32,7 @@ Warden.extend = (function(){
     is = Utils.is,
     filter = Utils.filter,
     extend = Utils.extend,
+    hashc = Utils.$hash,
     nativeListener = "addEventListener",
     alternativeListener = "attachEvent",
 
@@ -58,17 +62,33 @@ Warden.extend = (function(){
       return ghandlers[id] || [];
     }
 
-  Warden.configure.changeDefault = function(newConfig){
-    return Utils.extend(defaultConfig, newConfig);
-  }
-
-  Warden.configure.natives = function(obj){
-    nativeListener = obj.listener;
-    alternativeListener = obj.altenativeListener;
-  }
+    function isRegExp(str){
+      return /.?[\*\[\]\{\}\.\?\$\^\\\|].?/g.test(str);
+    }
 
   return function(obj, conf) {
     Analyze('extend', obj);
+
+    function binder (fn, handlers, callback){
+      return function(type){
+        var self = this;
+
+        if(!filter(handlers, function(i){return is.str(type) ? i.type == type : i.type.test(type)}).length && self[config.listener]){
+          if(is.not.str(type)){
+            throw new Error("Invalid format in: " + config.listener);
+          }
+          this[config.listener].apply(this, [type, function(event){
+            fn.call(self, event)
+          }]);
+        }
+
+        setHandlers(self['$$id'], {
+          type: type,
+          callback: callback
+        });
+      }
+    }
+
 
     var config = extend({}, defaultConfig, conf || {}), // default configuration
         inheritor = obj || {}, // final object to extend
@@ -98,30 +118,21 @@ Warden.extend = (function(){
           }
         });
 
-        extend(inheritor, {
-          sequentially : function(timeout){
-            var bus = Warden.makeStream().get(),
-                self = this,
-                i = 0,
-                interval = setInterval(function(){
-                  if(i==self.length){
-                    i=0;
-                    clearInterval(interval);
-                  }else{
-                    bus.fire(self[i++])
-                  }
-                }, timeout);
+        inheritor.sequentially = function(timeout){
+          var stream = Warden.makeStream(),
+              self = this,
+              i = 0,
+              interval = setInterval(function(){
+                if(i==self.length){
+                  i=0;
+                  clearInterval(interval);
+                }else{
+                  stream.eval(self[i++])
+                }
+              }, timeout);
 
-            return bus;
-          },
-          toBus : function(){
-            var bus = Warden.makeStream().bus();
-            each(inheritor, function(item, index){
-              bus.data.last = bus.data.takes[index] = bus.data.fires[index] = item
-            });
-            return bus;
-          }
-        });
+          return stream.bus();
+        }
       }
 
     }
@@ -152,8 +163,8 @@ Warden.extend = (function(){
       var self = this,
           type = is.str(ev) ? ev : ev.type,
           data = is.obj(ev) ? ev : data || ev,
-          callbacks = filter(getHandlers(this['$$id'] = this['$$id'] || Utils.$hash.set('o')), function(i){
-            return i.type == type  || (i.rx ? i.rx.test(type) : false );
+          callbacks = filter(getHandlers(this['$$id'] = this['$$id'] || hashc.set('o')), function(i){
+            return is.str(i.type) ? i.type == type : i.type.test(type);
           });
 
       each(callbacks, function(callback){
@@ -166,30 +177,15 @@ Warden.extend = (function(){
     /* Listen events of @type */
     inheritor[names.listen] = function(types, callback){
       var self = this,
-          handlers = getHandlers(this['$$id'] = this['$$id'] || Utils.$hash.set('o')),
-          bind = function(type, rx){
-            var results = filter(handlers, function(i){
-              return (i.type == type) || (i.rx ? i.rx.test(type) : false );
-            });
-
-            if(!results.length && self[config.listener]){
-              self[config.listener].apply(self, [type, function(event){
-                self.emit(event)
-              }]);
-            }
-
-            setHandlers(self['$$id'], {
-              type: type,
-              rx: rx,
-              callback: callback
-            });
-          }
+        reactor = binder(function(event){
+          this.emit(event);
+        }, getHandlers(this['$$id'] = this['$$id'] || hashc.set('o')), callback);
 
       Analyze('listen', types);
 
       each(types.split(','), function(type){
         type = Utils.trim(type);
-        bind(type, type.indexOf('*')>=0 ? new RegExp(type) : null);
+        reactor.call(self, isRegExp(type) ? new RegExp(type) : type);
       });
 
       return this;
@@ -197,7 +193,7 @@ Warden.extend = (function(){
 
     /* Unsubscribe from events of @type */
     inheritor[names.unlisten] = function(types, name){
-      var self = this, handlers = getHandlers(this['$$id'] = this['$$id'] || Utils.$hash.set('o'));
+      var self = this, handlers = getHandlers(this['$$id'] = this['$$id'] || hashc.set('o'));
 
       Analyze('unlisten', types)
 
@@ -206,7 +202,7 @@ Warden.extend = (function(){
         if(handlers.length){
           var indexes = [];
           each(handlers, function(handler, index){
-            if(handler.callback.name == (name.name || name)){
+            if(handler.callback.name == (name.name || name) && ( is.str(handler.type) ? handler.type == type : handler.type.test(type))){
               indexes.push(index);
             }
           });
@@ -220,29 +216,19 @@ Warden.extend = (function(){
     };
 
     /* Creates stream of @type type events*/
-    inheritor[names.stream] = function(types, cnt) {
-      var self = this,
-          stream = Warden.makeStream(types, cnt || this),
-          handlers = getHandlers(this['$$id'] = this['$$id'] || Utils.$hash.set('o'));
-
+    inheritor[names.stream] = function(types, cnt){
       Analyze('stream', types);
 
+      var self = this,
+          stream = Warden.makeStream(types, cnt || this),
+          seval = function(event){
+            stream.eval(event)
+          },
+          reactor = binder(seval, getHandlers(this['$$id'] = this['$$id'] || hashc.set('o')), seval);
+      
       each(types.split(','), function(type){
         type = Utils.trim(type);
-
-        if(!filter(handlers, function(i){return i.type == type;}).length && self[config.listener]){
-          self[config.listener].apply(self, [type, function(event){
-            stream.eval(event);
-          }]);
-        }
-
-        setHandlers(self['$$id'], {
-          type: type,
-          callback: function(event){
-            stream.eval(event);
-          }
-        });
-
+        reactor.call(self, isRegExp(type) ? new RegExp(type) : type);
       });
 
       return stream.get();

@@ -257,6 +257,33 @@ describe('Warden.extend', function(){
 			
 		});
 
+		describe('Emitting and listening events by regexs', function () {  
+			var mod = Warden.extend({}),
+				catched = [];
+
+			mod.listen('cl[io]ck', function(e){
+				catched.push(e);
+			});
+
+			mod.listen('rom*', function(e){
+				catched.push(e);
+			});
+
+			it('Two data two events', function(done){ 
+				mod.emit('click', 'click')
+				mod.emit('clock', 'clock')
+				mod.emit('clack', 'clack')
+				mod.emit('romarg', 'romarg')
+
+				expect(catched).toEqual(['click', 'clock', 'romarg']);
+
+				done()
+			});
+
+			catched = [];
+
+		});
+
 	});
 	describe('Using arrays', function () {  
 		var array = Warden.extend([1,2,3,4,5]);
@@ -379,34 +406,7 @@ describe('Warden.extend', function(){
 				message : ['Hello!', x || 'My name is', self.name].join(' ') 
 			});
 		}
-
-		it('Change defaults', function(done){
-			Warden.configure.changeDefault({
-				names: {
-					emit: 'evat',
-					unlisten: 'munlisten'
-				},
-				max: 2
-			});
-
-			var t = Warden.extend({
-
-			});
-
-			expect(typeof t.evat).toBe('function');
-			expect(typeof t.munlisten).toBe('function');
-
-			try{
-				t.listen('foo', function(){});
-				t.listen('foo', function(){});
-				t.listen('foo', function(){});
-			}catch(e){
-				t.errmsg = e;
-			}
-
-			done();
-		})
-
+		
 	});
 
 });

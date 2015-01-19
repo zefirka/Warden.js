@@ -78,9 +78,6 @@ var DataBus = (function(){
   /* **************************************************** */
 
   function DataBus(proc){
-    var self = this,
-        id = this.$$id = Utils.$hash.set('d');
-
     this.parent = null;
     this.children = [];
     this.data = {
@@ -89,9 +86,9 @@ var DataBus = (function(){
       last : null
     };
 
-    priv.set(id, {
+    priv.set(this.$$id = Utils.$hash.set('d'), {
       bindings : [],
-      processor : new Processor(proc || [], self),
+      processor : new Processor(proc || [], this),
       handlers : [],
       setup : function(x){ return x}
     });
@@ -219,16 +216,26 @@ var DataBus = (function(){
 
         if(x[0]=='.'){
           fn = function(e, drive){
-            var t = e[x.slice(1)],
-            r = is.exist(t) ? t : x;
-            return drive.$continue(r);
+            var t = x.indexOf("()") > 0 ?  e[x.slice(1,-2)] : e[x.slice(1)],
+            r = is.exist(t) ? t : x,
+            res = r;
+
+            if(is.fn(r) && x.indexOf("()")>0){
+              res = r();
+            }
+            return drive.$continue(res);
           }
         }else
         if(x[0]=='@'){
           fn = function(e, drive){
-            var t = this[x.slice(1)],
-            r = is.exist(t) ? t : x;
-            return drive.$continue(r);
+            var t = x.indexOf("()") > 0 ?  this[x.slice(1,-2)] : this[x.slice(1)],
+            r = is.exist(t) ? t : x,
+            res = r;
+
+            if(is.fn(r) && x.indexOf("()")>0){
+              res = r.call(this);
+            }
+            return drive.$continue(res);
           }
         }else{
           fn = simple;
@@ -246,10 +253,23 @@ var DataBus = (function(){
           }
         }else{
           fn = function(e, drive){
-            var res = {}, t;
+            var res = {}, val, name;
             for(var prop in x){
-              t = e[x[prop]];
-              res[prop] = is.exist(t) ? t : x[prop];
+              name = x[prop];
+
+              if(name.indexOf('.')==0 && e[name.slice(1)]){
+                val = e[name.slice(1)];
+              }
+
+              if(name.indexOf('@')==0 && (this[name.slice(1)] || this[name.slice(1,-2)])){
+                if(name.indexOf('()')>0){
+                  val = this[name.slice(1,-2)]()
+                }else{
+                  val = this[name.slice(1)]
+                }
+              }
+
+              res[prop] = val;
             }
             return drive.$continue(res);
           }
@@ -267,7 +287,7 @@ var DataBus = (function(){
   DataBus.prototype.nth = function(n) {
     Analyze('nth', n);
     return process.call(this, function(e, drive){
-      return drive.$continue(e[n]);
+      return drive.$continue(e[n+1]);
     });
   }
 
@@ -317,18 +337,16 @@ var DataBus = (function(){
     If previous value is empty, then it is init or first value (or when init == 'first' or '-f')
   */
   DataBus.prototype.reduce = function(init, fn){
-    Analyze('reduce', fn);
-
     if(arguments.length==1){
       fn = init;
       init = void 0;
     }
-    return process.call(this, function(event, drive){
-      var bus = drive.$host(),
-          cur = event,
-          prev = bus.data.takes.length > 0 ? bus.data.takes.last() : init;
 
-      return drive.$continue(fn.call(this, prev, cur));
+    Analyze('reduce', fn);
+
+    return process.call(this, function(event, drive){
+      var bus = drive.$host();
+      return (bus.data.takes.length == 0 && !is.exist(init)) ?  drive.$continue(event) : drive.$continue(fn.call(this, bus.data.takes.last() || init, event)) ;
     });
   };
 
@@ -356,11 +374,18 @@ var DataBus = (function(){
     return process.call(this, function(data, drive){
       var bus = drive.$host();
 
-      each(argv, function(prop){
-        Analyze('include', prop);
-        if(is.exist(bus.data[prop])){
-          data[prop] = bus.data[prop];
+      each(argv, function(arg){
+        Analyze('include', arg);
+
+        if(is.obj(arg)){
+          data[arg.name] = arg.bus.data.takes.last();
         }
+
+        if(is.fn(arg)){
+          var res = fn(bus);
+          data[res.name] = res.value;
+        }
+
       });
       return drive.$continue(data);
     });
@@ -462,6 +487,26 @@ var DataBus = (function(){
     });
   };
 
+  DataBus.prototype.filterFor = function(fn) {
+    var data = null;
+    return process.call(this, function(e, drive){
+      var pipe = {
+        get : function(fn){
+          return fn ? fn(data) : data;
+        },
+        next: function(e){
+          data = e;
+          drive.$continue(e);
+        },
+
+        stop: function(e){
+          drive.$break();
+        }
+      }
+      return fn(e, pipe);
+    });
+  };
+
   DataBus.prototype.collectFor = function(bus){
     var collection = [];
 
@@ -494,12 +539,15 @@ var DataBus = (function(){
   };
 
   DataBus.prototype.toggle = function(a,b) {
-    var self = this;
-    this.data.toggle = false;
-    return process.call(this, function(e, drive){
-      var fun = self.data.toggle ? a : b;
-      self.data.toggle = !self.data.toggle;
-      return drive.$continue(fun.call(self, e));
+    var toggled = false;
+    
+    return this.listen(function(data){
+      if(toggled){
+        a.call(this, data);
+      }else{
+        b.call(this, data);
+      }
+      toggled = !toggled;
     });
   };
 
@@ -624,6 +672,8 @@ var DataBus = (function(){
 
     argv.unshift(this);
 
+    values.length = executions.length = argv.length;
+
     nbus = Warden.makeStream(function(emit){
       each(argv, function(bus, index){
         bus.listen(function(data){
@@ -643,6 +693,9 @@ var DataBus = (function(){
 
           if(exec){
             emit(values);
+            values = [];
+            executions = [];
+            values.length = executions.length = argv.length;
           }else{
             executions[index] = true;
           }

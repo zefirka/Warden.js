@@ -204,7 +204,7 @@ var Utils, Analyze, UserMap = {};
       }, 
 
       log : function(){
-        console.log(interpolate.apply(this, arguments));
+        console.log(this.interpolate.apply(this, arguments));
       },
 
       flatten : function(arr) {
@@ -274,25 +274,22 @@ var Utils, Analyze, UserMap = {};
   })();
 
   /* Exception manager */
-
-  function setAnalyzer(map){
+  Analyze = (function(map){
     return function(id, i, l){
       var t = map[id],
           res = !Utils.is.exist(t) ? true : Utils.some(t, function(type){return typeof i === type});
 
       if(!res){
-        throw "TypeError: unexpected type of argument at: ." + id + "(). Expected type: " + t.join(' or ') + ". Your argument is type of: " + typeof i;
+        throw "TypeError: invalid arg in: ." + id + "(). Expected: " + t.join(' or ') + ". Your argument is type of: " + typeof i;
       }
-    }
-  }
-
-  Analyze = setAnalyzer({
+    } 
+  })({
     extend : [_OBJ,_FUN, _ARR],
     listen : [_STR],
     stream : [_STR],
     unlisten : [_STR],
     reduce : [_FUN],
-    include : [_STR],
+    include : [_OBJ, _FUN],
     take : [_NUM],
     filter : [_FUN],
     skip : [_NUM],
@@ -307,9 +304,6 @@ var Utils, Analyze, UserMap = {};
     nth : [_NUM],
     get : [_STR]
   });
-
-  Warden.configure.exceptionMap = {};
-  Warden.configure.exceptionManager = setAnalyzer(Warden.configure.exceptionMap);
 
 })();
 

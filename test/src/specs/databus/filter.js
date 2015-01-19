@@ -30,7 +30,7 @@ describe('.filter()', function () {
 		}catch(err){
 			filterError = err; 
 		}
-		expect(filterError).toBe('TypeError: unexpected type of argument at: .filter(). Expected type: function. Your argument is type of: number');
+		expect(filterError).toBe('TypeError: invalid arg in: .filter(). Expected: function. Your argument is type of: number');
 		done();
     });
 });

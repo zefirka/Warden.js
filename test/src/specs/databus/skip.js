@@ -12,15 +12,4 @@ describe('.skip()', function () {
 	    expect(emitted).toBe(1);
 	    done();
     });
-
-    it('-- type error catched', function (done) {
-    	var skipError;
-    	try{
-			bus.skip(function(){})
-		}catch(err){
-			skipError = err; 
-		}
-		expect(skipError).toBe('TypeError: unexpected type of argument at: .skip(). Expected type: number. Your argument is type of: function');
-		done();
-    });
 });

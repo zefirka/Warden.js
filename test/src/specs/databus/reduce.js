@@ -56,15 +56,4 @@ describe('.reduce()', function () {
 	    expect(reduced.sort).toBe(40);
 	    done();
     }); 
-
-    it('-- type error catched', function (done) {
-    	var reduceError;
-    	try{
-			bus.reduce('string', 'dsds')
-		}catch(err){
-			reduceError = err; 
-		}
-		expect(reduceError).toBe('TypeError: unexpected type of argument at: .reduce(). Expected type: function. Your argument is type of: string');
-		done();
-    });
 });
