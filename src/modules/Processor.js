@@ -3,7 +3,6 @@
   Implements interface to processing all databus methods.
   Version: v1.0.0;
 */
-
 function Processor(proc, host){
   var processes = proc || [], locked = 0, i = 0,
 
@@ -24,9 +23,6 @@ function Processor(proc, host){
         /* Unlocks DataBus evaluation */
         $unlock: function(){
           return locked = 0;
-        },
-        $update: function(){
-          host.update();
         },
         /* Returns current DataBus */
         $host: function(){

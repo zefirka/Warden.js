@@ -231,7 +231,7 @@ Warden.extend = (function(){
         reactor.call(self, isRegExp(type) ? new RegExp(type) : type);
       });
 
-      return stream.get();
+      return stream.bus();
     };
 
     return obj;

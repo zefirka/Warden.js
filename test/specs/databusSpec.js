@@ -21,7 +21,7 @@ describe('Warden DataBus methods', function () {
 			this.transmit = function(val){
 				trigger(val);
 			}
-		}, sync).get();
+		}, sync).bus();
 
 	/* Simple */
 	bus.listen(function(data){
@@ -134,6 +134,74 @@ describe('Warden DataBus methods', function () {
 		    expect(mapped.ctxm).toEqual('hello context method');
 		    done();
 	    }); 
+	});
+
+	describe('.get()', function () {  
+		var data = {
+			root : {
+				parent: {
+					object : {
+						prop: 'value'
+					},
+					child: {
+						prop: 'name',
+						array: ['alpha', 'betta']
+					}
+				}
+			},
+			simple: 'simple'
+		}
+
+		bus.map('root/parent/child/prop').listen(function(e){
+			mapped.getFMap = e;
+		});
+
+		bus.get('root/parent/child/prop').listen(function(e){
+			mapped.getF = e;
+		});
+
+		bus.get('root/parent/child/array/[0]').listen(function(e){
+			mapped.getFArray = e;
+		});
+
+		bus.get('simple').listen(function(e){
+			mapped.getFSimple = e;
+		});
+
+		bus.get('root/parent/object').listen(function(e){
+			mapped.getFObject = e;
+		});
+
+		it('-- from .map()', function (done) {     
+			sync.transmit(data);
+		    expect(mapped.getFMap).toEqual('name');
+		    done();
+	    }); 
+
+	    it('-- from .get()', function (done) {     
+			sync.transmit(data);
+		    expect(mapped.getF).toEqual('name');
+		    done();
+	    }); 
+
+	    it('-- get from array', function (done) {     
+			sync.transmit(data);
+		    expect(mapped.getFArray).toEqual('alpha');
+		    done();
+	    }); 
+
+	    it('-- get simple', function (done) {     
+			sync.transmit(data);
+		    expect(mapped.getFSimple).toEqual('simple');
+		    done();
+	    }); 
+
+	    it('-- get object', function (done) {     
+			sync.transmit(data);
+		    expect(mapped.getFObject).toEqual({prop: "value"});
+		    done();
+	    }); 
+
 	});
 	describe('.filter()', function () {  
 		bus.filter(function(x){
@@ -493,14 +561,13 @@ describe('Warden DataBus methods', function () {
 
 		it('-- resolveWith (first is earlier)', function (done) {
 			var cl;
-
-			bus.setup(function(d){
+			var time = function(d){
 				d.time = (new Date()).getTime();
 				return d;
-			});
+			}
 
-			var bus1 = bus.filter(function(x){return x.one}),
-				bus2 = bus.filter(function(x){return x.two}),
+			var bus1 = bus.filter(function(x){return x.one}).map(time),
+				bus2 = bus.filter(function(x){return x.two}).map(time),
 				produced = bus1.resolveWith(bus2, function(a,b){
 					return a.time <= b.time ? 'first' : 'second';
 				});
@@ -521,7 +588,7 @@ describe('Warden DataBus methods', function () {
 		it('-- resolveWith (second is earlier)', function (done) {
 			var cl;
 
-			bus.setup(function(d){
+			bus.map(function(d){
 				d.time = (new Date()).getTime();
 				return d;
 			});
@@ -614,7 +681,7 @@ describe('Warden DataBus methods', function () {
 		}, Context);
 
 		it('-- locking and unlocking simple listened bus', function (done) { 
-			var bus = Stream.get();
+			var bus = Stream.bus();
 			bus.listen(function(x){
 				Context.syncemitted++
 				Context.syncLastValue = x;
@@ -646,8 +713,8 @@ describe('Warden DataBus methods', function () {
 		});
 
 		it('-- locking and unlocking difference buses', function (done) { 
-			var bus1 = Stream.get(),
-				bus2 = Stream.get();
+			var bus1 = Stream.bus(),
+				bus2 = Stream.bus();
 
 			var b1 = {t: 0,v: 0},
 				b2 = {t: 0,v: 0}
@@ -722,7 +789,7 @@ describe('Warden DataBus methods', function () {
 
 		
 		it('-- locking all children', function (done) { 
-			var parent = Stream.get(),
+			var parent = Stream.bus(),
 					child1 = parent.map('c1'),
 					child2 = parent.map('c2'),
 					childChild1 = child1.map('cc1');

@@ -16,7 +16,7 @@ describe('Lock/Unlock methods ', function () {
 	}, Context);
 
 	it('-- locking and unlocking simple listened bus', function (done) { 
-		var bus = Stream.get();
+		var bus = Stream.bus();
 		bus.listen(function(x){
 			Context.syncemitted++
 			Context.syncLastValue = x;
@@ -48,8 +48,8 @@ describe('Lock/Unlock methods ', function () {
 	});
 
 	it('-- locking and unlocking difference buses', function (done) { 
-		var bus1 = Stream.get(),
-			bus2 = Stream.get();
+		var bus1 = Stream.bus(),
+			bus2 = Stream.bus();
 
 		var b1 = {t: 0,v: 0},
 			b2 = {t: 0,v: 0}
@@ -124,7 +124,7 @@ describe('Lock/Unlock methods ', function () {
 
 	
 	it('-- locking all children', function (done) { 
-		var parent = Stream.get(),
+		var parent = Stream.bus(),
 				child1 = parent.map('c1'),
 				child2 = parent.map('c2'),
 				childChild1 = child1.map('cc1');

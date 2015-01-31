@@ -11,7 +11,7 @@ describe('Warden streams: synchronious', function () {
 				data: val
 			});
 		}
-	}, sync).get()
+	}, sync).bus()
 
 	bus.listen(function(data){
 		value = data;
@@ -57,7 +57,7 @@ describe('Warden.makeStream: asynchronious', function () {
 				}, 100);
 				
 			}
-		}, async).get().listen(function(data){
+		}, async).bus().listen(function(data){
 			avalue = data;
 		});
 		async.start();

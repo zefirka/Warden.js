@@ -37,14 +37,14 @@ var clicks = document.stream('click'),
 ## Side-effects
 This functions
 
-  - <a href="log-fn"></a>`log([text])` - logs transmitted value to the console. If `text` is setted then logs that value.
+  - <a href="#log-fn"></a>`log([text])` - logs transmitted value to the console. If `text` is setted then logs that value.
 
     ```js
       ticks.log(); // -> TICK! (every second)
       ticks.log('Hello World!'); // -> Hello World! (every second)
     ```
 
-  - <a href="listen-fn"></a>`listen(callback)` - handled `callback` to the data bus.
+  - <a href="#listen-fn"></a>`listen(callback)` - handled `callback` to the data bus.
 
     ```js
       clicks.listen(function(event){
@@ -124,7 +124,7 @@ You can see result just logging these buses with [`.log()`](#log-fn) method.
 
       - With object of aliases. Usage: `.map({ alias: 'value' })`
         ```js
-          clicks.mao({
+          clicks.map({
             x: '.clientX',
             y: '.clientY'
           })// equals to
@@ -167,23 +167,6 @@ You can see result just logging these buses with [`.log()`](#log-fn) method.
       ```js
         ticks.map(['alpha', 'betta', 'gamma']).nth(1).log() // -> 'alpha'
       ```
-
-  - #### include
-    `include(ins)` includes value from `ins` which can be function or property name to transmitting data
-
-      - With function:
-
-        ```js
-        var xs = clicks.map('.clientX');
-        xs.include(function(bus){
-          return {
-            name: 'parent',
-            value: bus.parent
-          }
-        }).listen(function(e){
-          console.log(e.parent.$$id); // clicks
-        })
-        ```
 
 ## Filtering
 
@@ -233,11 +216,26 @@ You can see result just logging these buses with [`.log()`](#log-fn) method.
       ```
 
 ## Timing
-  - `debounce(miliseconds)` - debouncing transmission of bus for given time in ms.
+  - `debounce(miliseconds)` - debouncing transmission of bus for given time in ms. It means that if there was events emitted during given interval then data bus will transmit only last.
+      ```js
+        keydowns.map('.keyCode').map(String.fromCharCode).debouce(1000).log();
+        // press a lot of keys
+        // -> logs last key's char
+      ```
 
-  - `getCollected(miliseconds)` - collecting transmission's data for given time in ms and then flush them to the next processor
+  - `getCollected(miliseconds)` - collecting all events for given time in ms and then flush them to the next processor.
+      ```js
+        keydowns.map('.keyCode').map(String.fromCharCode).getCollected(1000).log();
+        // press a lot of keys
+        // -> logs all of their's chars as array
+      ```
 
-  - `collectFor(bus)` - collecting transmission's data and flush them to the given `bus`
+  - `collectFor(bus)` - collecting all events and flush them when `bus` is fired
+      ```js
+      keydowns.map('.keyCode').map(String.fromCharCode).collectFor(clicks).log();
+      // press a lot of keys and after it click on document
+      // -> logs all of their's chars as array
+      ```
 
   - `delay(ms)` - delays every transmission for given time in ms
 
@@ -277,8 +275,30 @@ You can see result just logging these buses with [`.log()`](#log-fn) method.
       }).interpolate("{{event}} was first").log()
     ```
 
+## Setting up streaming data
+
+Sometimes we need to transform data that we recieved from stream on every data bus. In our examples, let think that we need to get timestamp of every TICK, but we haven't access to change the original DataBus construction.
+
+```js
+ticks.setup(function(data){
+  return {
+    message: data,
+    timeStamp = : new Date().getTime();
+  }
+});
+ticks.log();
+// -> {message: "TICK", timeStamp: 1421829415180}
+```
+
+After it, every databus inherited from `ticks` will fired with data that contains timeStamp property:
+
+```js
+ticks.map('.timeStamp').log() // -> logs timeStamp every second
+```
+
 ## Properties
 
  - `data`
  - `parent`
  - `children`
+ - `bindings`

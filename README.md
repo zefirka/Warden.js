@@ -1,7 +1,8 @@
-Warden.js
-=========
+# Warden.js
 
-Small declarative library for event-driven development in functional reactive style.
+<img src="./src/warden.png" align="center" width="728" style='display: block; z-index: 32323; position: relative;'/>
+
+Warden.js is a small declarative library for event-driven development in functional reactive style.
 
 ## Concept
 
@@ -17,12 +18,10 @@ General idea of Warden.js that to make composing, combining and resolving concur
 
 ## Why Warden.js?
 
-<img src="./src/logo.png" align="right" width="301px" style='z-index: 32323; position: relative;'/>
-
  - There are no dependencies with DOM, jQuery or other libraries or event emitting system in the Warden.js. You can use it on the front and on the back. With jQuery or with Node's Event Emiter or without anything.  
  - Simple declarative methods to combine, conjuncte and resolve concpetually connected events. Like `sync` or `resolveWith`. If your application turns to tangled web of simple events and you spoiling time to resolve synchronization, combining events in time and resolving problems - that Warden.js is for you.
  - Pretty flexible API. There are no much of ready solutions, but there is way to add your own data stream processing method, combine methods and construct application in your way.
- - It's lighweight. Current version (0.2.0): 16.3 KB. And it's with datatype checking, crossbrowser utilities package and internal plugin system with configuration.
+ - It's lighweight. Current version (0.2.0): 15.5 KB. And it's with datatype checking, crossbrowser utilities package and internal plugin system with configuration.
  - Real immutable data streams gives you access to taken data on every step of calculation (if you need). That gives you power to develop really cool stream processors.
  - Low-level functional abstraction. You can write a bunch of cool things. An events sampler (for example).
 

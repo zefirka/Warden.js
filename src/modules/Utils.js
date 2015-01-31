@@ -37,7 +37,7 @@
 
 
 /* Globals */
-var Utils, Analyze, UserMap = {};
+var Utils, Analyze;
 
 (function(){
   var _FUN = 'function',
@@ -49,17 +49,13 @@ var Utils, Analyze, UserMap = {};
       _UND = 'undefined';
 
   Utils = (function(){
-    function protoCheck(name, cfn){
-      return Array.prototype[name] ? function(arr, fn){return Array.prototype[name].call(arr, fn)} : cfn;
-    }
-
-    var each = protoCheck('forEach', function(arr, fn){ 
+    function each(arr, fn){ 
       for(var i=0, l=arr.length; i<l;i++){ 
         fn(arr[i], i);
       }
-    }),
+    }
 
-    forWhile = function(arr, fn, preventValue, depreventValue){
+    function forWhile(arr, fn, preventValue, depreventValue){
       preventValue = preventValue || false; 
       for(var i=0, l=arr.length; i<l;i++){ 
         if(fn(arr[i], i) === preventValue){
@@ -67,9 +63,9 @@ var Utils, Analyze, UserMap = {};
         }
       }
       return depreventValue !== undefined ? depreventValue : true;
-    },
+    }
 
-    filter = protoCheck('filter', function(arr, fn){
+    function filter(arr, fn){
       var filtered = [];
       each(arr, function(i, index){
         if(fn(i, index)===true){
@@ -77,49 +73,49 @@ var Utils, Analyze, UserMap = {};
         }
       });
       return filtered;
-    }),
-    
-    reduce = protoCheck('reduce', function(arr, fn){
+    }
+
+    function reduce(arr, fn){
       var res = arr[0];
       for(var i=1,l=arr.length;i<l;i++){
         res = fn(res, arr[i]);
       }
       return res;
-    }),
+    }
 
-    map = protoCheck('map', function(arr, fn){
+    function map(arr, fn){
       var mapped = [];
       each(arr, function(e, i){
         mapped[i] = fn(e, i);
       });
       return mapped;
-    }),
+    }
 
-    some = protoCheck('some', function(arr, fn){
+    function some(arr, fn){
       return forWhile(arr, fn, true, false);
-    }),
+    }
 
-    every = protoCheck('every', function(arr, fn){
+    function every(arr, fn){
       return forWhile(arr, fn);
-    }),
+    }
 
-    truthy = function(x){
+    function truthy(x){
       return x ? true : false;
-    },
+    }
 
-    typeIs = function(n){
+    function typeIs(n){
       return function(x){
         return typeof x === n;
       }
-    },
+    }
 
-    not = function(predicate){
+    function not(predicate){
       return function(x){
         return !predicate(x);
       }
-    },
+    }
     
-    is = {
+    var is = {
       exist : function(x){
         return typeof x != 'undefined' && x !== null;
       },
@@ -172,6 +168,7 @@ var Utils, Analyze, UserMap = {};
       map : map,
       reduce : reduce,
 
+
       toArray : function(a){
         if(is.obj(a) && is.not.exist(a.length)){
           a.length = Object.keys(a).length;
@@ -184,7 +181,7 @@ var Utils, Analyze, UserMap = {};
         var data = {},
             argc = arguments.length,
             argv = Utils.toArray(arguments),
-            reg = /{{\s*[\w\.]+\s*}}/g;
+            reg = /{{\s*[\w\.\/\[\]]+\s*}}/g;
 
         if(argc==2 && is.obj(argv[1])){
           data = argv[1];
@@ -195,10 +192,10 @@ var Utils, Analyze, UserMap = {};
         }       
 
         return str.replace(reg, function(i){
-          var arg = data[i.slice(2,-2)] || i;
+          var arg = Utils.getObject(data, i.slice(2,-2)) || i;
           if(is.obj(arg)){
             arg=JSON.stringify(arg);
-          }
+          }          
           return arg;
         });
       }, 
@@ -236,6 +233,39 @@ var Utils, Analyze, UserMap = {};
         return Utils.toArray(arguments).reduce(function(dest, src) {
           return _extend(dest, src);
         });
+      },
+
+      getObject : function(data, s){
+        if(!is.obj(data)){
+          return data;
+        }
+
+        each(s.split('/'), function(elem){
+          if(!is.exist(data)){
+            return data;
+          }
+
+          var cand;
+
+          if(elem[0]=='[' && elem[elem.length-1]==']'){
+            cand = elem.slice(1,-1);
+            if(is.exist(cand)){
+              if(is.num(parseInt(cand))){
+                elem = parseInt(cand);
+              }else{
+                throw "Wrong syntax";
+              }
+            }
+          }else{
+            if(!is.exist(data[elem])){
+              data = {}
+            }
+          }
+
+          data=data[elem];
+
+        });
+        return data;
       },
 
       /* 
@@ -298,7 +328,7 @@ var Utils, Analyze, UserMap = {};
     debounce : [_NUM],
     getCollected : [_NUM],
     interpolate : [_STR],
-    mask : [_OBJ],
+    mask : [_UND, _OBJ],
     unique : [_FUN, _UND],
     lock : [_STR],
     nth : [_NUM],

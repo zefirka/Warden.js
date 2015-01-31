@@ -64,14 +64,13 @@ describe('Combining methods ', function () {
 
 	it('-- resolveWith (first is earlier)', function (done) {
 		var cl;
-
-		bus.setup(function(d){
+		var time = function(d){
 			d.time = (new Date()).getTime();
 			return d;
-		});
+		}
 
-		var bus1 = bus.filter(function(x){return x.one}),
-			bus2 = bus.filter(function(x){return x.two}),
+		var bus1 = bus.filter(function(x){return x.one}).map(time),
+			bus2 = bus.filter(function(x){return x.two}).map(time),
 			produced = bus1.resolveWith(bus2, function(a,b){
 				return a.time <= b.time ? 'first' : 'second';
 			});
@@ -92,7 +91,7 @@ describe('Combining methods ', function () {
 	it('-- resolveWith (second is earlier)', function (done) {
 		var cl;
 
-		bus.setup(function(d){
+		bus.map(function(d){
 			d.time = (new Date()).getTime();
 			return d;
 		});

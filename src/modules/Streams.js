@@ -29,8 +29,7 @@ Warden.makeStream = (function(){
 
   /* Stream constructor */
   function Stream(context, type){
-    var drive = [],
-        interval;
+    var drive = [], interval;
 
     return {
       $$id : Utils.$hash.set('s'), // stream id
@@ -43,15 +42,6 @@ Warden.makeStream = (function(){
         each(drive, function(bus){
           bus.fire(data, context);
         });
-      },
-      
-      /* 
-        Transforms evety bus in drive 
-      */
-      transform : function(transformer){
-        if(is.fn(transformer)){
-          drive = Utils.map(drive, transformer);
-        }
       },
 
       /* 
@@ -87,11 +77,12 @@ Warden.makeStream = (function(){
         Bus must be DataBus object.
       */
       pop : function(bus){
-        each(drive, function(b, i){
+        Utils.forWhile(drive, function(b, i){
           if(bus.$$id == b.$$id){
-            drive = drive.slice(0,i).concat(drive.slice(i+1,drive.length));
+            drive.splice(i, 1);
+            return false;
           }
-        });
+        }, false);
         return bus;
       },
 
@@ -120,14 +111,10 @@ Warden.makeStream = (function(){
       /*
         Creates empty DataBus object and hoist it to the current stream
       */
-      get : function(){
+      bus : function(){
         var bus = new DataBus();
         bus.host = this;
         return bus;
-      },
-
-      bus : function(){
-        return this.get();
       }
     };
   }

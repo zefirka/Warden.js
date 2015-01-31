@@ -21,7 +21,7 @@ describe('Warden DataBus methods', function () {
 			this.transmit = function(val){
 				trigger(val);
 			}
-		}, sync).get();
+		}, sync).bus();
 
 	/* Simple */
 	bus.listen(function(data){

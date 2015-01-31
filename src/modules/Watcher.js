@@ -1,6 +1,6 @@
 /* 
 	Watcher module:
-		version: 0.1.0
+		version: 0.2.0
 */
 Warden.watcher = (function(){
 	var is = Utils.is,
@@ -9,7 +9,8 @@ Warden.watcher = (function(){
 	return function(bus, a, b){
 		var argv = Utils.toArray(arguments).slice(1,arguments.length),
 			argc = argv.length,
-			fn;
+			fn,
+			st;
 
 		if(argc===1){
 			if(is.str(a)){
@@ -45,15 +46,16 @@ Warden.watcher = (function(){
 			} 
 		}
 
-		bus.listen(fn);
+		st = fn;
 
 		return {
 			update : fn,
 			unbind : function(name){
-				bus.mute(name);
+				st = fn;
+				fn = function(){} 
 			},
 			bind : function(f){
-				bus.listen(f || fn)
+				fn = st;
 			}
 		};
 
