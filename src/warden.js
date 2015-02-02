@@ -38,9 +38,9 @@
 
   /*
     Globals:
-      Processor
+      Pipeline
   */
-  include "Processor.js"
+  include "Pipeline.js"
 
   /*
     Globals:

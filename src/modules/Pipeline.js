@@ -1,39 +1,43 @@
 /*
-  Processor module:
+  Pipe module:
   Implements interface to processing all databus methods.
   Version: v1.0.0;
 */
-function Processor(proc, host){
+function Pipeline(proc, host){
   var processes = proc || [], locked = 0, i = 0,
 
       /* Functional methods to manipulate DataBus processing workflow */
       fns = {
         /* Continue processing with @data */
-        $continue: function(data){
+        next: function(data){
            return self.tick(data);
         },
         /* Break processing */
-        $break: function(){
+        stop: function(){
           return self.tick({}, 1);
         },
         /* Locks DataBus evaluation */
-        $lock: function(){
+        pause: function(){
           return locked = 1;
         },
         /* Unlocks DataBus evaluation */
-        $unlock: function(){
+        play: function(){
           return locked = 0;
         },
         /* Returns current DataBus */
-        $host: function(){
+        bus: function(){
           return host;
         }
       };
 
   var self = {
     /* Add process if @p exists or return all processes of this Processor */
-    process : function(p){
-      return p ? processes.push(p) : processes;
+    pipe : function(p){
+      if(p){
+        processes.push(p)
+        return self;
+      } 
+      return processes;
     },
 
     /* Start processing */
@@ -69,3 +73,5 @@ function Processor(proc, host){
   }
   return self;
 }
+
+Warden.pipeline = Pipeline

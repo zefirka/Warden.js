@@ -6,9 +6,12 @@ Warden.watcher = (function(){
 	var is = Utils.is,
 		each = Utils.each;
 
-	return function(bus, a, b){
+	return function(){
 		var argv = Utils.toArray(arguments).slice(1,arguments.length),
 			argc = argv.length,
+			bus = arguments[0],
+			a = argv[0],
+			b = argv[1],
 			fn,
 			st;
 
@@ -16,9 +19,6 @@ Warden.watcher = (function(){
 			if(is.str(a)){
 				fn = function(event){this[a] = event;}			
 			}else	
-			if(is.obj(a)){
-				fn = function(event){a = event;}
-			}else
 			if(is.fn(a)){
 				fn = function(event){a(event);}
 			}

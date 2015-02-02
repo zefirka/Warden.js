@@ -518,6 +518,30 @@ describe('Warden DataBus methods', function () {
 			done();
 		});
 
+		it('-- merge 2 and more', function (done) { 
+			var cl;
+
+			var bus1 = bus.filter(function(x){return x==1}).map('One'),
+				bus2 = bus.filter(function(x){return x==0}).map('Two'),
+				bus3 = bus.filter(function(x){return x==2}).map('Three'),
+				merged = bus1.merge(bus2, bus3);
+
+			merged.reduce([],function(a,b){
+				a.push(b);
+				return a;
+			}).listen(function(x){
+				cl = x;
+			});
+
+			sync.transmit(2);
+			sync.transmit(1);
+			sync.transmit(0);
+
+			expect(cl).toEqual(['Three', 'One', 'Two']);
+			merged.lock();
+			done();
+		});
+
 		it('-- resolveWith (bigger)', function (done) {
 			var cl;
 
@@ -610,6 +634,29 @@ describe('Warden DataBus methods', function () {
 				done();
 			},10);
 			
+		});
+
+
+		it('-- combine (+)' ,function (done){
+			var sum = 0;
+
+			var bus1 = bus.map(10),
+				bus2 = bus.map(20),
+				combined = bus1.combine(bus2, function(a,b){
+					return a + b;
+				}, 0).listen(function(res){
+					sum = res;
+				});
+
+				bus1.fire(0);
+				expect(sum).toBe(10);
+				bus2.fire(0);
+				expect(sum).toBe(30);
+				bus2.fire(0);
+				bus1.fire(0);
+				expect(sum).toBe(30);
+
+				done();
 		});
 
 		it('-- sync (with intreval of 300 ms);', function (done) { 

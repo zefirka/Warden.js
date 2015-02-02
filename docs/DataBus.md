@@ -112,6 +112,11 @@ You can see result just logging these buses with [`.log()`](#log-fn) method.
           clicks.map(function(){
             return this.method();
           })
+
+          clicks.map('@') //equals to
+          clicks.map(function(){
+            return this;
+          })
         ```
 
       - With multiple values:
@@ -265,40 +270,31 @@ You can see result just logging these buses with [`.log()`](#log-fn) method.
 
     `waitFor(bus)` - return bus that fires when `bus` firing and only if current bus was already fired
 
-  - `combine` -
+  - #### combine and resolve
+    `combine(bus, fn, seed)` - return bust that emits combined with given function events with current last and given bus' last event
+      ```js
+      var xs = clicks.map('.clientX'),
+          ys = clicks.map('.clientY');
 
-  - #### resolveWith
+      xs.combine(ys, function(x,y){
+        return "SUMM: " (x+y);
+      }, 0).log();
+      ```
+
     `resolveWith(bus, fn)` - resolve one event by function `fn` which gives two arguments: first is data from current bus, second is data from second bus;
-    ```js
+      ```js
       clicks.resolveWith(keydowns, function(e1, e2){
         return e1.timeStamp > e2.timeStamp ? {event: 'keydown'} : {event: 'click'};
       }).interpolate("{{event}} was first").log()
-    ```
-
-## Setting up streaming data
-
-Sometimes we need to transform data that we recieved from stream on every data bus. In our examples, let think that we need to get timestamp of every TICK, but we haven't access to change the original DataBus construction.
-
-```js
-ticks.setup(function(data){
-  return {
-    message: data,
-    timeStamp = : new Date().getTime();
-  }
-});
-ticks.log();
-// -> {message: "TICK", timeStamp: 1421829415180}
-```
-
-After it, every databus inherited from `ticks` will fired with data that contains timeStamp property:
-
-```js
-ticks.map('.timeStamp').log() // -> logs timeStamp every second
-```
+      ```
 
 ## Properties
 
- - `data`
- - `parent`
- - `children`
- - `bindings`
+ - `data` - collected data. It's object contains properties: `fires`, - array of fired events on bus, `takes` - array of taken events of bus, `last` - last taken value
+ - `parent` - parent bus
+ - `children` - array of children buses
+ - `bindings` - bindings of data ([look at](https://github.com/zefirka/Warden.js/blob/master/docs/Bind.md))
+
+## Other
+  `bus.watch()` - method that makes your bus observable
+  `bus.bindTo` - [data binding](https://github.com/zefirka/Warden.js/blob/master/docs/Bind.md)
