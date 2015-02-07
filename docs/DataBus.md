@@ -1,7 +1,9 @@
 DataBus
 =========
 
-Source at: `./src/module/DataBus.js` : DataBUs module
+Source at: `./src/modules/DataBus.js` : DataBUs module
+Source of pipeline `./src/modules/Pipeline.js`
+
 
 Create :
  - `object.stream(type, [context])` - Creates an event stream and returns associated data bus,

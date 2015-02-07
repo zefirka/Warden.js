@@ -1,16 +1,12 @@
 ((function (root, factory) {
   if (typeof exports === "object" && exports) {
-    factory(exports); // CommonJS
-  } else {
-    if(root.Warden == null){ //initialize Warden
-      Warden = {};
+    factory(exports);   } else {
+    if(root.Warden == null){       Warden = {};
     }
     factory(Warden);
     if (typeof define === "function" && define.amd) {
-      define(Warden); // AMD
-    } else {
-      root.Warden = Warden; // <script>
-    }
+      define(Warden);     } else {
+      root.Warden = Warden;     }
   }
 })(this, function(Warden){
 
@@ -191,8 +187,7 @@
         */ 
         forEach : each,
         forWhile : forWhile,
-        each : each, // synonym of forEach
-        filter : filter,
+        each : each,         filter : filter,
         some : some,
         every : every,
         map : map,
@@ -420,8 +415,7 @@
       alternativeListener = "attachEvent",
 
       defaultConfig = {
-        arrays : ['pop', 'push', 'splice', 'reverse', 'shift', 'unshift', 'sort'], //only not-pure methods
-        names : {
+        arrays : ['pop', 'push', 'splice', 'reverse', 'shift', 'unshift', 'sort'],         names : {
           emit : 'emit',
           listen : 'listen',
           stream : 'stream',
@@ -431,8 +425,7 @@
         listener : null /* custrom event listener if exists */
       },
 
-      ghandlers = {}, //global storage for handlers
-
+      ghandlers = {}, 
       setHandlers = function(id){
         ghandlers[id] = ghandlers[id] || [];
         each(Utils.toArray(arguments).slice(1), function(handler){
@@ -473,10 +466,7 @@
       }
 
 
-      var config = extend({}, defaultConfig, conf || {}), // default configuration
-          inheritor = obj || {}, // final object to extend
-          isConstructor = true, //obj is constructor
-          names = config.names;
+      var config = extend({}, defaultConfig, conf || {}),           inheritor = obj || {},           isConstructor = true,           names = config.names;
 
       /*
         Choose object to extend,
@@ -742,9 +732,7 @@
       var drive = [], interval;
 
       return {
-        $$id : Utils.$hash.set('s'), // stream id
-        $$context : context, // saving context
-        $$type : type,
+        $$id : Utils.$hash.set('s'),         $$context : context,         $$type : type,
         /* 
           Evaluating the stream with @data 
         */
@@ -979,11 +967,9 @@
     DataBus.prototype.fire = function(data, context) {
       var id = this.$$id, self = this;
 
-      this.data.fires.push(data); // pushing fired data to @fires queue
-
+      this.data.fires.push(data); 
       pipes[id].start(data, context, function(result){
-        self.data.takes.push(result); // pushing taked data to @takes queue
-        self.update(self.data.last = result);
+        self.data.takes.push(result);         self.update(self.data.last = result);
 
         /* Executing all handlers of this DataBus */
         each(handlers[id], function(handler){
