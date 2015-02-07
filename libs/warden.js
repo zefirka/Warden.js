@@ -1,1 +1,1631 @@
-!function(a,b){"object"==typeof exports&&exports?b(exports):(null==a.Warden&&(Warden={}),b(Warden),"function"==typeof define&&define.amd?define(Warden):a.Warden=Warden)}(this,function(Warden){"use strict";function Processor(a,b){var c=a||[],d=0,e=0,f={$continue:function(a){return g.tick(a)},$break:function(){return g.tick({},1)},$lock:function(){return d=1},$unlock:function(){return d=0},$update:function(){b.update()},$host:function(){return b}},g={process:function(a){return a?c.push(a):c},start:function(a,b,f){return g.ctx=b,g.fin=f,e=d?0:e,e==c.length?(e=0,f(a)):void this.tick(a)},tick:function(a,b){return b?e=0:e==c.length?(e=0,g.fin(a)):(e++,void c[e-1].apply(g.ctx,[a,f]))}};return g}var jQueryInited="undefined"!=typeof jQuery;Warden.version="0.1.4",Warden.configure={cmp:function(a,b){return a===b}};var Utils,Analyze,UserMap={};!function(){function a(a){return function(b,c){var d=a[b],e=Utils.is.exist(d)?Utils.some(d,function(a){return typeof c===a}):!0;if(!e)throw"TypeError: unexpected type of argument at: ."+b+"(). Expected type: "+d.join(" or ")+". Your argument is type of: "+typeof c}}var b="function",c="number",d="string",e="object",f="array",g="boolean",h="undefined";Utils=function(){function a(a,b){return Array.prototype[a]?function(b,c){return Array.prototype[a].call(b,c)}:b}var f=a("forEach",function(a,b){for(var c=0,d=a.length;d>c;c++)b(a[c],c)}),h=function(a,b,c,d){c=c||!1;for(var e=0,f=a.length;f>e;e++)if(b(a[e],e)===c)return c;return void 0!==d?d:!0},i=a("filter",function(a,b){var c=[];return f(a,function(a,d){b(a,d)===!0&&c.push(a)}),c}),j=a("reduce",function(a,b){for(var c=a[0],d=1,e=a.length;e>d;d++)c=b(c,a[d]);return c}),k=a("map",function(a,b){var c=[];return f(a,function(a,d){c[d]=b(a,d)}),c}),l=a("some",function(a,b){return h(a,b,!0,!1)}),m=a("every",function(a,b){return h(a,b)}),n=function(a){return a?!0:!1},o=function(a){return function(b){return typeof b===a}},p=function(a){return function(b){return!a(b)}},q={exist:function(a){return"undefined"!=typeof a&&null!==a},array:function(a){return Array.isArray(a)},fn:o(b),num:o(c),str:o(d),bool:o(g),truthy:n,falsee:p(n),equals:function(a){return function(b){return a===b}}};return q.obj=function(a){return o(e)(a)&&!q.array(a)},q.not=function(){var a={};for(var b in q)a[b]=p(q[b]);return a}(),{is:q,not:p,forEach:f,forWhile:h,each:f,filter:i,some:l,every:m,map:k,reduce:j,toArray:function(a){return q.obj(a)&&q.not.exist(a.length)&&(a.length=Object.keys(a).length),Array.prototype.slice.call(a)},interpolate:function(a){var b={},c=arguments.length,d=Utils.toArray(arguments),e=/{{\s*[\w\.]+\s*}}/g;return 2==c&&q.obj(d[1])?b=d[1]:f(d.slice(1,c),function(a,c){b[c]=a}),a.replace(e,function(a){var c=b[a.slice(2,-2)]||a;return q.obj(c)&&(c=JSON.stringify(c)),c})},log:function(){console.log(interpolate.apply(this,arguments))},flatten:function(a){var b=[];return f(a,function(a){q.array(a)?b=b.concat(Utils.flatten(a)):b.push(a)}),b},trim:function(a){return a.replace(/^\s+|\s+$/g,"")},extend:function(){function a(a,b){if(!b||"object"!=typeof b)return a;for(var c=Object.keys(b),d=c.length;d--;)a[c[d]]=b[c[d]];return a}return Utils.toArray(arguments).reduce(function(b,c){return a(b,c)})},Queue:function(a,b){var c=b||[],a=a||16,d=c.push;return c.last=function(){return c[c.length-1]},c.push=function(b){return this.length>=a&&this.shift(),d.apply(c,[b])},c},$hash:function(){var a={};return{get:function(b){return a[b]},set:function(b){return a[b]=((parseInt(a[b],16)||0)+1).toString(16)}}}()}}(),Analyze=a({extend:[e,b,f],listen:[d],stream:[d],unlisten:[d],reduce:[b],include:[d],take:[c],filter:[b],skip:[c],setup:[b],makeStream:[h,d,b,f],debounce:[c],getCollected:[c],interpolate:[d],mask:[e],unique:[b,h],lock:[d],nth:[c],get:[d]}),Warden.configure.exceptionMap={},Warden.configure.exceptionManager=a(Warden.configure.exceptionMap)}(),Warden.Utils=Utils,Warden.configure.datatypes=function(a,b){if(Analyze.MAP[a])throw"This name is already exist";Analyze.MAP[a]=b},Warden.extend=function(){var a=Utils.each,b=Utils.is,c=Utils.filter,d=Utils.extend,e="addEventListener",f="attachEvent",g={arrays:["pop","push","splice","reverse","shift","unshift","sort"],names:{emit:"emit",listen:"listen",stream:"stream",unlisten:"unlisten"},emitter:null,listener:null},h={},i=function(b){return h[b]=h[b]||[],a(Utils.toArray(arguments).slice(1),function(a){h[b].push(a)}),h[b]},j=function(a){return h[a]||[]};return Warden.configure.changeDefault=function(a){return Utils.extend(g,a)},Warden.configure.natives=function(a){e=a.listener,f=a.altenativeListener},function(h,k){Analyze("extend",h);var l=d({},g,k||{}),m=h||{},n=!0,o=l.names;b.fn(h)?m=h.prototype:(n=!1,b.array(h)&&(a(l.arrays,function(a){h[a]=function(){h.constructor.prototype[a].apply(h,arguments),h.emit({type:a,current:h,data:Utils.toArray(arguments)})}}),d(m,{sequentially:function(a){var b=Warden.makeStream().get(),c=this,d=0,e=setInterval(function(){d==c.length?(d=0,clearInterval(e)):b.fire(c[d++])},a);return b},toBus:function(){var b=Warden.makeStream().bus();return a(m,function(a,c){b.data.last=b.data.takes[c]=b.data.fires[c]=a}),b}})));var p=m[o.emit]||m[o.listen]||m[o.unlisten]||m[o.stream];if(b.exist(p))throw new Error("Can't overwrite: "+(p.name?p.name:p)+" of object");return jQueryInited&&(n?!0:h instanceof jQuery)?(l.emitter=l.emitter||"trigger",l.listener=l.listener||"on"):(b.fn(m[e])||b.fn(m[f]))&&(l.listener=l.listener||(b.fn(m[e])?e:f)),m[o.emit]=function(d,e){var f=this,g=b.str(d)?d:d.type,e=b.obj(d)?d:e||d,h=c(j(this.$$id=this.$$id||Utils.$hash.set("o")),function(a){return a.type==g||(a.rx?a.rx.test(g):!1)});return a(h,function(a){a.callback.call(f,e)}),this},m[o.listen]=function(b,d){var e=this,f=j(this.$$id=this.$$id||Utils.$hash.set("o")),g=function(a,b){var g=c(f,function(b){return b.type==a||(b.rx?b.rx.test(a):!1)});!g.length&&e[l.listener]&&e[l.listener].apply(e,[a,function(a){e.emit(a)}]),i(e.$$id,{type:a,rx:b,callback:d})};return Analyze("listen",b),a(b.split(","),function(a){a=Utils.trim(a),g(a,a.indexOf("*")>=0?new RegExp(a):null)}),this},m[o.unlisten]=function(b,c){var d=j(this.$$id=this.$$id||Utils.$hash.set("o"));return Analyze("unlisten",b),a(b.split(","),function(b){if(b=Utils.trim(b),d.length){var e=[];a(d,function(a,b){a.callback.name==(c.name||c)&&e.push(b)}),a(e,function(a){d.splice(a,1)})}}),this},m[o.stream]=function(b,d){var e=this,f=Warden.makeStream(b,d||this),g=j(this.$$id=this.$$id||Utils.$hash.set("o"));return Analyze("stream",b),a(b.split(","),function(a){a=Utils.trim(a),!c(g,function(b){return b.type==a}).length&&e[l.listener]&&e[l.listener].apply(e,[a,function(a){f.eval(a)}]),i(e.$$id,{type:a,callback:function(a){f.eval(a)}})}),f.get()},h}}(),Warden.makeStream=function(){function a(a,d){var e=[];return{$$id:Utils.$hash.set("s"),$$context:a,$$type:d,eval:function(c){b(e,function(b){b.fire(c,a)})},transform:function(a){c.fn(a)&&(e=Utils.map(e,a))},push:function(a){return e.push(a),a},pushAllUp:function(a){function b(a){c.exist(a.parent)&&(e.push(a.parent),b(a.parent))}e.push(a),b(a)},pushAllDown:function(a){var c=this;b(c.push(a).children,function(a){c.pushAllDown(a)})},pop:function(a){return b(e,function(b,c){a.$$id==b.$$id&&(e=e.slice(0,c).concat(e.slice(c+1,e.length)))}),a},popAllDown:function(a){var c=this;b(c.pop(a).children,function(a){c.popAllDown(a)})},popAllUp:function(a){var b=this.pop(a);c.exist(b.parent)&&this.popAllUp(b.parent)},get:function(){var a=new DataBus;return a.host=this,a},bus:function(){return this.get()}}}var b=Utils.each,c=Utils.is;return function(d,e,f){var g,h,i,j=[];if(Analyze("makeStream",d),e=e||{},g=a(e),c.fn(d)){if(f===!0){h=d.toString();for(i in e)e.hasOwnProperty(i)&&j.push(i);b(j,function(a){h.indexOf("this."+a)>=0&&console.error("Coincidence: property: '"+a+"' is already defined in stream context!",e)})}d.call(e,function(a){g.eval(a)})}return g}}();var DataBus=function(){function a(a,b){a.parent=b,b.children.push(a)}function b(b){var e,g,h=f.get(this.$$id,"processor");return b?(e=[],d(h.process(),function(a){e.push(a)}),e.push(b),g=new c(e),g.host=this.host,a(g,this),g):h}function c(a){var b=this,c=this.$$id=Utils.$hash.set("d");this.parent=null,this.children=[],this.data={fires:new Utils.Queue,takes:new Utils.Queue,last:null},f.set(c,{bindings:[],processor:new Processor(a||[],b),handlers:[],setup:function(a){return a}})}var d=Utils.each,e=Utils.is,f=(Utils.toArray,{set:function(a,b,c){return e.obj(b)&&!e.exist(c)?this[a]=b:this[a][b]=e.fn(c)?c(this[a][b]):c},get:function(a,b){return e.exist(b)?this[a][b]:this[a]}});return c.prototype.bindTo=function(a,b,c){var d=Warden.watcher(this,a,b,c);return f.get(this.$$id,"bindings").push(d),d},c.prototype.update=function(a){var b=f.get(this.$$id,"bindings");b.length&&d(b,function(b){b.update(a||self.data.takes.last())})},c.prototype.fire=function(a,b){var c=this.$$id,g=this;a=f.get(c,"setup")(e.exist(a)?a:{}),this.data.fires.push(a),f.get(c,"processor").start(a,b,function(a){g.data.takes.push(a),g.update(g.data.last=a),d(f.get(c,"handlers"),function(c){c.call(b,a)})})},c.prototype.setup=function(a){Analyze("setup",a),f.set(this.$$id,"setup",function(){return a})},c.prototype.listen=function(a){var b=this;return f.set(this.$$id,"handlers",function(c){return c.push(a),c.length<=1&&b.host.push(b),c}),this},c.prototype.mute=function(a){return a=e.fn(fn)?a.name:a,d(f.get(this.$$id,"handlers"),function(b,c){b.name==a&&f.set(this.$$id,"handlers",function(a){return a.slice(0,c).concat(a.slice(c+1,a.length))})}),this},c.prototype.log=function(a){return this.listen(function(b){console.log(a||b)})},c.prototype.filter=function(a){return Analyze("filter",a),b.call(this,function(b,c){return a.call(this,b)===!0?c.$continue(b):c.$break()})},c.prototype.map=function(a){var c,f=function(b,c){return c.$continue(a)};switch(typeof a){case"function":c=function(b,c){return c.$continue(a.call(this,b))};break;case"string":if(a.indexOf("/")>=0)return this.get(a);c="."!==a[0]?f:function(b,c){var d=b[a.slice(1)],f=e.exist(d)?d:a;return c.$continue(f)};break;case"object":c=e.array(a)?function(b,c){var f=[];return d(a,function(a){var c;f.push(e.str(a)&&"."==a[0]&&e.exist(c=b[a.slice(1)])?c:a)}),c.$continue(f)}:function(b,c){var d,f={};for(var g in a)d=b[a[g]],f[g]=e.exist(d)?d:a[g];return c.$continue(f)};break;default:c=f}return b.call(this,c)},c.prototype.nth=function(a){return Analyze("nth",a),b.call(this,function(b,c){return c.$continue(b[a])})},c.prototype.get=function(a){return Analyze("get",a),b.call(this,function(b,c){var f=b;return d(a.split("/"),function(a){var b;if("["==a[0]&&"]"==a[a.length-1]){if(b=a.slice(1,-1),e.exist(b)){if(!e.num(parseInt(b)))throw"Wrong syntax at DataBus.get() method";a=parseInt(b)}}else if(!e.exist(f[a]))throw"Can't find "+a+" property";f=f[a]}),c.$continue(f)})},c.prototype.reduce=function(a,c){return Analyze("reduce",c),1==arguments.length&&(c=a,a=void 0),b.call(this,function(b,d){var e=d.$host(),f=b,g=e.data.takes.length>0?e.data.takes.last():a;return d.$continue(c.call(this,g,f))})},c.prototype.take=function(a){return Analyze("take",a),b.call(this,function(b,c){var d=c.$host();return d.data.limit=d.data.limit||a,d.data.takes.length===d.data.limit?c.$break():c.$continue(b)})},c.prototype.include=function(){{var a=Utils.toArray(arguments);a.length}return b.call(this,function(b,c){var f=c.$host();return d(a,function(a){Analyze("include",a),e.exist(f.data[a])&&(b[a]=f.data[a])}),c.$continue(b)})},c.prototype.skip=function(a){return Analyze("skip",a),b.call(this,function(b,c){return c.$host().data.fires.length>a?c.$continue(b):c.$break()})},c.prototype.interpolate=function(a){return Analyze("interpolate",a),b.call(this,function(b,c){return c.$continue(Utils.interpolate(a,b))})},c.prototype.mask=function(a){return Analyze("mask",a),b.call(this,function(b,c){return c.$continue(e.str(b)?Utils.interpolate(b,a):b)})},c.prototype.unique=function(a){return Analyze("unique",a),a=a||Warden.configure.cmp,b.call(this,function(b,c){var d=c.$host().data,e=d.fires,f=d.takes,g=(e.length>1||f.length>0)&&(a(b,e[e.length-2])||a(b,f.last()));return g?c.$break():c.$continue(b)})},c.prototype.debounce=function(a){return Analyze("debounce",a),b.call(this,function(b,c){var d=c.$host();clearTimeout(d.data.dbtimer),d.data.dbtimer=setTimeout(function(){delete d.data.dbtimer,c.$unlock(),c.$continue(b)},a),c.$lock()})},c.prototype.getCollected=function(a){return Analyze("getCollected",a),b.call(this,function(b,c){{var d=c.$host();d.data.fires.length-1}d.data.tmpCollection=d.data.tmpCollection||[],d.data.tmpCollection.push(b),d.data.timer?c.$lock():(d.data.timer=setTimeout(function(){var a=d.data.tmpCollection;clearTimeout(d.data.timer),delete d.data.timer,delete d.data.tmpCollection,c.$unlock(),c.$continue(a)},a),c.$lock())})},c.prototype.collectFor=function(a){var b=[];return this.listen(function(a){b.push(a)}),Warden.makeStream(function(c){a.listen(function(){c(b),b=[]})}).get()},c.prototype.equals=function(a,b){return b=b||Warden.configure.cmp,this.filter(function(c){return b(a,c)})},c.prototype.delay=function(a){return Analyze("delay",a),b.call(this,function(b,c){setTimeout(function(){c.$continue(b)},a)})},c.prototype.toggle=function(a,c){var d=this;return this.data.toggle=!1,b.call(this,function(b,e){var f=d.data.toggle?a:c;return d.data.toggle=!d.data.toggle,e.$continue(f.call(d,b))})},c.prototype.after=function(a,c){var d=!1;return a.listen(function(){d=!0}),b.call(this,function(a,b){d?(d=c===!0?!1:!0,b.$unlock(),b.$continue(a)):b.$lock()})},c.prototype.repeat=function(b,c){var d=this,e=b,f=Warden.makeStream(function(a){d.listen(function(d){var f=setInterval(function(){b?(a(d),b--):(b=e,clearInterval(f))},c)})}).bus();return a(f,this),f},c.prototype.waitFor=function(a){var b=this;return Warden.makeStream(function(c){var d,e=!1,f=function(){d=null,e=!1};a.listen(function(){e&&(c(d),f())}),b.listen(function(a){d=a,e=!0})}).bus()},c.prototype.merge=function(){function a(a,b,c){return Warden.makeStream(function(c){a.listen(c),b.listen(c)},c).get()}var b=Utils.toArray(arguments);return b.unshift(this),Utils.reduce(b,function(b,c){return a(b,c,b.host.$$context)})},c.prototype.resolveWith=function(a,b){var c=this,d=this.host.$$context;return Warden.makeStream(function(e){c.sync(a).listen(function(a){e(b.call(d,a[0],a[1]))})},d).bus()},c.prototype.combine=function(a,b,c){var d=this,c=c||this.host.$$context;return Warden.makeStream(function(e){function f(a,d){e(b.call(c,a,d))}d.listen(function(b){f(b,a.data.takes.last)}),a.listen(function(a){f(d.data.last,a)})},c).get()},c.prototype.sync=function(){var b,c=Utils.toArray(arguments),e=[],f=[];return c.unshift(this),b=Warden.makeStream(function(a){d(c,function(b,c){b.listen(function(b){var d=f.length?!0:!1;Utils.forWhile(f,function(a,b){return b==c?!0:(a||(d=!1),a)},!1),e[c]=b,d?a(e):f[c]=!0})})}).bus(),a(b,this),b},c.prototype.syncFlat=function(){var b=this,c=Utils.toArray(arguments),d=Warden.makeStream(function(a){b.sync.apply(b,c).listen(function(b){a.call(this,Utils.flatten(b))})}).bus();return a(d,this),d},c.prototype.lock=function(){this.host.pop(this)},c.prototype.lockChildren=function(){this.host.popAllDown(this)},c.prototype.lockParents=function(){this.host.popAllUp(this)},c.prototype.unlock=function(){this.host.push(this)},c.prototype.unlockChildren=function(){this.host.pushAllDown(this)},c.prototype.unlockParents=function(){function a(b){e.exist(b.parent)&&(b.host.push(b.parent),a(b.parent))}this.host.push(this),a(this)},Warden.configure.addToDatabus=function(a,d,e,f){d=d||a.name,c.prototype[d]=function(){return Analyze(d,arguments[f||0]),b.call(this,a(arguments))}},c}();Warden.watcher=function(){var is=Utils.is,each=Utils.each;return function(bus,a,b){var argv=Utils.toArray(arguments).slice(1,arguments.length),argc=argv.length,fn;if(1===argc)is.str(a)?fn=function(b){this[a]=b}:is.obj(a)?fn=function(b){a=b}:is.fn(a)&&(fn=function(b){a(b)});else if(is.obj(a)&&is.str(b))if(b.indexOf("/")>=0){var dest="";each(b.split("/"),function(name){if(!is.exist(eval("a"+dest)[name]))throw"Unknown property: "+name+" from chain: "+b;dest+='["'+name+'"]'}),fn=function(event){eval("a"+dest+"= event")}}else fn=is.fn(a[b])?function(c){a[b](c)}:fn=function(c){a[b]=c};else is.fn(b)&&(fn=function(c){b.call(a,c)});return bus.listen(fn),{update:fn,unbind:function(a){bus.mute(a)},bind:function(a){bus.listen(a||fn)}}}}(),jQueryInited&&Warden.extend(jQuery)});
+((function (root, factory) {
+  if (typeof exports === "object" && exports) {
+    factory(exports);   } else {
+    if(root.Warden == null){       Warden = {};
+    }
+    factory(Warden);
+    if (typeof define === "function" && define.amd) {
+      define(Warden);     } else {
+      root.Warden = Warden;     }
+  }
+})(this, function(Warden){
+
+  'use strict';
+
+  var jQueryInited = typeof jQuery != "undefined";
+
+  Warden.version = "0.2.0-prerelease";
+  Warden.configure = {
+    cmp : function(x,y){ return x === y; }
+  };
+
+  /*
+    Globals:
+      Utils
+      Analyze
+  */
+  /* 
+    Utilities module
+      specs: specs/src/utilsSpecs.js
+      version: 1.3.0
+    
+    -- v.1.3.0
+      Added reduce
+      Make global optiomization
+
+    -- v1.2.3 --
+        Derived .log  to .interpolate (common interpolation method) and .log (logs with interpolation)
+        Added toArray method
+        Added trim method
+
+    -- v1.2.2 --
+        Added some props to analyzator's ,ap
+        Added Flatten method
+
+    -- v1.2.1 --
+        Added .log function (logging with interpolation)
+        Divided Warden core Analyzer with user's
+
+    -- v1.2.0 --
+        Fixed data type analyzer. Now it checks not by typeof but by Utils.is[type] method.
+        Added .some and .every methods. 
+        Added specs for utils.
+
+    -- v1.1.0 --
+      - Most of functional style reverted cause it is too slow.
+
+    -- v1.0.0 --
+      - All checing methods changed with functional paradigm.
+
+    -- v0.0.1 --
+      - Datatype checking functions. Array prototype forEach method wrap for ECMAScript 3. 
+  */
+
+
+  /* Globals */
+  var Utils, Analyze;
+
+  (function(){
+    var _FUN = 'function',
+        _NUM = 'number',
+        _STR = 'string',
+        _OBJ = 'object',
+        _ARR = 'array',
+        _BOOL = 'boolean',
+        _UND = 'undefined';
+
+    Utils = (function(){
+      function each(arr, fn){ 
+        for(var i=0, l=arr.length; i<l;i++){ 
+          fn(arr[i], i);
+        }
+      }
+
+      function forWhile(arr, fn, preventValue, depreventValue){
+        preventValue = preventValue || false; 
+        for(var i=0, l=arr.length; i<l;i++){ 
+          if(fn(arr[i], i) === preventValue){
+            return preventValue;
+          }
+        }
+        return depreventValue !== undefined ? depreventValue : true;
+      }
+
+      function filter(arr, fn){
+        var filtered = [];
+        each(arr, function(i, index){
+          if(fn(i, index)===true){
+            filtered.push(i);
+          }
+        });
+        return filtered;
+      }
+
+      function reduce(arr, fn){
+        var res = arr[0];
+        for(var i=1,l=arr.length;i<l;i++){
+          res = fn(res, arr[i]);
+        }
+        return res;
+      }
+
+      function map(arr, fn){
+        var mapped = [];
+        each(arr, function(e, i){
+          mapped[i] = fn(e, i);
+        });
+        return mapped;
+      }
+
+      function some(arr, fn){
+        return forWhile(arr, fn, true, false);
+      }
+
+      function every(arr, fn){
+        return forWhile(arr, fn);
+      }
+
+      function truthy(x){
+        return x ? true : false;
+      }
+
+      function typeIs(n){
+        return function(x){
+          return typeof x === n;
+        }
+      }
+
+      function not(predicate){
+        return function(x){
+          return !predicate(x);
+        }
+      }
+      
+      var is = {
+        exist : function(x){
+          return typeof x != 'undefined' && x !== null;
+        },
+        array : function(x){
+          return Array.isArray(x)
+        },
+        fn : typeIs(_FUN),
+        num : typeIs(_NUM),
+        str : typeIs(_STR),
+        bool : typeIs(_BOOL),
+        truthy : truthy,
+        falsee : not(truthy),
+        equals : function(x){
+          return function(y){
+            return x === y;
+          }
+        }
+      }
+            
+      is.obj = function(x){
+        return typeIs(_OBJ)(x) && !is.array(x);
+      }
+
+      is.not = (function(x){
+        var obj = {};
+        for(var i in is){
+          obj[i] = not(is[i])
+        }
+        return obj;
+      })();
+      
+                 
+      return {
+        /* 
+          Data type and logical statements checking methods
+        */
+        is : is,
+        not: not,
+
+
+        /* 
+          Array.prototype functional methods: 
+        */ 
+        forEach : each,
+        forWhile : forWhile,
+        each : each,         filter : filter,
+        some : some,
+        every : every,
+        map : map,
+        reduce : reduce,
+
+
+        toArray : function(a){
+          if(is.obj(a) && is.not.exist(a.length)){
+            a.length = Object.keys(a).length;
+          }
+          return Array.prototype.slice.call(a);
+        },
+
+        /* Interpolation */
+        interpolate : function(str){
+          var data = {},
+              argc = arguments.length,
+              argv = Utils.toArray(arguments),
+              reg = /{{\s*[\w\.\/\[\]]+\s*}}/g;
+
+          if(argc==2 && is.obj(argv[1])){
+            data = argv[1];
+          }else{
+            each(argv.slice(1, argc), function(e, i){
+              data[i] = e;
+            });
+          }       
+
+          return str.replace(reg, function(i){
+            var arg = Utils.getObject(data, i.slice(2,-2)) || i;
+            if(is.obj(arg)){
+              arg=JSON.stringify(arg);
+            }          
+            return arg;
+          });
+        }, 
+
+        log : function(){
+          console.log(this.interpolate.apply(this, arguments));
+        },
+
+        flatten : function(arr) {
+          var r = [];
+          each(arr, function(v){
+            if(is.array(v)){
+              r = r.concat(Utils.flatten(v));
+            } else {
+              r.push(v);
+            }
+          });
+          return r;
+        },
+
+        trim: function(str){return str.replace(/^\s+|\s+$/g, '')},    
+
+        /* Extending objects (not deep extend) */
+        extend : function () {;
+          function _extend(origin, add) {
+            if (!add || typeof add !== 'object') return origin;
+            var keys = Object.keys(add),
+                i = keys.length;
+
+            while (i--) {
+              origin[keys[i]] = add[keys[i]];
+            }
+            return origin;
+          }
+          return Utils.toArray(arguments).reduce(function(dest, src) {
+            return _extend(dest, src);
+          });
+        },
+
+        getObject : function(data, s){
+          if(!is.obj(data)){
+            return data;
+          }
+
+          each(s.split('/'), function(elem){
+            if(!is.exist(data)){
+              return data;
+            }
+
+            var cand;
+
+            if(elem[0]=='[' && elem[elem.length-1]==']'){
+              cand = elem.slice(1,-1);
+              if(is.exist(cand)){
+                if(is.num(parseInt(cand))){
+                  elem = parseInt(cand);
+                }else{
+                  throw "Wrong syntax";
+                }
+              }
+            }else{
+              if(!is.exist(data[elem])){
+                data = {}
+              }
+            }
+
+            data=data[elem];
+
+          });
+          return data;
+        },
+
+        /* 
+          Queue class @arr is Array, @maxlength is Number
+        */
+        Queue : function Queue(max, arr){
+          var res = arr || [],
+              max = max || 16,
+              oldpush = res.push;
+          
+          res.last = function(){
+            return res[res.length-1];
+          };
+          
+          res.push = function(x){
+            if(this.length>=max){
+              this.shift();
+            }
+            return oldpush.apply(res, [x]);
+          }
+          return res;
+        },
+
+        $hash : (function(){
+          var hash = {};
+          return {
+            get : function(n){
+              return hash[n];
+            },
+            set : function(i){
+              return hash[i] = ((parseInt(hash[i], 16) || 0 )+1) . toString(16);
+            }
+          }
+        })()
+      }
+    })();
+
+    /* Exception manager */
+    Analyze = (function(map){
+      return function(id, i, l){
+        var t = map[id],
+            res = !Utils.is.exist(t) ? true : Utils.some(t, function(type){return typeof i === type});
+
+        if(!res){
+          throw "TypeError: invalid arg in: ." + id + "(). Expected: " + t.join(' or ') + ". Your argument is type of: " + typeof i;
+        }
+      } 
+    })({
+      extend : [_OBJ,_FUN, _ARR],
+      listen : [_STR],
+      stream : [_STR],
+      unlisten : [_STR],
+      reduce : [_FUN],
+      include : [_OBJ, _FUN],
+      take : [_NUM],
+      filter : [_FUN],
+      skip : [_NUM],
+      setup : [_FUN],
+      makeStream: [_UND, _STR, _FUN, _ARR],
+      debounce : [_NUM],
+      getCollected : [_NUM],
+      interpolate : [_STR],
+      mask : [_UND, _OBJ],
+      unique : [_FUN, _UND],
+      lock : [_STR],
+      nth : [_NUM],
+      get : [_STR]
+    });
+
+  })();
+
+  Warden.Utils = Utils;
+
+  Warden.configure.datatypes = function(name, types){
+    if(Analyze.MAP[name]){
+      throw "This name is already exist";
+    }else{
+      Analyze.MAP[name] = types;
+    }
+  }
+
+  /*
+    Globals:
+      Warden.extend
+  */
+  /*
+    Extend module:
+      docs: ./docs/Extend.md
+      version: v2.1.0
+    
+    -- v2.1.0
+      Added full regexp notation for listen/stream/emit/unlisten
+
+    -- v2.0.0
+      Added regext for events (listen and emit)
+      Fixed array extension usage (now simplier)
+
+    -- v1.1.0 --
+      Incapsulated $$handlers and now shows only $$id of object
+      Added extended arrays methods sequentially and toBus
+      Added multiple events listenins, unlistening and streaming
+
+    -- v1.0.1 --
+      Removed maximal handlers counter
+      Changed array observation methods, now it's own properties of new array (extented)
+
+    -- v1.0.0 --
+      Added array changes observation.
+      Stabilized default configuration behavior with current deepExtend (Utils/extend) method.
+      Changed all functions from ES5 to Utils module analogues.
+
+    This methods extends @obj which can be function, object or array with Warden.js methods .emit(), .listen(), .unlisten() and .stream()
+  */
+
+  Warden.extend = (function(){
+    var each = Utils.each,
+      is = Utils.is,
+      filter = Utils.filter,
+      extend = Utils.extend,
+      hashc = Utils.$hash,
+      nativeListener = "addEventListener",
+      alternativeListener = "attachEvent",
+
+      defaultConfig = {
+        arrays : ['pop', 'push', 'splice', 'reverse', 'shift', 'unshift', 'sort'],         names : {
+          emit : 'emit',
+          listen : 'listen',
+          stream : 'stream',
+          unlisten : 'unlisten'
+        },
+        emitter : null, /* custom event emitter if exists */
+        listener : null /* custrom event listener if exists */
+      },
+
+      ghandlers = {}, 
+      setHandlers = function(id){
+        ghandlers[id] = ghandlers[id] || [];
+        each(Utils.toArray(arguments).slice(1), function(handler){
+          ghandlers[id].push(handler);
+        });
+        return ghandlers[id];
+      },
+
+      getHandlers = function(id){
+        return ghandlers[id] || [];
+      }
+
+      function isRegExp(str){
+        return /.?[\*\[\]\{\}\.\?\$\^\\\|].?/g.test(str);
+      }
+
+    return function(obj, conf) {
+      Analyze('extend', obj);
+
+      function binder (fn, handlers, callback){
+        return function(type){
+          var self = this;
+
+          if(!filter(handlers, function(i){return is.str(type) ? i.type == type : i.type.test(type)}).length && self[config.listener]){
+            if(is.not.str(type)){
+              throw new Error("Invalid format in: " + config.listener);
+            }
+            this[config.listener].apply(this, [type, function(event){
+              fn.call(self, event)
+            }]);
+          }
+
+          setHandlers(self['$$id'], {
+            type: type,
+            callback: callback
+          });
+        }
+      }
+
+
+      var config = extend({}, defaultConfig, conf || {}),           inheritor = obj || {},           isConstructor = true,           names = config.names;
+
+      /*
+        Choose object to extend,
+        if fn is constructor function, then that's prototype, else
+        use actual object element
+      */
+      if(is.fn(obj)){
+        inheritor = obj.prototype;
+      }else{
+        isConstructor = false;
+
+        if(is.array(obj)){
+          /* Extending methods of a current array with stream evaluation */
+          each(config.arrays, function(fn){
+            obj[fn] = function(){
+              obj.constructor.prototype[fn].apply(obj, arguments);
+              obj.emit({
+                type: fn,
+                current: obj,
+                data: Utils.toArray(arguments)
+              });
+            }
+          });
+
+          inheritor.sequentially = function(timeout){
+            var stream = Warden.makeStream(),
+                self = this,
+                i = 0,
+                interval = setInterval(function(){
+                  if(i==self.length){
+                    i=0;
+                    clearInterval(interval);
+                  }else{
+                    stream.eval(self[i++])
+                  }
+                }, timeout);
+
+            return stream.bus();
+          }
+        }
+
+      }
+
+      var overwrite = inheritor[names.emit] || inheritor[names.listen] ||
+                      inheritor[names.unlisten] || inheritor[names.stream];
+
+      /* Checking free namespace */
+      if(is.exist(overwrite)){
+        throw new Error("Can't overwrite: " + (overwrite.name ? overwrite.name : overwrite) + " of object");
+      }
+
+      /*
+        Setting up standart DOM event listener
+        and emitters  function to not overwrite them
+        and user should do not use that in config
+      */
+      if(jQueryInited && (!isConstructor ? obj instanceof jQuery : true)){
+        config.emitter = config.emitter || 'trigger';
+        config.listener = config.listener || 'on';
+      }else
+      if(is.fn(inheritor[nativeListener]) || is.fn(inheritor[alternativeListener])){
+        config.listener = config.listener || (is.fn(inheritor[nativeListener]) ? nativeListener : alternativeListener);
+      }
+
+      /* Emitter method */
+      inheritor[names.emit] = function(ev, data){
+        var self = this,
+            type = is.str(ev) ? ev : ev.type,
+            data = is.obj(ev) ? ev : data || ev,
+            callbacks = filter(getHandlers(this['$$id'] = this['$$id'] || hashc.set('o')), function(i){
+              return is.str(i.type) ? i.type == type : i.type.test(type);
+            });
+
+        each(callbacks, function(callback){
+          callback.callback.call(self, data);
+        });
+
+        return this;
+      };
+
+      /* Listen events of @type */
+      inheritor[names.listen] = function(types, callback){
+        var self = this,
+          reactor = binder(function(event){
+            this.emit(event);
+          }, getHandlers(this['$$id'] = this['$$id'] || hashc.set('o')), callback);
+
+        Analyze('listen', types);
+
+        each(types.split(','), function(type){
+          type = Utils.trim(type);
+          reactor.call(self, isRegExp(type) ? new RegExp(type) : type);
+        });
+
+        return this;
+      };
+
+      /* Unsubscribe from events of @type */
+      inheritor[names.unlisten] = function(types, name){
+        var self = this, handlers = getHandlers(this['$$id'] = this['$$id'] || hashc.set('o'));
+
+        Analyze('unlisten', types)
+
+        each(types.split(','), function(type){
+          type = Utils.trim(type);
+          if(handlers.length){
+            var indexes = [];
+            each(handlers, function(handler, index){
+              if(handler.callback.name == (name.name || name) && ( is.str(handler.type) ? handler.type == type : handler.type.test(type))){
+                indexes.push(index);
+              }
+            });
+            each(indexes, function(i){
+              handlers.splice(i,1);
+            });
+          }
+        });
+
+        return this;
+      };
+
+      /* Creates stream of @type type events*/
+      inheritor[names.stream] = function(types, cnt){
+        Analyze('stream', types);
+
+        var self = this,
+            stream = Warden.makeStream(types, cnt || this),
+            seval = function(event){
+              stream.eval(event)
+            },
+            reactor = binder(seval, getHandlers(this['$$id'] = this['$$id'] || hashc.set('o')), seval);
+        
+        each(types.split(','), function(type){
+          type = Utils.trim(type);
+          reactor.call(self, isRegExp(type) ? new RegExp(type) : type);
+        });
+
+        return stream.bus();
+      };
+
+      return obj;
+    };
+  })();
+
+
+  /*
+    Globals:
+      Pipeline
+  */
+  /*
+    Pipe module:
+    Implements interface to processing all databus methods.
+    Version: v1.0.0;
+  */
+  function Pipeline(proc, host){
+    var processes = proc || [], locked = 0, i = 0,
+
+        /* Functional methods to manipulate DataBus processing workflow */
+        fns = {
+          /* Continue processing with @data */
+          next: function(data){
+             return self.tick(data);
+          },
+          /* Break processing */
+          stop: function(){
+            return self.tick({}, 1);
+          },
+          /* Locks DataBus evaluation */
+          pause: function(){
+            return locked = 1;
+          },
+          /* Unlocks DataBus evaluation */
+          play: function(){
+            return locked = 0;
+          },
+          /* Returns current DataBus */
+          bus: function(){
+            return host;
+          }
+        };
+
+    var self = {
+      /* Add process if @p exists or return all processes of this Processor */
+      pipe : function(p){
+        if(p){
+          processes.push(p)
+          return self;
+        } 
+        return processes;
+      },
+
+      /* Start processing */
+      start : function(event, context, fin){
+        self.ctx = context;
+        self.fin = fin;
+
+        i = locked ? 0 : i;
+
+        if(i==processes.length){
+          i = 0;
+          return fin(event);
+        }
+
+        this.tick(event);
+      },
+
+      /* Ticking processor to the next process */
+      tick : function(event, breaked){
+        if(breaked){
+          return i = 0;
+        }
+
+        if(i==processes.length){
+          i = 0;
+          return self.fin(event);
+        }
+
+        i++;
+        processes[i-1].apply(self.ctx, [event, fns]);
+
+      }
+    }
+    return self;
+  }
+
+  Warden.pipeline = Pipeline
+
+  /*
+    Globals:
+      Warden.makeStream
+  */
+  /*
+    Streams module:
+      docs: ./docs/Streams.md
+      version: 1.0.0
+    
+    -- v1.0.0 --
+      - Added sprint/stop method.
+
+    -- v0.3.3 -- 
+      - Added $context in object. Removed class name.
+    
+    -- v0.3.2 --
+      - Fixed mistakes in pop and push down and up
+
+    -- v0.3.0 --
+      - Stream strict checking argument now must be only boolean true
+      
+    -- v0.2.0 -- 
+      Added @popAllDown and @popAllUp methods;
+
+    Creates stream of data.
+    If @x is string, that it interprets as datatype
+    else if @x is function, than x's first arg is emitting data function
+  */
+
+  Warden.makeStream = (function(){
+    var each = Utils.each, 
+        is = Utils.is;
+
+    /* Stream constructor */
+    function Stream(context, type){
+      var drive = [], interval;
+
+      return {
+        $$id : Utils.$hash.set('s'),         $$context : context,         $$type : type,
+        /* 
+          Evaluating the stream with @data 
+        */
+        eval : function(data){
+          each(drive, function(bus){
+            bus.fire(data, context);
+          });
+        },
+
+        /* 
+          Push into executable drive @bus.
+          Bus is DataBus object.
+        */
+        push : function(bus){
+          drive.push(bus);
+          return bus;
+        },
+
+        pushAllUp : function(bus){
+          var self = this;
+          drive.push(bus);
+          function pParent(x){
+            if(is.exist(x.parent)){
+              drive.push(x.parent);
+              pParent(x.parent);
+            }
+          }
+          pParent(bus);
+        },
+
+        pushAllDown : function(bus){
+          var self = this;
+          each(self.push(bus).children, function(b){
+            self.pushAllDown(b);
+          });
+        },
+
+        /* 
+          Removes from executable drive @bus.
+          Bus must be DataBus object.
+        */
+        pop : function(bus){
+          Utils.forWhile(drive, function(b, i){
+            if(bus.$$id == b.$$id){
+              drive.splice(i, 1);
+              return false;
+            }
+          }, false);
+          return bus;
+        },
+
+        /* 
+          Removes from executable drive @bus and all @bus children;
+          @bus must be DataBus object.
+        */
+        popAllDown : function(bus){
+          var self = this;
+          each(self.pop(bus).children, function(e){
+            self.popAllDown(e);
+          });
+        },
+
+        /* 
+          Removes from executable drive @bus, @bus.parent and @bus.parent.parent etc
+          @bus must be DataBus object
+        */
+        popAllUp : function(bus){
+          var match = this.pop(bus);
+          if(is.exist(match.parent)){
+            this.popAllUp(match.parent);
+          }
+        },
+
+        /*
+          Creates empty DataBus object and hoist it to the current stream
+        */
+        bus : function(){
+          var bus = new DataBus();
+          bus.host = this;
+          return bus;
+        }
+      };
+    }
+
+    /* 
+      Creates stream of @x on context @context;
+      If @strict argument is truly, than it warns about the coincidence 
+      in the context to prevent overwriting;
+    */
+    return function(x, context, strict){
+      var stream, xstr, reserved = [], i;
+
+      Analyze("makeStream", x);
+      
+      context = context || {};  
+      stream = Stream(context);
+
+      if(is.fn(x)){
+
+        /* If we strict in context */
+        if(strict===true){
+          xstr = x.toString();
+
+          for(i in context){
+            if(context.hasOwnProperty(i))
+              reserved.push(i);
+          }
+
+          each(reserved, function(prop){
+            if(xstr.indexOf("this."+prop)>=0){
+              /* If there is a coincidence, we warn about it */
+              console.error("Coincidence: property: '" + prop + "' is already defined in stream context!", context);
+            }
+          });    
+        }
+
+        x.call(context, function(expectedData){
+          stream.eval(expectedData);
+        });  
+      }
+      return stream;
+    };
+  })();
+
+  /*
+    Globals:
+      DataBus
+  */
+  /*
+    DataBus module.
+    Version: v2.0.0
+    Implements data processing through stream.
+
+    -- v2.0.0 --
+      Changed .merge[buses]
+      Changed .sync(buses)
+      Сhanged .map(str)
+
+    -- v1.1.1 --
+      Added method .equals which
+      Optimized fire, get, reduce, include, skip, unique
+      Removed logging strings via .listen([string]) method, now it possible to log string via .log([string]) method
+
+    -- v1.1.0 --
+      Added .delay and .repeat methods.
+      Changed incapsulation method to more efficient
+
+    -- v1.0.3 --
+      Added comments
+
+    -- v1.0.2 --
+      Added DataBus.toggle method;
+      Added Unique to Analyzator;
+      Added DataBus.syncFlat method
+      Little optimizations
+
+    -- v1.0.1 --
+      Fixed bindings array
+
+    -- v1.0.0 --
+      Incapsulated properties of data bus [fire, process, binding, host, setup]
+      and all these properties now configures from prototype's methods
+  */
+
+  var DataBus = (function(){
+    var each = Utils.each,
+        is = Utils.is,
+        toArray = Utils.toArray,
+        handlers = {},
+        pipes = {};
+
+    function inheritFrom(child, parent){
+      child.parent = parent;
+      parent.children.push(child);
+      return child;
+    }
+
+    function process(p){
+      var pipe = pipes[this.$$id],
+          newPipe = [],
+          nbus;       
+
+      if(!p){
+        return pipe;
+      }
+       /* Copying process */
+       /* TODO: Optimize copying */
+
+      each(pipe.pipe(), function(i){
+        newPipe.push(i);
+      });
+      newPipe.push(p);
+
+      nbus = new DataBus(newPipe);
+      nbus.host = this.host;
+      return inheritFrom(nbus, this);
+    }
+
+    /* **************************************************** */
+    /* DATABUS CONSTRUCTOR AND PROTOTYPE ****************** */
+    /* **************************************************** */
+
+    function DataBus(line){
+      this.$$id = Utils.$hash.set('d')
+      this.parent = null;
+      this.children = [];
+      this.bindings = [];
+      handlers[this.$$id] = [];
+      pipes[this.$$id] = Pipeline(line || [], this);
+
+      this.data = {
+        fires : new Utils.Queue(),
+        takes : new Utils.Queue(),
+        last : null
+      };   
+
+    }
+
+    DataBus.prototype.bindTo = function() {
+      var binding = Warden.watcher.apply(null, [this].concat(toArray(arguments)));
+      this.bindings.push(binding);
+      return binding;
+    };
+
+    DataBus.prototype.update = function(e){
+      var self = this;
+      each(this.bindings, function(binding){
+        binding.update(e || self.data.takes.last());
+      });
+    };
+
+    DataBus.prototype.fire = function(data, context) {
+      var id = this.$$id, self = this;
+
+      this.data.fires.push(data); 
+      pipes[id].start(data, context, function(result){
+        self.data.takes.push(result);         self.update(self.data.last = result);
+
+        /* Executing all handlers of this DataBus */
+        each(handlers[id], function(handler){
+          handler.call(context, result);
+        });
+
+      });
+    };
+
+
+    /*
+      Binds a handler @x (if @x is function) or function that logging @x to console (if @x is string) to the current DataBus
+
+      This function don't create new DataBus object it just puts to the current data bus
+      object's handlers list new handler and push it's to the executable pipe of hoster stream
+    */
+    DataBus.prototype.listen = function(x){
+      var self = this,
+          handlersList = handlers[this.$$id];
+
+      handlersList.push(x);
+      
+      if(handlersList.length<=1){
+        self.host.push(self);
+      }
+      return this;
+    };
+
+    DataBus.prototype.watch = function(){    
+      this.host.push(this);
+      return this;
+    };
+
+    /*
+      Unbinds handler with name @x (if @x is string) or @x handler (if @x is function)
+      If in the handlers list 2 or more handlers with name @x (or @x handlers registered twice) it will remove all handlers
+    */
+    DataBus.prototype.mute = function(x){
+      x = is.fn(x) ? x.name : x;
+
+      Utils.forWhile(handlers[this.$$id], function(handler, index){
+        if(handler.name == x){
+          handlers[this.$$id].splice(index, 1);
+          return false;
+        }
+      }, false);
+
+      return this;
+    };
+
+    /* Logging recieved data to console or logger */
+    DataBus.prototype.log = function(x){
+      return this.listen(function(data){
+        console.log(x || data);
+      });
+    };
+
+    /*
+      Filtering recieved data and preventing transmitting through DataBus if @x(event) is false
+    */
+    DataBus.prototype.filter = function(x) {
+      Analyze('filter', x);
+      return process.call(this, function(e, pipe){
+        return x.call(this, e) === true ? pipe.next(e) : pipe.stop();
+      });
+    };
+
+    /*
+      Mapping recieved data and transmit mapped to the next processor
+    */
+    DataBus.prototype.map = function(x) {
+      var fn, simple = function(e, pipes){
+            return pipes.next(x);
+          }
+
+      switch(typeof x){
+        case "function":
+          fn = function(e, pipe){
+            return pipe.next(x.call(this, e));
+          }
+        break;
+        case "string":
+          if(x.indexOf('/')>=0){
+            return this.get(x);
+          }
+
+          if(x[0]=='.'){
+            fn = function(e, pipe){
+              var t = x.indexOf("()") > 0 ?  e[x.slice(1,-2)] : e[x.slice(1)],
+              r = is.exist(t) ? t : x,
+              res = r;
+
+              if(is.fn(r) && x.indexOf("()")>0){
+                res = r();
+              }
+              return pipe.next(res);
+            }
+          }else
+          if(x[0]=='@'){
+            if(x.length==1){
+              fn = function(e, pipes){
+                pipes.next(this);
+              }
+            }else{
+              fn = function(e, pipe){
+                var t = x.indexOf("()") > 0 ?  this[x.slice(1,-2)] : this[x.slice(1)],
+                r = is.exist(t) ? t : x,
+                res = r;
+
+                if(is.fn(r) && x.indexOf("()")>0){
+                  res = r.call(this);
+                }
+                return pipe.next(res);
+              }
+            }
+          }else{
+            fn = simple;
+          }
+        break;
+        case "object":
+          if(is.array(x)){
+            fn = function(e, pipe){
+              var res = [];
+              each(x, function(i){
+                var t;
+                res.push(is.str(i) ? (i[0]=='.' ? (is.exist(t=e[i.slice(1)]) ? t : i) : i) : i );
+              });
+              return pipe.next(res);
+            }
+          }else{
+            fn = function(e, pipe){
+              var res = {}, val, name;
+              for(var prop in x){
+                name = x[prop];
+
+                if(name.indexOf('.')==0 && e[name.slice(1)]){
+                  val = e[name.slice(1)];
+                }
+
+                if(name.indexOf('@')==0 && (this[name.slice(1)] || this[name.slice(1,-2)])){
+                  if(name.indexOf('()')>0){
+                    val = this[name.slice(1,-2)]()
+                  }else{
+                    val = this[name.slice(1)]
+                  }
+                }
+
+                res[prop] = val;
+              }
+              return pipe.next(res);
+            }
+          }
+        break;
+        default:
+          fn = simple;
+        break;
+      }
+
+      return process.call(this, fn);
+    }
+
+    /* Takes nth element of event */
+    DataBus.prototype.nth = function(n) {
+      Analyze('nth', n);
+      return process.call(this, function(e, pipe){
+        return pipe.next(e[n+1]);
+      });
+    }
+
+    /*
+      Takes element of event by given path:
+        bus.get('propname/childpropname/arraypropname[2]/child') takes the child from:
+        {
+          propname: {
+            childpropname: {
+              arraypropname : [0, 1, {child: "THIS!"}]
+            }
+          }
+        }
+    */
+    DataBus.prototype.get = function(s) {
+      Analyze('get', s);
+      return process.call(this, function(data, pipe){
+        return pipe.next(Utils.getObject(data, s));
+      });
+    }
+
+    /*
+      Appying @fn function ot the previos and current value of recieved data
+      If previous value is empty, then it is init or first value (or when init == 'first' or '-f')
+    */
+    DataBus.prototype.reduce = function(init, fn){
+      Analyze('reduce', (arguments.length==1 ? fn = init : fn));
+      return process.call(this, function(event, pipe){
+        var bus = pipe.bus();
+        return (bus.data.takes.length == 0 && !is.exist(init)) ?  pipe.next(event) : pipe.next(fn.call(this, bus.data.takes.last() || init, event)) ;
+      });
+    };
+
+    /*
+      Take only @x count or (if @x is function) works like .filter()
+    */
+    DataBus.prototype.take = function(x){
+      Analyze('take', x);
+
+      return process.call(this, function(e, pipe){
+        var bus = pipe.bus();
+        bus.data.limit = bus.data.limit || x;
+        return bus.data.takes.length === bus.data.limit ?  pipe.stop() : pipe.next(e);
+      });
+    }
+
+
+    /*
+      Skips data [Integer] @c times
+    */
+    DataBus.prototype.skip = function(c) {
+      Analyze('skip', c);
+      return process.call(this, function(e, pipe){
+        return pipe.bus().data.fires.length > c ? pipe.next(e) : pipe.stop();
+      });
+    }
+
+    /*
+      Interpolates to the [String] @s data from bus (all matches of [RegExp] @reg or {{match}}-style regex)
+    */
+    DataBus.prototype.interpolate = function(s, reg){
+      Analyze('interpolate', s);
+      return process.call(this, function(event, pipe){
+        return pipe.next(Utils.interpolate(s, event))
+      })
+    }
+
+    /*
+      Masking data from bus with [Object] @o (all matches of [RegExp] @reg or {{match}}-style regex)
+    */
+    DataBus.prototype.mask = function(o, reg){
+      Analyze('mask', o);
+      return process.call(this, function(event, pipe){
+        return pipe.next(is.str(event) ? Utils.interpolate(event, o) : event);
+      });
+    }
+
+    /*
+      Transfers only unique datas through bus.
+      [Function] @cmp - is comparing method that returns
+      [Boolean] 'true' if first argument of @cmp is equals to second argument
+
+      By default: @cmp compares arguments with === operator
+    */
+    DataBus.prototype.unique = function(compractor){
+      Analyze('unique', compractor);
+
+      compractor = compractor || Warden.configure.cmp;
+
+      return process.call(this, function(event, pipe){
+        var data = pipe.bus().data, fires = data.fires, takes = data.takes,
+            cons = (fires.length > 1 || takes.length > 0) && (compractor(event, fires[fires.length-2]) || compractor(event, takes.last()));
+          return cons ? pipe.stop() : pipe.next(event);
+      });
+    };
+
+    /*
+      Debounce data bus on [Integer] @t miliseconds
+    */
+    DataBus.prototype.debounce = function(t) {
+      Analyze('debounce', t)
+
+      return process.call(this, function(e, pipe){
+        var self = this, bus = pipe.bus();
+        clearTimeout(bus.data.dbtimer);
+        bus.data.dbtimer = setTimeout(function(){
+          delete bus.data.dbtimer;
+          pipe.play();
+          pipe.next(e);
+        }, t);
+        pipe.pause();
+      });
+    };
+
+    /*
+      Collecting events for [Integer] @t miliseconds and after it transmitting an array of them
+    */
+    DataBus.prototype.getCollected = function(t){
+      Analyze('getCollected', t);
+      return process.call(this, function(e, pipe){
+        var self = this,
+            bus = pipe.bus(),
+            fired = bus.data.fires.length-1;
+        bus.data.tmpCollection = bus.data.tmpCollection || [];
+        bus.data.tmpCollection.push(e);
+        if(!bus.data.timer){
+          bus.data.timer = setTimeout(function(){
+            var collection = bus.data.tmpCollection;
+
+            clearTimeout(bus.data.timer);
+            delete bus.data.timer;
+            delete bus.data.tmpCollection
+
+            pipe.play();
+            pipe.next(collection);
+          }, t);
+          pipe.pause();
+        }else{
+          pipe.pause();
+        }
+      });
+    };
+
+    DataBus.prototype.filterFor = function(fn) {
+      var data = null;
+      return process.call(this, function(e, pipe){
+        var pipes = {
+          get : function(fn){
+            return fn ? fn(data) : data;
+          },
+          next: function(e){
+            data = e;
+            pipe.next(e);
+          },
+
+          stop: function(e){
+            pipe.stop();
+          }
+        }
+        return fn(e, pipes);
+      });
+    };
+
+    DataBus.prototype.collectFor = function(bus){
+      var collection = [];
+
+      this.listen(function(e){
+        collection.push(e);
+      });
+
+      return Warden.makeStream(function(emit){
+        bus.listen(function(){
+          emit(collection);
+          collection = [];
+        })
+      }).bus();
+    }
+                                                                                                                        
+    DataBus.prototype.equals = function(x, cmp){
+      cmp = cmp || Warden.configure.cmp;
+      return this.filter(function(y){
+        return cmp(x, y);
+      });
+    }
+
+    DataBus.prototype.delay = function(time) {
+      Analyze('delay', time);
+      return process.call(this, function(e, pipe){
+        setTimeout(function(){
+          pipe.next(e)
+        }, time);
+      });
+    };
+
+    DataBus.prototype.toggle = function(a,b) {
+      var toggled = false;
+      
+      return this.listen(function(data){
+        if(toggled){
+          a.call(this, data);
+        }else{
+          b.call(this, data);
+        }
+        toggled = !toggled;
+      });
+    };
+
+    DataBus.prototype.after = function(bus, flush){
+      var busExecuted = false;
+
+      bus.listen(function(){
+        busExecuted = true;
+      });
+
+      return process.call(this, function(event, pipe){
+        if(busExecuted){
+          busExecuted = flush === true ? false : true;
+          pipe.play();
+          pipe.next(event);
+        }else{
+          pipe.pause();
+        }
+      });
+    };
+
+    DataBus.prototype.repeat = function(times, delay){
+      var self = this,
+          cached = times,
+      nbus = Warden.makeStream(function(emit){
+        self.listen(function(data){
+          var interval = setInterval(function(){
+            if(times){
+              emit(data);
+              times--
+            }else{
+              times = cached;
+              clearInterval(interval);
+            }
+          }, delay);
+        });
+      }).bus();
+
+      return inheritFrom(nbus, this);
+    }
+
+    DataBus.prototype.waitFor = function(bus){
+      var self = this;
+      return Warden.makeStream(function(emit){
+        var exec = false, val,
+            clear = function(){
+              val = null;
+              exec = false;
+            };
+
+        bus.listen(function(data){
+          if(exec){
+            emit(val);
+            clear();
+          }
+        });
+
+        self.listen(function(data){
+          val = data;
+          exec = true;
+        });
+
+      }).bus();
+    };
+
+    /*
+      Usage: bus.merge(bus1, [bus2] ... [busN])
+      Merges @bus with buses from arguments
+    */
+    DataBus.prototype.merge = function(){
+      function merge(a, b, cnt){
+        return Warden.makeStream(function(emit){
+          a.listen(emit);
+          b.listen(emit);
+        }, cnt).bus();
+      }
+
+      var argv = Utils.toArray(arguments);
+      argv.unshift(this);
+      return Utils.reduce(argv, function(bus1, bus2){
+        return merge(bus1, bus2, bus1.host.$$context);
+      })
+    };
+
+
+    DataBus.prototype.resolveWith = function(bus, fn) {
+      var self = this, ctx = this.host.$$context;
+      return Warden.makeStream(function(emit){
+        self.sync(bus).listen(function(data){
+          emit(fn.call(ctx, data[0], data[1]));
+        });
+      }, ctx).bus();
+    };
+
+    /* Combines two bises with given function @fn*/
+    DataBus.prototype.combine = function(bus, fn, seed){
+      var self = this, ctx = this.host.$$context;
+
+      return Warden.makeStream(function(emit){
+        function e(a,b){
+          emit(fn.call(ctx, a,b));
+        }
+
+        self.listen(function(data){
+          e(data, bus.data.last || seed);
+        });
+        bus.listen(function(data){
+          e(self.data.last || seed, data);
+        });
+
+      }, ctx).bus();
+    };
+
+    /* Synchronizes  buses */
+    DataBus.prototype.sync = function(){
+      var self = this,
+          argv = Utils.toArray(arguments),
+          values = [],
+          executions = [],
+          nbus;
+
+      argv.unshift(this);
+
+      values.length = executions.length = argv.length;
+
+      nbus = Warden.makeStream(function(emit){
+        each(argv, function(bus, index){
+          bus.listen(function(data){
+            var exec = executions.length ? true : false;
+
+            Utils.forWhile(executions, function(state, i){
+              if(i == index){
+                return true;
+              }
+              if(!state){
+                exec = false;
+              }
+              return state;
+            }, false);
+
+            values[index] = data;
+
+            if(exec){
+              emit(values);
+              values = [];
+              executions = [];
+              values.length = executions.length = argv.length;
+            }else{
+              executions[index] = true;
+            }
+
+          });
+        });
+      }).bus();
+      
+      return inheritFrom(nbus, this);
+    };
+
+    DataBus.prototype.syncFlat = function(){
+      var self = this,
+          argv = Utils.toArray(arguments),
+
+      nbus = Warden.makeStream(function(emit){
+        self.sync.apply(self, argv).listen(function(arr){
+          emit.call(this, Utils.flatten(arr));
+        })
+      }).bus();
+      return inheritFrom(nbus, this);
+    };
+
+    /* Lock/unlock methods */
+    DataBus.prototype.lock = function(){
+      this.host.pop(this);
+    }
+
+    DataBus.prototype.lockChildren = function() {
+      this.host.popAllDown(this);
+    }
+
+    DataBus.prototype.lockParents = function() {
+      this.host.popAllUp(this);
+    }
+
+    DataBus.prototype.unlock = function(){
+      this.host.push(this);
+    }
+
+    DataBus.prototype.unlockChildren = function(){
+      this.host.pushAllDown(this);
+    }
+
+    DataBus.prototype.unlockParents = function(){
+      this.host.push(this);
+      function unlock(bus){
+        if(is.exist(bus.parent)){
+          bus.host.push(bus.parent);
+          unlock(bus.parent);
+        }
+      }
+      unlock(this);
+    }
+
+    Warden.configure.addToDatabus = function(fn, name, argc, toAnalyze){
+      name = name || fn.name;
+      DataBus.prototype[name] = function() {
+        var self = this,
+            argv = arguments;
+        Analyze(name, arguments[toAnalyze || 0]);
+        return process.call(this,fn(arguments))
+      };
+    }
+
+    return DataBus;
+  })();
+
+
+  /*
+    Globals:
+      Warden.watcher
+  */
+  /* 
+  	Watcher module:
+  		version: 0.2.0
+  */
+  Warden.watcher = (function(){
+  	var is = Utils.is,
+  		each = Utils.each;
+
+  	return function(){
+  		var argv = Utils.toArray(arguments).slice(1,arguments.length),
+  			argc = argv.length,
+  			bus = arguments[0],
+  			a = argv[0],
+  			b = argv[1],
+  			fn,
+  			st;
+
+  		if(argc===1){
+  			if(is.str(a)){
+  				fn = function(event){this[a] = event;}			
+  			}else	
+  			if(is.fn(a)){
+  				fn = function(event){a(event);}
+  			}
+  		}else{
+  			if(is.obj(a) && is.str(b)){
+  				if(b.indexOf('/')>=0){
+  					var dest = "";
+
+  					each(b.split('/'), function(name){
+  						if(!is.exist(eval("a" + dest)[name])){
+  							throw "Unknown property: " + name + " from chain: " + b;
+  						}
+  						dest += ('["'+name+'"]');
+  					});
+
+  					fn = function(event){
+  						eval("a" + dest + "= event");
+  					}
+  				}else{
+  					fn = is.fn(a[b]) ? function(event){a[b](event);} : fn = function(event){a[b] = event} ;
+  				}
+  			}else
+  			if(is.fn(b)){
+  				fn = function(event){b.call(a, event);}
+  			} 
+  		}
+
+  		st = fn;
+
+  		return {
+  			update : fn,
+  			unbind : function(name){
+  				st = fn;
+  				fn = function(){} 
+  			},
+  			bind : function(f){
+  				fn = st;
+  			}
+  		};
+
+  	};
+  })();
+
+  if(jQueryInited){
+    Warden.extend(jQuery);
+  }
+
+}));
