@@ -1,7 +1,3 @@
-/* 
-	Watcher module:
-		version: 0.2.0
-*/
 Warden.watcher = (function(){
 	var is = Utils.is,
 		each = Utils.each;
@@ -47,6 +43,8 @@ Warden.watcher = (function(){
 		}
 
 		st = fn;
+
+		bus.watch();
 
 		return {
 			update : fn,

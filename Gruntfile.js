@@ -118,7 +118,7 @@ module.exports = function(grunt){
     "coffee",
     "includes:build",
     "copy",
-    "comments",
+    "comments:js",
     "uglify",
     "jasmine"
   ]);
@@ -127,7 +127,7 @@ module.exports = function(grunt){
     "coffee",
     "includes:build",
     "copy",
-    "comments",
+    "comments:js",
     "uglify",
     "watch"
   ]);  

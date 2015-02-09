@@ -1,8 +1,3 @@
-/*
-  Pipe module:
-  Implements interface to processing all databus methods.
-  Version: v1.0.0;
-*/
 function Pipeline(proc, host){
   var processes = proc || [], locked = 0, i = 0,
 
@@ -10,11 +5,11 @@ function Pipeline(proc, host){
       fns = {
         /* Continue processing with @data */
         next: function(data){
-           return self.tick(data);
+           return tick(data);
         },
         /* Break processing */
         stop: function(){
-          return self.tick({}, 1);
+          return i=0;
         },
         /* Locks DataBus evaluation */
         pause: function(){
@@ -29,6 +24,22 @@ function Pipeline(proc, host){
           return host;
         }
       };
+
+          /* Ticking processor to the next process */
+  function tick(event, breaked){
+    if(breaked){
+      return i = 0;
+    }
+
+    if(i==processes.length){
+      i = 0;
+      return self.fin(event);
+    }
+
+    i++;
+    processes[i-1].apply(self.ctx, [event, fns]);
+
+  }
 
   var self = {
     /* Add process if @p exists or return all processes of this Processor */
@@ -52,23 +63,7 @@ function Pipeline(proc, host){
         return fin(event);
       }
 
-      this.tick(event);
-    },
-
-    /* Ticking processor to the next process */
-    tick : function(event, breaked){
-      if(breaked){
-        return i = 0;
-      }
-
-      if(i==processes.length){
-        i = 0;
-        return self.fin(event);
-      }
-
-      i++;
-      processes[i-1].apply(self.ctx, [event, fns]);
-
+      tick(event);
     }
   }
   return self;

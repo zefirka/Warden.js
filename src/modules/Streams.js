@@ -1,28 +1,3 @@
-/*
-  Streams module:
-    docs: ./docs/Streams.md
-    version: 1.0.0
-  
-  -- v1.0.0 --
-    - Added sprint/stop method.
-
-  -- v0.3.3 -- 
-    - Added $context in object. Removed class name.
-  
-  -- v0.3.2 --
-    - Fixed mistakes in pop and push down and up
-
-  -- v0.3.0 --
-    - Stream strict checking argument now must be only boolean true
-    
-  -- v0.2.0 -- 
-    Added @popAllDown and @popAllUp methods;
-
-  Creates stream of data.
-  If @x is string, that it interprets as datatype
-  else if @x is function, than x's first arg is emitting data function
-*/
-
 Warden.makeStream = (function(){
   var each = Utils.each, 
       is = Utils.is;

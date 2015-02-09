@@ -1,32 +1,3 @@
-/*
-  Extend module:
-    docs: ./docs/Extend.md
-    version: v2.1.0
-  
-  -- v2.1.0
-    Added full regexp notation for listen/stream/emit/unlisten
-
-  -- v2.0.0
-    Added regext for events (listen and emit)
-    Fixed array extension usage (now simplier)
-
-  -- v1.1.0 --
-    Incapsulated $$handlers and now shows only $$id of object
-    Added extended arrays methods sequentially and toBus
-    Added multiple events listenins, unlistening and streaming
-
-  -- v1.0.1 --
-    Removed maximal handlers counter
-    Changed array observation methods, now it's own properties of new array (extented)
-
-  -- v1.0.0 --
-    Added array changes observation.
-    Stabilized default configuration behavior with current deepExtend (Utils/extend) method.
-    Changed all functions from ES5 to Utils module analogues.
-
-  This methods extends @obj which can be function, object or array with Warden.js methods .emit(), .listen(), .unlisten() and .stream()
-*/
-
 Warden.extend = (function(){
   var each = Utils.each,
     is = Utils.is,
