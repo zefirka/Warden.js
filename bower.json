@@ -1,6 +1,6 @@
 {
   "name": "Warden.js",
-  "version": "0.2.0-prerelease",
+  "version": "0.2.0",
   "homepage": "https://github.com/zefirka/Warden.js",
   "authors": [
     "Eik Zeffirsky <wombtromb@gmail.com>"
