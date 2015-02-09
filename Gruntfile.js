@@ -76,6 +76,17 @@ module.exports = function(grunt){
       }
     },
 
+    compress: {
+      main: {
+        options: {
+          mode: 'gzip'
+        },
+        files: [
+          {expand: true, src: ['dist/*min.js'], dest: '', ext: '.gz'}
+        ]
+      }
+    },
+
     comments: {
       js: {
         options: {
@@ -106,6 +117,7 @@ module.exports = function(grunt){
   grunt.loadNpmTasks('grunt-contrib-jasmine');
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-stripcomments'); 
+  grunt.loadNpmTasks('grunt-contrib-compress');
   grunt.loadNpmTasks('grunt-includes');
   grunt.loadNpmTasks('grunt-devtools');
 
@@ -120,6 +132,7 @@ module.exports = function(grunt){
     "copy",
     "comments:js",
     "uglify",
+    "compress",
     "jasmine"
   ]);
   
