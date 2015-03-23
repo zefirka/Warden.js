@@ -53,6 +53,18 @@
   */
   include "Watcher.js"
 
+
+  Warden.Worker = function(adr){
+    adr = adr.slice(-3) == '.js' ? adr : adr + '.js';
+    var worker = new Worker(adr); 
+    var stream = Warden.Stream(function(trigger){
+      worker.onmessage = trigger;
+    });
+    stream.post = worker.postMessage;
+    stream.onmessage = worker.onmessage
+    return stream;
+  }
+
   if(jQueryInited){
     Warden.extend(jQuery);
   }
