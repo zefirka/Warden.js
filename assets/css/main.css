@@ -35,3 +35,15 @@ h2 {
   padding-bottom: 5px;
   background: #dababa;
 }
+#submenu-cont {
+  background: #eee;
+}
+#submenu {
+  padding: 10px;
+  list-style: none;
+  margin-bottom: 0px;
+}
+#submenu li {
+  width: 100%;
+  padding: 10px 6px;
+}
