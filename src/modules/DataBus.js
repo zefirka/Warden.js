@@ -1,8 +1,5 @@
 var DataBus = (function(){
-  var each = Utils.each,
-      is = Utils.is,
-      toArray = Utils.toArray,
-      handlers = {},
+  var handlers = {},
       pipes = {};
 
   function inheritFrom(child, parent){
@@ -42,8 +39,8 @@ var DataBus = (function(){
     pipes[this.$$id] = Pipeline(line || [], this);
 
     this.data = {
-      fires : new Utils.Queue(),
-      takes : new Utils.Queue(),
+      fires : new Utils.Queue(4),
+      takes : new Utils.Queue(4),
       last : null
     };   
 
@@ -64,6 +61,10 @@ var DataBus = (function(){
     },
 
     fire : function(data, context) {
+      if(this.locked){
+        return;
+      }
+
       var id = this.$$id, self = this;
 
       this.data.fires.push(data); // pushing fired data to @fires queue
@@ -132,7 +133,6 @@ var DataBus = (function(){
       Filtering recieved data and preventing transmitting through DataBus if @x(event) is false
     */
     filter : function(x) {
-      Analyze('filter', x);
       return process.call(this, function(e, pipe){
         return x.call(this, e) === true ? pipe.next(e) : pipe.stop();
       });
@@ -234,7 +234,6 @@ var DataBus = (function(){
 
     /* Takes nth element of event */
     nth : function(n) {
-      Analyze('nth', n);
       return process.call(this, function(e, pipe){
         return pipe.next(e[n+1]);
       });
@@ -252,7 +251,6 @@ var DataBus = (function(){
         }
     */
     get : function(s) {
-      Analyze('get', s);
       return process.call(this, function(data, pipe){
         return pipe.next(Utils.getObject(data, s));
       });
@@ -263,7 +261,6 @@ var DataBus = (function(){
       If previous value is empty, then it is init or first value (or when init == 'first' or '-f')
     */
     reduce : function(init, fn){
-      Analyze('reduce', (arguments.length==1 ? fn = init : fn));
       return process.call(this, function(event, pipe){
         var bus = pipe.bus();
         return (bus.data.takes.length == 0 && !is.exist(init)) ?  pipe.next(event) : pipe.next(fn.call(this, bus.data.takes.last() || init, event)) ;
@@ -274,12 +271,11 @@ var DataBus = (function(){
       Take only @x count or (if @x is function) works like .filter()
     */
     take : function(x){
-      Analyze('take', x);
-
       return process.call(this, function(e, pipe){
         var bus = pipe.bus();
         bus.data.limit = bus.data.limit || x;
-        return bus.data.takes.length === bus.data.limit ?  pipe.stop() : pipe.next(e);
+        bus.data.taken = (bus.data.taken + 1) || 0;
+        return bus.data.taken >= bus.data.limit ? pipe.stop() : pipe.next(e);
       });
     },
 
@@ -288,7 +284,6 @@ var DataBus = (function(){
       Skips data [Integer] @c times
     */
     skip : function(c) {
-      Analyze('skip', c);
       return process.call(this, function(e, pipe){
         return pipe.bus().data.fires.length > c ? pipe.next(e) : pipe.stop();
       });
@@ -298,7 +293,6 @@ var DataBus = (function(){
       Interpolates to the [String] @s data from bus (all matches of [RegExp] @reg or {{match}}-style regex)
     */
     interpolate : function(s){
-      Analyze('interpolate', s);
       return process.call(this, function(event, pipe){
         return pipe.next(Utils.interpolate(s, event))
       })
@@ -308,7 +302,6 @@ var DataBus = (function(){
       Masking data from bus with [Object] @o (all matches of [RegExp] @reg or {{match}}-style regex)
     */
     mask : function(o){
-      Analyze('mask', o);
       return process.call(this, function(event, pipe){
         return pipe.next(is.str(event) ? Utils.interpolate(event, o) : event);
       });
@@ -322,8 +315,6 @@ var DataBus = (function(){
       By default: @cmp compares arguments with === operator
     */
     unique : function(compractor){
-      Analyze('unique', compractor);
-
       compractor = compractor || Warden.configure.cmp;
 
       return process.call(this, function(event, pipe){
@@ -337,8 +328,6 @@ var DataBus = (function(){
       Debounce data bus on [Integer] @t miliseconds
     */
     debounce : function(t) {
-      Analyze('debounce', t)
-
       return process.call(this, function(e, pipe){
         var self = this, bus = pipe.bus();
         clearTimeout(bus.data.dbtimer);
@@ -355,7 +344,6 @@ var DataBus = (function(){
       Collecting events for [Integer] @t miliseconds and after it transmitting an array of them
     */
     getCollected : function(t){
-      Analyze('getCollected', t);
       return process.call(this, function(e, pipe){
         var self = this,
             bus = pipe.bus(),
@@ -423,7 +411,6 @@ var DataBus = (function(){
     },
 
     delay : function(time) {
-      Analyze('delay', time);
       return process.call(this, function(e, pipe){
         setTimeout(function(){
           pipe.next(e)
@@ -511,18 +498,17 @@ var DataBus = (function(){
       Merges @bus with buses from arguments
     */
     merge : function(){
-      function merge(a, b, cnt){
-        return Warden.makeStream(function(emit){
-          a.listen(emit);
-          b.listen(emit);
-        }, cnt).bus();
-      }
+      var host = Warden.Host(this.host.$$context),
+          argv = Utils.toArray(arguments);
+          argv.push(this);
 
-      var argv = Utils.toArray(arguments);
-      argv.unshift(this);
-      return Utils.reduce(argv, function(bus1, bus2){
-        return merge(bus1, bus2, bus1.host.$$context);
-      })
+      each(argv, function(bus){
+        bus.listen(function(data){
+          host.eval(data);
+        });
+      });      
+
+      return inheritFrom(host.newBus(), this);
     },
 
 
@@ -613,33 +599,41 @@ var DataBus = (function(){
 
     /* Lock/unlock methods */
     lock : function(){
-      this.host.pop(this);
-    },
+      function lock(e, val){
+        e.locked = true;
+        each(e.children, lock);
+      }
 
-    lockChildren : function() {
-      this.host.popAllDown(this);
+      lock(this);
     },
 
     lockParents : function() {
-      this.host.popAllUp(this);
+      function lock(e){
+        if(e.parent){
+          e.parent.locked = true;
+          unlock(e.parent);
+        }
+      } 
+
+      unlock(this);
+    },
+
+    bus: function(){
+      var bus = new DataBus();
+      bus.host = this.host;
+      return bus;
     },
 
     unlock : function(){
-      this.host.push(this);
+      this.locked = false;
     },
 
     unlockChildren : function(){
-      this.host.pushAllDown(this);
-    },
-
-    unlockParents : function(){
-      this.host.push(this);
-      function unlock(bus){
-        if(is.exist(bus.parent)){
-          bus.host.push(bus.parent);
-          unlock(bus.parent);
-        }
+      function unlock(e){
+        e.locked = false;
+        each(e.children, unlock);
       }
+
       unlock(this);
     }
   })
@@ -649,7 +643,6 @@ var DataBus = (function(){
     DataBus.prototype[name] = function() {
       var self = this,
           argv = arguments;
-      Analyze(name, arguments[toAnalyze || 0]);
       return process.call(this,fn(arguments))
     };
   }

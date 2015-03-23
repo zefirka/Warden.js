@@ -1,33 +1,26 @@
-((function (root, factory) {
+((function (root, init) {
   if (typeof exports === "object" && exports) {
-    factory(exports); // CommonJS
+    module.exports = init(); // CommonJS
   } else {
-    if(root.Warden == null){ //initialize Warden
-      Warden = {};
-    }
-    factory(Warden);
+    var Warden = init();
     if (typeof define === "function" && define.amd) {
       define(Warden); // AMD
     } else {
       root.Warden = Warden; // <script>
     }
   }
-})(this, function(Warden){
-
+})(this, function(){
   'use strict';
-
+  var Warden = function(a, b){
+    return Warden.extend(a||{}, b);
+  }
   var jQueryInited = typeof jQuery != "undefined";
 
-  Warden.version = "0.2.0";
+  Warden.version = "0.3.0-alpha";
   Warden.configure = {
     cmp : function(x,y){ return x === y; }
   };
 
-  /*
-    Globals:
-      Utils
-      Analyze
-  */
   include "Utils.js"
 
   /*
@@ -63,5 +56,7 @@
   if(jQueryInited){
     Warden.extend(jQuery);
   }
+
+  return Warden;
 
 }));

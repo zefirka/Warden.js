@@ -350,6 +350,32 @@ describe('Warden.extend', function(){
 			done();
 		});
 
+		it('Unlistening all handlers by @event name', function(done){
+			data = {};
+
+			obj.listen('haarz', function(e){
+				data.val = e.val;
+			});
+			obj.listen('haarz', function(e){
+				data.dal = e.dal;
+			});
+
+			obj.push({type: 'haarz', val: 123, dal:332});
+			
+
+			expect(data.val).toBe(123);
+			expect(data.dal).toBe(332);
+
+			obj.unlisten('haarz');
+			
+			obj.push({type: 'haarz', val: 333, dal:666});
+
+			expect(data.val).toBe(123);
+			expect(data.dal).toBe(332);
+
+			done();
+		});
+
 	});
 	describe('Security', function(){
 			it('Overwriting', function(done){

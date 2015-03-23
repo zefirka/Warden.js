@@ -22,15 +22,4 @@ describe('.filter()', function () {
 	    expect(filtered.passed).toBe(false);
 	    done();
     });
-
-    it('-- type error catched', function (done) {
-    	var filterError;
-    	try{
-			bus.filter(23)
-		}catch(err){
-			filterError = err; 
-		}
-		expect(filterError).toBe('TypeError: invalid arg in: .filter(). Expected: function. Your argument is type of: number');
-		done();
-    });
 });

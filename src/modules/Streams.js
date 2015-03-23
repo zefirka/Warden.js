@@ -1,15 +1,10 @@
-Warden.makeStream = (function(){
-  var each = Utils.each, 
-      is = Utils.is;
-
+Warden.Stream = (function(){
   /* Stream constructor */
-  function Stream(context, type){
+  function Stream(context){
     var drive = [], interval;
 
     return {
-      $$id : Utils.$hash.set('s'), // stream id
       $$context : context, // saving context
-      $$type : type,
       /* 
         Evaluating the stream with @data 
       */
@@ -28,65 +23,10 @@ Warden.makeStream = (function(){
         return bus;
       },
 
-      pushAllUp : function(bus){
-        var self = this;
-        drive.push(bus);
-        function pParent(x){
-          if(is.exist(x.parent)){
-            drive.push(x.parent);
-            pParent(x.parent);
-          }
-        }
-        pParent(bus);
-      },
-
-      pushAllDown : function(bus){
-        var self = this;
-        each(self.push(bus).children, function(b){
-          self.pushAllDown(b);
-        });
-      },
-
-      /* 
-        Removes from executable drive @bus.
-        Bus must be DataBus object.
-      */
-      pop : function(bus){
-        Utils.forWhile(drive, function(b, i){
-          if(bus.$$id == b.$$id){
-            drive.splice(i, 1);
-            return false;
-          }
-        }, false);
-        return bus;
-      },
-
-      /* 
-        Removes from executable drive @bus and all @bus children;
-        @bus must be DataBus object.
-      */
-      popAllDown : function(bus){
-        var self = this;
-        each(self.pop(bus).children, function(e){
-          self.popAllDown(e);
-        });
-      },
-
-      /* 
-        Removes from executable drive @bus, @bus.parent and @bus.parent.parent etc
-        @bus must be DataBus object
-      */
-      popAllUp : function(bus){
-        var match = this.pop(bus);
-        if(is.exist(match.parent)){
-          this.popAllUp(match.parent);
-        }
-      },
-
       /*
         Creates empty DataBus object and hoist it to the current stream
       */
-      bus : function(){
+      newBus : function(){
         var bus = new DataBus();
         bus.host = this;
         return bus;
@@ -94,16 +34,15 @@ Warden.makeStream = (function(){
     };
   }
 
+  Warden.Host = Stream;
+
   /* 
     Creates stream of @x on context @context;
     If @strict argument is truly, than it warns about the coincidence 
     in the context to prevent overwriting;
   */
   return function(x, context, strict){
-    var stream, xstr, reserved = [], i;
-
-    Analyze("makeStream", x);
-    
+    var stream, xstr, reserved = [], i, bus;    
     context = context || {};  
     stream = Stream(context);
 
@@ -130,6 +69,11 @@ Warden.makeStream = (function(){
         stream.eval(expectedData);
       });  
     }
-    return stream;
+
+    bus = new DataBus();
+    bus.host = stream;
+    return bus;
   };
 })();
+
+Warden.makeStream = Warden.Stream

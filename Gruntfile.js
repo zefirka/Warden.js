@@ -87,6 +87,13 @@ module.exports = function(grunt){
       }
     },
 
+    benchmark: {
+      all: {
+        src: ['test/benchmarks/*.js'],
+        dest: 'test/benchmarks/results.csv'
+      }
+    },
+
     comments: {
       js: {
         options: {
@@ -120,6 +127,7 @@ module.exports = function(grunt){
   grunt.loadNpmTasks('grunt-contrib-compress');
   grunt.loadNpmTasks('grunt-includes');
   grunt.loadNpmTasks('grunt-devtools');
+  grunt.loadNpmTasks('grunt-benchmark');
 
   grunt.registerTask('test', [
     "includes:test",
@@ -134,6 +142,10 @@ module.exports = function(grunt){
     "uglify",
     "compress",
     "jasmine"
+  ]);
+
+  grunt.registerTask('perf', [
+    "benchmark"
   ]);
   
   grunt.registerTask('default', [

@@ -3,7 +3,7 @@ describe('Lock/Unlock methods ', function () {
 		syncemitted: 0,
 		syncLastValue: 0
 	};
-	var Stream = Warden.makeStream(function(trigger){
+	var Stream = Warden.Stream(function(trigger){
 		this.sync = function(value){
 			trigger(value);
 		}
@@ -122,67 +122,4 @@ describe('Lock/Unlock methods ', function () {
 		done();
 	});
 
-	
-	it('-- locking all children', function (done) { 
-		var parent = Stream.bus(),
-				child1 = parent.map('c1'),
-				child2 = parent.map('c2'),
-				childChild1 = child1.map('cc1');
-
-		var p = 0, c1 = 0, c2 = 0, cc1 = 0;
-
-		var clear = function(){p = 0, c1 = 0, c2 = 0, cc1 = 0;}
-
-		parent.listen(function(x){p=x;});
-		child1.listen(function(x){c1 = x;});
-		child2.listen(function(x){c2 = x;});
-		childChild1.listen(function(x){cc1 = x;});
-
-		Context.sync(666);
-
-		expect(p).toBe(666);
-		expect(c1).toBe('c1');
-		expect(c2).toBe('c2');
-		expect(cc1).toBe('cc1');
-
-		clear();
-
-		expect(p).toBe(0);
-		expect(c1).toBe(0);
-		expect(c2).toBe(0);
-		expect(cc1).toBe(0);
-
-		parent.lock();
-
-		Context.sync(666);
-
-		expect(p).toBe(0);
-		expect(c1).toBe('c1');
-		expect(c2).toBe('c2');
-		expect(cc1).toBe('cc1');
-
-		clear();
-
-		parent.lockChildren();
-
-		Context.sync(666);
-
-		expect(p).toBe(0);
-		expect(c1).toBe(0);
-		expect(c2).toBe(0);
-		expect(cc1).toBe(0);
-
-		clear();
-
-		parent.unlock();
-
-		Context.sync(666);
-
-		expect(p).toBe(666);
-		expect(c1).toBe(0);
-		expect(c2).toBe(0);
-		expect(cc1).toBe(0);			
-
-		done();
-	});
 });

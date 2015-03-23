@@ -1,11 +1,7 @@
+/* This methods extends @obj which can be function, object or array with Warden.js methods .emit(), .listen(), .unlisten() and .stream() */
 Warden.extend = (function(){
-  var each = Utils.each,
-    is = Utils.is,
-    filter = Utils.filter,
-    extend = Utils.extend,
-    hashc = Utils.$hash,
-    nativeListener = "addEventListener",
-    alternativeListener = "attachEvent",
+  var nativeListener = "addEventListener",
+      alternativeListener = "attachEvent",
 
     defaultConfig = {
       arrays : ['pop', 'push', 'splice', 'reverse', 'shift', 'unshift', 'sort'], //only not-pure methods
@@ -36,16 +32,20 @@ Warden.extend = (function(){
     function isRegExp(str){
       return /.?[\*\[\]\{\}\.\?\$\^\\\|].?/g.test(str);
     }
+  
+  function _Array(arr){
+    each(arr, function(v, i){
+      this[i] = v;
+    }.bind(this));
+  }
 
   return function(obj, conf) {
-    Analyze('extend', obj);
-
     function binder (fn, handlers, callback){
       return function(type){
         var self = this;
 
-        if(!filter(handlers, function(i){return is.str(type) ? i.type == type : i.type.test(type)}).length && self[config.listener]){
-          if(is.not.str(type)){
+        if(every(handlers, function(i){return is.str(type) ? i.type == type : i.type.test(type)}) && self[config.listener]){
+          if(!is.str(type)){
             throw new Error("Invalid format in: " + config.listener);
           }
           this[config.listener].apply(this, [type, function(event){
@@ -78,18 +78,10 @@ Warden.extend = (function(){
 
       if(is.array(obj)){
         /* Extending methods of a current array with stream evaluation */
-        each(config.arrays, function(fn){
-          obj[fn] = function(){
-            obj.constructor.prototype[fn].apply(obj, arguments);
-            obj.emit({
-              type: fn,
-              current: obj,
-              data: Utils.toArray(arguments)
-            });
-          }
-        });
 
-        inheritor.sequentially = function(timeout){
+        _Array.prototype = [];
+
+        _Array.prototype.sequentially = function(timeout){
           var stream = Warden.makeStream(),
               self = this,
               i = 0,
@@ -104,6 +96,22 @@ Warden.extend = (function(){
 
           return stream.bus();
         }
+
+        each(config.arrays, function(name){
+          _Array.prototype[name] = function(){ 
+            var prev = this;
+            Array.prototype[name].apply(this, arguments);
+            this.emit({
+              type: name,
+              prev : prev,
+              current: this,
+              data: Utils.toArray(arguments)
+            });
+          };
+        });
+
+        obj = new _Array(obj);
+        inheritor = obj;
       }
 
     }
@@ -152,8 +160,6 @@ Warden.extend = (function(){
           this.emit(event);
         }, getHandlers(this['$$id'] = this['$$id'] || hashc.set('o')), callback);
 
-      Analyze('listen', types);
-
       each(types.split(','), function(type){
         type = Utils.trim(type);
         reactor.call(self, isRegExp(type) ? new RegExp(type) : type);
@@ -163,37 +169,37 @@ Warden.extend = (function(){
     };
 
     /* Unsubscribe from events of @type */
-    inheritor[names.unlisten] = function(types, name){
-      var self = this, handlers = getHandlers(this['$$id'] = this['$$id'] || hashc.set('o'));
+    inheritor[names.unlisten] = function(type, name){
+      var self = this, 
+          indexes = [], //to remove
+          type = Utils.trim(type),
+          handlers = getHandlers(this['$$id'] = this['$$id'] || hashc.set('o')); // link to object
 
-      Analyze('unlisten', types)
-
-      each(types.split(','), function(type){
-        type = Utils.trim(type);
-        if(handlers.length){
-          var indexes = [];
+      if(handlers.length){
+        
+        if(!name){
+          indexes = new Array(handlers.length);
+        }else{
           each(handlers, function(handler, index){
-            if(handler.callback.name == (name.name || name) && ( is.str(handler.type) ? handler.type == type : handler.type.test(type))){
+            if(handler.callback.name == (name.name || name) && handler.type.toString() == type.toString()){
               indexes.push(index);
-            }
-          });
-          each(indexes, function(i){
-            handlers.splice(i,1);
+            }            
           });
         }
-      });
 
+        each(indexes, function(i){
+          handlers.splice(i,1);
+        });
+      }
       return this;
     };
 
     /* Creates stream of @type type events*/
     inheritor[names.stream] = function(types, cnt){
-      Analyze('stream', types);
-
       var self = this,
           stream = Warden.makeStream(types, cnt || this),
           seval = function(event){
-            stream.eval(event)
+            stream.host.eval(event)
           },
           reactor = binder(seval, getHandlers(this['$$id'] = this['$$id'] || hashc.set('o')), seval);
       
@@ -202,7 +208,7 @@ Warden.extend = (function(){
         reactor.call(self, isRegExp(type) ? new RegExp(type) : type);
       });
 
-      return stream.bus();
+      return stream;
     };
 
     return obj;

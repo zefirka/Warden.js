@@ -9,15 +9,6 @@ describe('Logical Chekings', function(){
 			expect(is.exist(1)).toBe(true);
 		});
 
-		it('Truthiness', function(){
-			expect(is.truthy(false)).toBe(false);
-			expect(is.truthy()).toBe(false);
-			expect(is.truthy(array[1])).toBe(false);
-			expect(is.truthy(null)).toBe(false);
-			expect(is.truthy(0)).toBe(false);
-			expect(is.truthy(1)).toBe(true);
-		});
-
 		it('.not()', function(){
 			var nexist = Utils.not(is.exist);
 			expect(nexist(false)).toBe(false);
