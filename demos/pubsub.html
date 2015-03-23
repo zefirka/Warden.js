@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="Warden.js : Pub/Sub Demo">
+
+    <script type="text/javascript" src="../assets/js/jquery.min.js"></script>
+    <script type="text/javascript" src="../assets/js/warden.min.js"></script>
+
+    <link rel="stylesheet" type="text/css" media="screen" href="../assets/css/bootstrap.css">
+    <link rel="stylesheet" type="text/css" media="screen" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/css/github.css">
+    <script src="../assets/js/highlight.pack.js"></script>
+    <script>
+      hljs.initHighlightingOnLoad();
+      $('pre code').each(function(i, block) {
+        hljs.highlightBlock(block);
+      });
+    </script>
+
+    <title>Warden.js</title>
+  </head>
+
+  <body>
+
+  <header>
+
+    <section id='logo'>
+      <div class="container">
+        <h1>Warden.js</h1>
+        <h2>Declarative event-driven development</h2>
+      </div>
+    </section>
+
+
+    <nav>
+      <div class="container">
+        <ul>
+          <li><a href="/about.html">About</a></li>
+          <li><a href="/docs.html">Documentation</a></li>
+          <li><a href="/demo.html">Demo</a></li>
+          <li><a href="/download.html">Download</a></li>
+        </ul>
+      </div>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="row">
+      <div id="submenu-cont" class="col-md-3 col-sm-3 col-xs-12 col-lg-2">
+        <ul id='submenu'>
+          <li class="active" >Pub/Sub</li>
+          <li class="mg-bottom">Streams</li>
+          <li>Counter</li>
+          <li>Drag'n'Drop</li>
+          <li>Away module</li>
+          <li>DataBuses</li>
+          <li>HTTP Ajax module</li>
+        </ul>
+      </div>
+      <div class="col-md-9 col-sm-9 col-xs-12 col-lg-10">
+        <section class='b-doc-section'>
+        <p>Using simple objects and ready modules</p>
+        <pre><code  class="javascript">var empty = Warden();
+empty.listen('foo', function(event){
+  console.log(event.message);
+});
+
+empty.emit({type: 'foo', message: 'Hello World!'});
+
+// -> Hellow World!
+</code></pre>
+        <p>When module is already exists.</p>
+        <pre><code  class="javascript">Warden(module); 
+// now module has Warden methods
+module.listen('foo', function(event){
+  console.log(event.message);
+});
+
+module.emit({type: 'foo', message: 'Hello World!'});
+
+// -> Hellow World!
+</code></pre>
+        <p>With modules which already have Pub/Sub methods with 'addEventListener' or 'on' methods</p>
+        <pre><code  class="javascript">Warden(document);
+document.listen('click', function(){
+  console.log('Hey! You clicked at me!');
+});
+
+//or 
+</code></pre>
+        <p>With constructors</p>
+
+        </section>
+      </div>
+    </div>
+  </div>
+
+  </body>
+</html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="Warden.js : Pub/Sub Demo">
+
+    <script type="text/javascript" src="../assets/js/jquery.min.js"></script>
+    <script type="text/javascript" src="../assets/js/warden.min.js"></script>
+
+    <link rel="stylesheet" type="text/css" media="screen" href="../assets/css/bootstrap.css">
+    <link rel="stylesheet" type="text/css" media="screen" href="../assets/css/main.css">
+    <link rel="stylesheet" href="../assets/css/github.css">
+    <script src="../assets/js/highlight.pack.js"></script>
+    <style type="text/css">
+    .dragndrop{
+      display: inline-block;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background-color: #8a2222;
+      cursor: pointer;
+      position: absolute;
+      top: 60px;
+      left: 200px;
+      box-shadow: 2px 2px 2px rgba(0,0,12,0.3);
+    }
+
+    .box{
+      display: inline-block;
+      position: relative;
+      border: solid 2px #33a812;
+      width: 100%;
+      height: 500px;
+    }
+
+    .box .data-info{
+      padding: 10px;
+      color: #0f120a;
+      border: 0px;
+    }
+
+    </style>
+    <script>
+      hljs.initHighlightingOnLoad();
+      $('pre code').each(function(i, block) {
+        hljs.highlightBlock(block);
+      });
+    </script>
+
+    <title>Warden.js</title>
+  </head>
+
+  <body>
+
+  <header>
+
+    <section id='logo'>
+      <div class="container">
+        <h1>Warden.js</h1>
+        <h2>Declarative event-driven development</h2>
+      </div>
+    </section>
+
+
+    <nav>
+      <div class="container">
+        <ul>
+          <li><a href="/about.html">About</a></li>
+          <li><a href="/docs.html">Documentation</a></li>
+          <li><a href="/demo.html">Demo</a></li>
+          <li><a href="/download.html">Download</a></li>
+        </ul>
+      </div>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="row">
+      <div id="submenu-cont" class="col-md-3 col-sm-3 col-xs-12 col-lg-2">
+        <ul id='submenu'>
+          <li class="active" >Pub/Sub</li>
+          <li class="mg-bottom">Streams</li>
+          <li>Counter</li>
+          <li>Drag'n'Drop</li>
+          <li>Away module</li>
+          <li>DataBuses</li>
+          <li>HTTP Ajax module</li>
+        </ul>
+      </div>
+      <div class="col-md-9 col-sm-9 col-xs-12 col-lg-10">
+        <section class='b-doc-section'>
+          <h2>Drag & Drop</h2>
+          <div class='box'>
+            <div class='data-info'>Current position: (X:{{x}}, Y:{{y}})</div>
+            <span class='dragndrop'></span>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    var position = {
+      x: '.clientX',
+      y: '.clientY'
+    }
+
+    function DragnDrop(o){
+      var self = this,
+          rad = o.width()/2;
+          
+        //streams
+      var downs = o.stream('mousedown').map(position),
+          ups = $(document).stream('mouseup').map(position),
+          moves = $(document).stream('mousemove', $('.box')).map(position);
+
+      this.moves = moves.after(downs).map(function(pos){
+        var minx = this.offset().left,
+            miny = this.offset().top,
+            wo = this.width(),
+            ho = this.height();
+        
+        if(pos.x - rad <= minx){
+          debugger;
+        }  
+        pos.x = pos.x - rad <= minx ? minx + rad : pos.x;
+        pos.x = pos.x + rad > minx + wo ? minx + wo - rad : pos.x;
+        pos.y = pos.y - rad <= miny ? miny + rad : pos.y;
+        pos.y = pos.y + rad > miny + ho ? miny + ho - rad: pos.y;
+        pos.offsetx = minx;
+        pos.offsety = miny;
+        pos.y = (pos.y - pos.offsety - rad) || 0;
+        pos.x = (pos.x - pos.offsetx - rad) || 0;
+        return pos;
+      });
+     
+      this.moves.interpolate($(".data-info").html()).bindTo($(".data-info"), 'html');
+      this.moves.listen(function(pos){
+        o.css({
+          top: pos.y,
+          left: pos.x
+        })
+      })
+
+      ups.listen(function(){
+        self.moves.lock();
+      })
+
+      downs.listen(function(){
+        self.moves.unlockChildren();
+      })
+    }
+
+    $(function(){
+      var dnd = new DragnDrop($(".dragndrop"));
+      dnd.positions
+    });
+  </script>
+  </body>
+</html>
