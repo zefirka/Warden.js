@@ -190,7 +190,8 @@
         }       
 
         return str.replace(reg, function(i){
-          var arg = Utils.getObject(data, i.slice(2,-2)) || i;
+          var res = Utils.getObject(data, i.slice(2,-2)),
+              arg = is.exist(res) ? res : i;
           if(is.obj(arg)){
             arg=JSON.stringify(arg);
           }          
