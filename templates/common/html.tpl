@@ -10,6 +10,11 @@
                 </div>
               </div>
             </section>
+            <section id='main' class='hidden-md hidden-lg'>
+              <div class="container center">
+                <a href="index.html"><h1>Warden.js</h1></a>
+              </div>
+            </section>
             <nav>
               <div class="container">
                 <ul class='row'>
