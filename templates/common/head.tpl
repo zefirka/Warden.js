@@ -6,6 +6,7 @@
     <script type="text/javascript" src="assets/js/jquery.min.js"></script>
     <script type="text/javascript" src="assets/js/warden.min.js"></script>
     <script type="text/javascript" src="assets/js/highlight.pack.js"></script>
+    <script type="text/javascript" src="assets/js/main.js"></script>
     {{scripts}}
 
     <link rel="stylesheet" type="text/css" media="screen" href="assets/css/bootstrap.css">

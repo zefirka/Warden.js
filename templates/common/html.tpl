@@ -6,7 +6,7 @@
             <section id='logo' class='hidden-xs hidden-sm'>
               <div class="container">
                 <div class='img-container'>
-                  <img src="/assets/images/logo.png">
+                  <img src="assets/images/logo.png">
                 </div>
               </div>
             </section>

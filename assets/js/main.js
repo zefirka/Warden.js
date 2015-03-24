@@ -9,4 +9,4 @@ $(function(){
 	}).height();
 
 	$("[eqz]").height(max);
-})
+});

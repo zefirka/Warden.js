@@ -34,6 +34,12 @@ module.exports = {
 		'pubsub' : {
 			title : title('Pub/Sub usage'),
 			dependencies : ['aside']
+		},
+		'dragndrop' : {
+			title : title("Drag and Drop example"),
+			dependencies: ['aside'],
+			scripts: ['dnd'],
+			styles: ['dnd']
 		}
 	}
 }
