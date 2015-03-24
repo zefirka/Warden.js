@@ -3,20 +3,20 @@
     <head>
     <meta charset='utf-8'>
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="description" content="Warden.js : Declarative Event-drive development">
+    <meta name="description" content="Warden.js : Drag and Drop example">
 
     <script type="text/javascript" src="assets/js/jquery.min.js"></script>
     <script type="text/javascript" src="assets/js/warden.min.js"></script>
     <script type="text/javascript" src="assets/js/highlight.pack.js"></script>
     <script type="text/javascript" src="assets/js/main.js"></script>
-     
+    <script type='text/javascript' src='assets/js/dnd.js'></script>
 
     <link rel="stylesheet" type="text/css" media="screen" href="assets/css/bootstrap.css">
     <link rel="stylesheet" type="text/css" media="screen" href="assets/css/main.css">
     <link rel="stylesheet" href="assets/css/github.css">    
-     
+    <link href='assets/css/dnd.css' rel='stylesheet' type='text/css'>
 
-    <title>Warden.js : Declarative Event-drive development</title>
+    <title>Warden.js : Drag and Drop example</title>
 </head>
     <body>
         <header>
@@ -38,22 +38,48 @@
               </div>
             </nav>
           </header>
-        <div class="container">
-  <div class="row">
-    <div eqz class="col-md-3 col-sm-3 col-xs-12 col-lg-2">
-  <ul id='submenu'>
-    <li><a href="pubsub.html">Pub/Sub</a></li>
-    <li class="mg-bottom"><a href="streams.html">Streams</a></li>
-    <li><a href="counter.html">Counter</a></li>
-    <li><a href="dragndrop.html">Drag'n'Drop</a></li>
-    <li><a href="away.html">Away module</a></li>
-    <li><a href="buses.html">DataBuses</a></li>
-    <li><a href="http.html">HTTP Ajax module</a></li>
-  </ul>
-</div>
-    <div class="col-md-9 col-sm-9 col-xs-12 col-lg-10">
-      <p></p>
-    </div>
+        <div class="col-md-9 col-sm-9 col-xs-12 col-lg-10">
+    <section class='b-doc-section'>
+      <h2>Drag & Drop</h2>
+      <p>Simple drag'n'drop with coordinate observing</p>
+      <div class='box'>
+        <div class='data-info'>Current position: (X:{{x}}, Y:{{y}})</div>
+        <span class='dragndrop'></span>
+      </div>
+      <h3>Implementation</h3>
+      <p>Streams</p>
+      <pre><code class="javascript">var downs = circle.stream('mousedown'),
+ups = document.stream('mouseup'),
+moves = document.stream('mousemove', circle);
+
+var position = {
+x: '.clientX',
+y: '.clientY'
+}
+
+var drags = moves
+.after(downs)
+.map(position)
+.map(function(coors){
+/* Math logic to find absolute position of object */
+})</code></pre>
+      <p>Logic</p>
+      <pre><code class="javascript">ups.listen(function(){
+moves.lock();
+});
+
+downs.listen(function(){
+moves.unlockChildren();
+});
+      </code></pre>
+      <p>Side effects</p>
+      <pre><code class="javascript">drags.interpolate("Current position: (X:{{x}}, Y:{{y}})").bindTo(DOMelement, 'innerHTML');
+
+drags.listen(function(coors){
+this.style.top = coors.y + "px";
+this.style.left = coors.x + "px";
+});          </code></pre>
+    </section>
   </div>
 </div>
     </body>

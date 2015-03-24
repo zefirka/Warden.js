@@ -36,14 +36,14 @@ for(var pagename in map.pages){
 	var scripts = " ";
 	if(page.scripts){
 		scripts = page.scripts.map(function(src){
-			return "<script src='/assets/js/"+src+".js' type='text/javascript'></script>"
+			return "<script type='text/javascript' src='assets/js/"+src+".js'></script>"
 		});
 	}
 
 	var styles = " ";
 	if(page.styles){
 		styles = page.styles.map(function(src){
-			return "<link href='/assets/css/"+src+".css' rel='stylesheet' type='text/css'>"
+			return "<link href='assets/css/"+src+".css' rel='stylesheet' type='text/css'>"
 		});	
 	}
 
