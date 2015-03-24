@@ -110,11 +110,12 @@ var DataBus = (function(){
       If in the handlers list 2 or more handlers with name @x (or @x handlers registered twice) it will remove all handlers
     */
     mute : function(x){
+      var self = this;
       x = is.fn(x) ? x.name : x;
 
       Utils.forWhile(handlers[this.$$id], function(handler, index){
         if(handler.name == x){
-          handlers[this.$$id].splice(index, 1);
+          handlers[self.$$id].splice(index, 1);
           return false;
         }
       }, false);
@@ -597,44 +598,62 @@ var DataBus = (function(){
       return inheritFrom(nbus, this);
     },
 
-    /* Lock/unlock methods */
-    lock : function(){
-      function lock(e, val){
-        e.locked = true;
-        each(e.children, lock);
-      }
-
-      lock(this);
-    },
-
-    lockParents : function() {
-      function lock(e){
-        if(e.parent){
-          e.parent.locked = true;
-          unlock(e.parent);
-        }
-      } 
-
-      unlock(this);
-    },
-
     bus: function(){
       var bus = new DataBus();
       bus.host = this.host;
       return bus;
     },
 
-    unlock : function(){
-      this.locked = false;
+    /* Lock/unlock methods */
+    lock : function(bus){
+      var self = this;
+
+      function lock(e, val){
+        e.locked = true;
+        each(e.children, lock);
+      }
+
+      if(bus && bus instanceof DataBus){
+        bus.listen(function(){
+          lock(self);
+        });
+      }else{
+        lock(this);
+      }
+
+      return this;
     },
 
-    unlockChildren : function(){
+    lockThis : function() {
+      this.locked = true;
+      return this;
+    },
+
+    unlockThis : function(){
+      this.locked = false;
+      return this;
+    },
+
+    unlock : function(bus){
+      var self = this;
       function unlock(e){
         e.locked = false;
         each(e.children, unlock);
       }
 
-      unlock(this);
+      if(bus && bus instanceof DataBus){
+        bus.listen(function(){
+          unlock(self);
+        });
+      }else{
+        unlock(this);
+      }
+
+      return this;
+    },
+    unlockChildren : function(){
+      this.unlock();
+      return this;
     }
   })
 
