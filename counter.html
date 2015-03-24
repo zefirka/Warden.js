@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="Warden.js : Counter example">
+
+    <script type="text/javascript" src="assets/js/jquery.min.js"></script>
+    <script type="text/javascript" src="assets/js/warden.min.js"></script>
+    <script type="text/javascript" src="assets/js/highlight.pack.js"></script>
+    <script type="text/javascript" src="assets/js/main.js"></script>
+    <script type='text/javascript' src='assets/js/counter.js'></script>
+
+    <link rel="stylesheet" type="text/css" media="screen" href="assets/css/bootstrap.css">
+    <link rel="stylesheet" type="text/css" media="screen" href="assets/css/main.css">
+    <link rel="stylesheet" href="assets/css/github.css">    
+    <link href='assets/css/counter.css' rel='stylesheet' type='text/css'>
+
+    <title>Warden.js : Counter example</title>
+</head>
+    <body>
+        <header>
+            <section id='logo' class='hidden-xs hidden-sm'>
+              <div class="container">
+                <div class='img-container'>
+                  <img src="assets/images/logo.png">
+                </div>
+              </div>
+            </section>
+            <nav>
+              <div class="container">
+                <ul class='row'>
+                  <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3"><a href="about.html">About</a></li>
+                  <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3"><a href="docs.html">Documentation</a></li>
+                  <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3"><a href="demo.html">Demo</a></li>
+                  <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3"><a href="download.html">Download</a></li>
+                </ul>
+              </div>
+            </nav>
+          </header>
+        <div class="container">
+  <div class="row">
+    <div eqz class="col-md-3 col-sm-3 col-xs-12 col-lg-2">
+  <ul id='submenu'>
+    <li><a href="pubsub.html">Pub/Sub</a></li>
+    <li class="mg-bottom"><a href="streams.html">Streams</a></li>
+    <li><a href="counter.html">Counter</a></li>
+    <li><a href="dragndrop.html">Drag'n'Drop</a></li>
+    <li><a href="away.html">Away module</a></li>
+    <li><a href="buses.html">DataBuses</a></li>
+    <li><a href="http.html">HTTP Ajax module</a></li>
+  </ul>
+</div>
+    <div eqz class="col-md-9 col-sm-9 col-xs-12 col-lg-10">
+      <section class='b-doc-section'>
+        <h2>Counter</h2>
+        <p>Counter which merges two streams</p>
+        <div class='box counter' >
+          <a class="btn btn-primary plus">+ 1</a>
+          <a class="btn btn-primary minus">- 1</a>
+          <span class="result">0</a>
+        </div>
+        <h3>Implementation</h3>
+        <p>Streams</p>
+        <pre><code class="javascript">var add = plus.stream('click').map(1),
+  sub = minus.stream('click').map(-1),
+  results = add.merge(sub).reduce(0, function(a, b){
+    return a+b;
+  });</code></pre>
+        <p>Side effects</p>
+        <pre><code class="javascript">results.bindTo(result, 'innerHTML');</code></pre>
+
+      </section>
+    </div>
+  </div>
+</div>
+
+    </body>
+</html>

@@ -27,7 +27,7 @@ module.exports = {
 			title: common.title,
 			dependencies: ['aside']
 		},
-		'documentation' : {
+		'docs' : {
 			title: title("Documentation"),
 			dependencies: ['aside']
 		},
@@ -45,6 +45,12 @@ module.exports = {
 			title: title("Download")
 		},
 		'streams' : {},
+		'counter' : {
+			title : title('Counter example'),
+			scripts : ['counter'],
+			styles : ['counter'],
+			dependencies: ['aside']
+		},
 		'away' : {},
 		'buses' : {},
 		'http' : {},
