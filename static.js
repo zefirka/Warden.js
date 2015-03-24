@@ -43,6 +43,10 @@ module.exports = {
 		},
 		'download' : {
 			title: title("Download")
-		}
+		},
+		'streams' : {},
+		'away' : {},
+		'buses' : {},
+		'http' : {},
 	}
 }
