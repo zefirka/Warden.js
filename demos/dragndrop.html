@@ -80,22 +80,56 @@
     <div class="row">
       <div id="submenu-cont" class="col-md-3 col-sm-3 col-xs-12 col-lg-2">
         <ul id='submenu'>
-          <li class="active" >Pub/Sub</li>
-          <li class="mg-bottom">Streams</li>
-          <li>Counter</li>
-          <li>Drag'n'Drop</li>
-          <li>Away module</li>
-          <li>DataBuses</li>
-          <li>HTTP Ajax module</li>
+          <li ><a href="pubsub.html">Pub/Sub</a></li>
+          <li class="mg-bottom"><a href="streams.html">Streams</a></li>
+          <li><a href="counter">Counter</a></li>
+          <li class="active"><a href="dragndrop.html">Drag'n'Drop</a></li>
+          <li><a href="away.html">Away module</a></li>
+          <li><a href="buses.html">DataBuses</a></li>
+          <li><a href="http.html">HTTP Ajax module</a></li>
         </ul>
       </div>
       <div class="col-md-9 col-sm-9 col-xs-12 col-lg-10">
         <section class='b-doc-section'>
           <h2>Drag & Drop</h2>
+          <p>Simple drag'n'drop with coordinate observing</p>
           <div class='box'>
             <div class='data-info'>Current position: (X:{{x}}, Y:{{y}})</div>
             <span class='dragndrop'></span>
           </div>
+          <h3>Implementation</h3>
+          <p>Streams</p>
+          <pre><code class="javascript">var downs = circle.stream('mousedown'),
+  ups = document.stream('mouseup'),
+  moves = document.stream('mousemove', circle);
+
+var position = {
+  x: '.clientX',
+  y: '.clientY'
+}
+
+var drags = moves
+  .after(downs)
+  .map(position)
+  .map(function(coors){
+    /* Math logic to find absolute position of object */
+  })</code></pre>
+          <p>Logic</p>
+          <pre><code class="javascript">ups.listen(function(){
+  moves.lock();
+});
+
+downs.listen(function(){
+  moves.unlockChildren();
+});
+          </code></pre>
+          <p>Side effects</p>
+          <pre><code class="javascript">drags.interpolate("Current position: (X:{{x}}, Y:{{y}})").bindTo(DOMelement, 'innerHTML');
+
+drags.listen(function(coors){
+  this.style.top = coors.y + "px";
+  this.style.left = coors.x + "px";
+});          </code></pre>
         </section>
       </div>
     </div>
