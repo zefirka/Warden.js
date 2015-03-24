@@ -1,24 +1,3 @@
-<header>
-  <section id='logo'>
-    <div class="container">
-      <h1>Warden.js</h1>
-      <h2>Declarative event-driven development</h2>
-    </div>
-  </section>
-
-
-  <nav>
-    <div class="container">
-      <ul>
-        <li><a href="about.html">About</a></li>
-        <li><a href="docs.html">Documentation</a></li>
-        <li><a href="demo.html">Demo</a></li>
-        <li><a href="download.html">Download</a></li>
-      </ul>
-    </div>
-  </nav>
-</header>
-
 <div class="container">
   <div class="row">
     <div class="col-md-12">
