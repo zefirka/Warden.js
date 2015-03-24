@@ -1,43 +1,4 @@
-<!DOCTYPE html>
-<html>
-    <head>
-    <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="description" content="Warden.js : Declarative Event-drive development">
-
-    <script type="text/javascript" src="/assets/js/jquery.min.js"></script>
-    <script type="text/javascript" src="/assets/js/warden.min.js"></script>
-    <script type="text/javascript" src="/assets/js/highlight.pack.js"></script>
-    <script src='/assets/js/main.js' type='text/javascript'></script>
-
-    <link rel="stylesheet" type="text/css" media="screen" href="../assets/css/bootstrap.css">
-    <link rel="stylesheet" type="text/css" media="screen" href="../assets/css/main.css">
-    <link rel="stylesheet" href="../assets/css/github.css">    
-     
-
-    <title>Warden.js : Declarative Event-drive development</title>
-</head>
-    <body>
-        <header>
-            <section id='logo' class='hidden-xs hidden-sm'>
-              <div class="container">
-                <div class='img-container'>
-                  <img src="/assets/images/logo.png">
-                </div>
-              </div>
-            </section>
-            <nav>
-              <div class="container">
-                <ul class='row'>
-                  <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3"><a href="/about.html">About</a></li>
-                  <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3"><a href="/docs.html">Documentation</a></li>
-                  <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3"><a href="/demo.html">Demo</a></li>
-                  <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3"><a href="/download.html">Download</a></li>
-                </ul>
-              </div>
-            </nav>
-          </header>
-        <header>
+<header>
   <section id='logo'>
     <div class="container">
       <h1>Warden.js</h1>
@@ -97,6 +58,3 @@
     </div>
   </div>
 </div>
-
-    </body>
-</html>
