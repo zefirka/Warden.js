@@ -25,7 +25,6 @@ module.exports = {
 		},
 		'about' : {
 			title: common.title,
-			dependencies: ['aside']
 		},
 		'docs' : {
 			title: title("Documentation"),
@@ -42,7 +41,7 @@ module.exports = {
 			styles: ['dnd']
 		},
 		'download' : {
-			title: title("Download")
+			title: title("Download"),
 		},
 		'streams' : {},
 		'counter' : {

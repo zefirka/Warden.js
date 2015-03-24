@@ -8,6 +8,7 @@
 nav {
   width: 100%;
   background: #7b1c47;
+  border-bottom: solid 8px #FF5758;
 }
 nav ul {
   width: 100%;
@@ -60,4 +61,7 @@ h2 {
   border-radius: 4px;
   text-align: left;
   display: inline-block;
+}
+.b-doc-section {
+  margin-bottom: 15px;
 }
