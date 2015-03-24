@@ -4,9 +4,9 @@ $('pre code').each(function(i, block) {
 });
 
 $(function(){
-	var max =  Warden.Utils.reduce($("[eqz]"), function(a, b){
+	var max =  $(Warden.Utils.reduce($("[eqz]"), function(a, b){
 		return $(a).height() > $(b).height() ? $(a) : $(b)
-	}).height();
+	})).height();
 
 	$("[eqz]").height(max);
 });
