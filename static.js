@@ -40,6 +40,9 @@ module.exports = {
 			dependencies: ['aside'],
 			scripts: ['dnd'],
 			styles: ['dnd']
+		},
+		'download' : {
+			title: title("Download")
 		}
 	}
 }

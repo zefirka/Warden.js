@@ -4,7 +4,7 @@ $('pre code').each(function(i, block) {
 });
 
 $(function(){
-	var max = $("[eqz]").reduce(function(a, b){
+	var max =  Warden.Utils.reduce($("[eqz]"), function(a, b){
 		return $(a).height() > $(b).height() ? $(a) : $(b)
 	}).height();
 

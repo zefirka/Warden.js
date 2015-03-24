@@ -3,7 +3,7 @@
     <head>
     <meta charset='utf-8'>
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="description" content=" ">
+    <meta name="description" content="Warden.js : Pub/Sub usage">
 
     <script type="text/javascript" src="assets/js/jquery.min.js"></script>
     <script type="text/javascript" src="assets/js/warden.min.js"></script>
@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="assets/css/github.css">    
      
 
-    <title> </title>
+    <title>Warden.js : Pub/Sub usage</title>
 </head>
     <body>
         <header>
@@ -52,9 +52,45 @@
   </ul>
 </div>
     <div class="col-md-9 col-sm-9 col-xs-12 col-lg-10">
-      <p></p>
+      <div class="col-md-9 col-sm-9 col-xs-12 col-lg-10">
+        <section class='b-doc-section'>
+        <p>Using simple objects and ready modules</p>
+        <pre><code  class="javascript">var empty = Warden();
+empty.listen('foo', function(event){
+  console.log(event.message);
+});
+
+empty.emit({type: 'foo', message: 'Hello World!'});
+
+// -> Hellow World!
+</code></pre>
+        <p>When module is already exists.</p>
+        <pre><code  class="javascript">Warden(module); 
+// now module has Warden methods
+module.listen('foo', function(event){
+  console.log(event.message);
+});
+
+module.emit({type: 'foo', message: 'Hello World!'});
+
+// -> Hellow World!
+</code></pre>
+        <p>With modules which already have Pub/Sub methods with 'addEventListener' or 'on' methods</p>
+        <pre><code  class="javascript">Warden(document);
+document.listen('click', function(){
+  console.log('Hey! You clicked at me!');
+});
+
+//or 
+</code></pre>
+        <p>With constructors</p>
+
+        </section>
+      </div>
+    </div>
     </div>
   </div>
 </div>
+
     </body>
 </html>
