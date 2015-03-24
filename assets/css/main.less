@@ -13,8 +13,11 @@ nav{
 	background: rgb(123, 28, 71);
 	border-bottom: solid 8px #FF5758;
 
-	ul{
+	.nav-cnt{
+		max-width: 1024px;
+	}
 
+	ul{
 		width: 100%;
 		margin: 0;
 		padding: 0;
@@ -29,6 +32,9 @@ nav{
 				font-weight: bold;
 				text-decoration: none;
 			}
+		}
+		li.active{
+			background: rgb(182, 40, 104);
 		}
 	}
 }
@@ -49,13 +55,17 @@ h1, h2{
 }
 
 #submenu{
- 	padding: 10px;
+ 	padding: 0;
   	list-style: none;
   	margin-bottom: 0px;
 
   	li{
   		width: 100%;
   		padding: 10px 6px;
+  	}
+  	li.active{
+  		font-weight: bold;
+  		text-decoration: underline !important;
   	}
 }
 

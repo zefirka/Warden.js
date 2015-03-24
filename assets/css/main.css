@@ -10,6 +10,9 @@ nav {
   background: #7b1c47;
   border-bottom: solid 8px #FF5758;
 }
+nav .nav-cnt {
+  max-width: 1024px;
+}
 nav ul {
   width: 100%;
   margin: 0;
@@ -26,6 +29,9 @@ nav ul li a {
   font-weight: bold;
   text-decoration: none;
 }
+nav ul li.active {
+  background: #b62868;
+}
 h1,
 h2 {
   font-family: 'coolvetica', times, serif;
@@ -40,13 +46,17 @@ h2 {
   background: #eee;
 }
 #submenu {
-  padding: 10px;
+  padding: 0;
   list-style: none;
   margin-bottom: 0px;
 }
 #submenu li {
   width: 100%;
   padding: 10px 6px;
+}
+#submenu li.active {
+  font-weight: bold;
+  text-decoration: underline !important;
 }
 .box.counter {
   border: solid 2px;
@@ -64,4 +74,7 @@ h2 {
 }
 .b-doc-section {
   margin-bottom: 15px;
+}
+.center {
+  text-align: center;
 }
