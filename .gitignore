@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 .grunt/*
 examples/*
 moscowjs/*
@@ -5,3 +6,23 @@ node_modules/*
 test/*
 warden.sublime-project
 warden.sublime-workspace
+=======
+.grunt
+.old
+.bzr
+.bzrignore
+nb_projets
+*.sublime*
+
+node_modules/*
+node_modules
+
+_SpecRunner.html
+test/_SpecRunner.html
+
+moscowjs/*
+moscowjs
+
+examples/*
+examples
+>>>>>>> a628a8888ccd4711ba834aae9fb08a2b43dc645b
