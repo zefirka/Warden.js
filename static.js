@@ -46,6 +46,8 @@ module.exports = {
 		},
 		'streams' : {
 			title: title('Streams'),
+			scripts: ['streams'],
+			styles: ['streams'],
 			dependencies: ['aside'],
 			active : 'demo'
 		},
