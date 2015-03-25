@@ -1,8 +1,11 @@
 .box.http{
   border: solid 2px black;
   overflow: hidden;
+  min-height: 40px;
+  margin-bottom: 20px;
 }
 
 .btn-cnt a{
   margin-right: 10px;
+  margin-bottom: 10px;
 }
