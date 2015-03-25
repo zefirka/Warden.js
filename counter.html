@@ -72,13 +72,12 @@
         <h3>Implementation</h3>
         <p>Streams</p>
         <pre><code class="javascript">var add = plus.stream('click').map(1),
-  sub = minus.stream('click').map(-1),
-  results = add.merge(sub).reduce(0, function(a, b){
-    return a+b;
-  });</code></pre>
+    sub = minus.stream('click').map(-1),
+    results = add.merge(sub).reduce(0, function(a, b){
+      return a+b;
+    });</code></pre>
         <p>Side effects</p>
         <pre><code class="javascript">results.bindTo(result, 'innerHTML');</code></pre>
-
       </section>
     </div>
   </div>

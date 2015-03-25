@@ -54,6 +54,11 @@ module.exports = {
 		},
 		'away' : {},
 		'buses' : {},
-		'http' : {},
+		'http' : {
+			title : title('HTTP example'),
+			scripts : ['http'],
+			styles : ['http'],
+			dependencies: ['aside']	
+		},
 	}
 }
