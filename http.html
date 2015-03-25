@@ -96,8 +96,8 @@ function not(predicate){
 }
       </code></pre>
       <p>Streams</p>
-      <pre><code class="javascript">var successes = gets.filter(isString);
-var errors = gets.filter(not(isString)).interpolate(errorMessage);
+      <pre><code class="javascript">var successes = http.gets.filter(isString);
+var errors = http.gets.filter(not(isString)).interpolate(errorMessage);
 var responses = successes.merge(errors);</code></pre>
       <p>Side effects</p>
       <pre><code class="javascript">$(document).ready(function(){
