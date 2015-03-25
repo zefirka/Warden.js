@@ -8,9 +8,9 @@
           <div class='box http'>
           </div>
           <div class="btn-cnt">
-            <a href="#" class='btn exist'>Load existing file</a>
-            <a href="#" class='btn nexist'>Try load not existing file</a>
-            <a href="#" class='btn wrd'>Load index page</a>
+            <a href="#" class='btn btn-primary exist'>Load existing file</a>
+            <a href="#" class='btn btn-primary nexist'>Try load not existing file</a>
+            <a href="#" class='btn btn-primary wrd'>Load index page</a>
           </div>
           <h3>Implementation</h3>
           <p>Streams</p>
