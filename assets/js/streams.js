@@ -9,7 +9,7 @@ var inputs = chars.reduce('', function(res, ch){
 });
 
 $(function(){
-  kd.bindTo($("#clear"), 'html');
+  kd.map(function(e){ return "[object KeyboardEvent]" }).bindTo($("#clear"), 'html');
   chars.bindTo($("#mapped"), 'html');
   letters.bindTo($("#filtered"), 'html');
   inputs.bindTo($("#reduced"), 'html');
