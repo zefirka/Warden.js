@@ -23,16 +23,18 @@ errors
   .merge(successes)
   .bindTo($(".box"), 'html');
 
-$('.exist').click(function(){
-  http.get('templates/test/file.html'); //this file exist
-});
+$(function(){
+  $('.exist').click(function(){
+    http.get('templates/test/file.html'); //this file exist
+  });
 
-$('.nexist').click(function(){
-  http.get('thereisnofile.html'); //this file exist
-});
+  $('.nexist').click(function(){
+    http.get('thereisnofile.html'); //this file exist
+  });
 
-$('.wrd').click(function(){
-  http.get('/Warden.js'); //this file exist
-});
+  $('.wrd').click(function(){
+    http.get('/Warden.js'); //this file exist
+  });  
+})
 
 
