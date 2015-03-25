@@ -12,7 +12,8 @@
           <a href="#" class='btn btn-primary wrd'>Load index page</a>
         </div>
         <h3>Implementation</h3>
-        <p>Module</p>
+        <h3>Module</h3>
+        <p>At first we need http module which we can use in our application.</p>
         <pre><code class="javascript">var http = {}; //module
 //bus
 http.gets = Warden.Stream(function(trigger){
@@ -23,20 +24,22 @@ this.get = function(url){
     });
 }
 }, http);</code></pre>
-      <p>Helper functions and const data</p>
+      <h3>Helper functions and const data</h3>
+      <p>These functions are commonly used, and Warden provides easy way to use them.</p>
       <pre><code class="javascript">var errorMessage = "&lt;p class='error'&gt; Error: {{status}}: {{statusText}}&lt;/p&gt;";
-
+// or Warden.Utils.is.str
 function isString(res){
   return typeof res == 'string';
 }
-
+// or Warden.Utils.not
 function not(predicate){
   return function(x){
     return !predicate(x);
   }
 }
       </code></pre>
-      <p>Streams</p>
+      <h3>Streams</h3>
+      <p>It's not the best way to filetr success response from failed, but currently we sure that if response is string than it's correct HTML markup, otherwise it's Error object</p>
       <pre><code class="javascript">var successes = http.gets.filter(isString);
 var errors = http.gets.filter(not(isString)).interpolate(errorMessage);
 var responses = successes.merge(errors);</code></pre>
