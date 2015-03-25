@@ -13,9 +13,9 @@
       <h3>Streams</h3>
       <p><strong>From DOM elements</strong></p>
       <pre><code  class="javascript">Warden(document);
-var clicks = document.stream('keydown');</code></pre>
+var keydowns = document.stream('keydown');</code></pre>
       <p><strong>From custom callback</strong></p>
-      <pre><code  class="javascript">var clicks = Warden.Stream(function(emit){
+      <pre><code  class="javascript">var keydowns = Warden.Stream(function(emit){
   document.addEventListener('keydown', emit);
 });</code></pre>
       <h3>Processing</h3>
@@ -43,7 +43,6 @@ var clicks = document.stream('keydown');</code></pre>
   inputs.bindTo(reducedDOMElement, 'innerHTML');
 };
 </code></pre>
-
       </section>
       </div>
     </div>
