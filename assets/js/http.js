@@ -18,12 +18,12 @@ var successes = gets.filter(isString),
 
 var errorMessage = "<p class='error'> Error: {{status}}: {{statusText}}</p>";
 
-errors
+$(function(){
+  errors
   .interpolate(errorMessage)
   .merge(successes)
   .bindTo($(".box"), 'html');
-
-$(function(){
+  
   $('.exist').click(function(){
     http.get('templates/test/file.html'); //this file exist
   });
