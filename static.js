@@ -42,7 +42,10 @@ module.exports = {
 		'download' : {
 			title: title("Download"),
 		},
-		'streams' : {},
+		'streams' : {
+			title: title('Streams'),
+			dependencies: ['aside']
+		},
 		'counter' : {
 			title : title('Counter example'),
 			scripts : ['counter'],

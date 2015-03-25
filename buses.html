@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
     <meta name="description" content=" ">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    
+
     <script type="text/javascript" src="assets/js/jquery.min.js"></script>
     <script type="text/javascript" src="assets/js/warden.min.js"></script>
     <script type="text/javascript" src="assets/js/highlight.pack.js"></script>
@@ -16,6 +16,9 @@
     <link rel="stylesheet" type="text/css" media="screen" href="assets/css/main.css">
     <link rel="stylesheet" href="assets/css/github.css">    
      
+
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" href="favicon.png">
 
     <title> </title>
 </head>
@@ -36,28 +39,17 @@
             <nav>
               <div class='nav-cnt'>
                 <ul>
-                  <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3"><a href="about.html">About</a></li>
-                  <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3"><a href="docs.html">Documentation</a></li>
-                  <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3"><a href="demo.html">Demo</a></li>
-                  <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3"><a href="download.html">Download</a></li>
+                  <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 {{is_active}}"><a href="about.html">About</a></li>
+                  <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 {{is_active}}"><a href="docs.html">Documentation</a></li>
+                  <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 {{is_active}}"><a href="demo.html">Demo</a></li>
+                  <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 {{is_active}}"><a href="download.html">Download</a></li>
                 </ul>
               </div>
             </nav>
           </header>
         <div class="container">
   <div class="row">
-    <div eqz class="col-md-3 col-sm-3 col-xs-12 col-lg-2">
-  <ul id='submenu'>
-    <li><a href="pubsub.html">Pub/Sub</a></li>
-    <li class="mg-bottom"><a href="streams.html">Streams</a></li>
-    <li><a href="counter.html">Counter</a></li>
-    <li><a href="dragndrop.html">Drag'n'Drop</a></li>
-    <li><a href="away.html">Away module</a></li>
-    <li><a href="buses.html">DataBuses</a></li>
-    <li><a href="http.html">HTTP Ajax module</a></li>
-  </ul>
-</div>
-    <div class="col-md-9 col-sm-9 col-xs-12 col-lg-10">
+    <div class="col-md-12 col-sm-12 col-xs-12 col-lg-12">
       <p></p>
     </div>
   </div>
