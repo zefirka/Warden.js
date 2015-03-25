@@ -19,8 +19,8 @@ var successes = gets.filter(isString),
 var errorMessage = "<p class='error'> Error: {{status}}: {{statusText}}</p>";
 
 errors
-  .inerpolate(errorMessage)
-  .merger(successes)
+  .interpolate(errorMessage)
+  .merge(successes)
   .bindTo($(".box"), 'html');
 
 $('.exist').click(function(){
