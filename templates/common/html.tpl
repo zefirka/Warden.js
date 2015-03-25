@@ -15,7 +15,7 @@
                 <a href="index.html"><h1>Warden.js</h1></a>
               </div>
             </section>
-            <nav>
+            <nav class='container'>
               <div class='nav-cnt'>
                 <ul>
                   <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 {{is_active}}"><a href="about.html">About</a></li>

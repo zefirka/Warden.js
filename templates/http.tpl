@@ -17,12 +17,9 @@
         <pre><code class="javascript">var http = {}; //module
 //bus
 http.gets = Warden.Stream(function(trigger){
-this.get = function(url){
-  $.get(url, trigger)
-    .fail(function(err){
-      trigger(err);
-    });
-}
+  this.get = function(url){
+    $.get(url).always(trigger);
+  }
 }, http);</code></pre>
       <h3>Helper functions and const data</h3>
       <p>These functions are commonly used, and Warden provides easy way to use them.</p>

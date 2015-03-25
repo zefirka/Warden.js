@@ -2,10 +2,7 @@ var http = {};
 
 var gets = Warden.Stream(function(trigger){
   this.get = function(url){
-    $.get(url, trigger)
-      .fail(function(err){
-        trigger(err);
-      });
+    $.get(url).always(trigger)
   }
 }, http);
 
@@ -23,7 +20,7 @@ $(function(){
   .interpolate(errorMessage)
   .merge(successes)
   .bindTo($(".box"), 'html');
-  
+
   $('.exist').click(function(){
     http.get('templates/test/file.html'); //this file exist
   });
