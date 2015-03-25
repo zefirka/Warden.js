@@ -5,8 +5,7 @@ function title (str) {
 var common = {
 	title: title('Declarative Event-drive development'),
 	singlepage: {
-		src: 'single',
-		dependencies: ['aside']
+		src: 'single'
 	}
 }
 
