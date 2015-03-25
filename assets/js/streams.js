@@ -1,5 +1,7 @@
 var kd = Warden(document).stream('keydown');
 
+kd.listen(function(e){ e.preventDefault(); })
+
 var chars = kd.map('.keyCode').map(String.fromCharCode);
 var letters = chars.filter(function(ch){
   return "0123456789".indexOf(ch) == -1;
