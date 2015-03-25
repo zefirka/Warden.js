@@ -24,16 +24,16 @@ this.get = function(url){
 }
 }, http);</code></pre>
       <p>Helper functions and const data</p>
-      <pre><code class="javascript">var errorMessage = "<p class='error'> Error: {{status}}: {{statusText}}</p>";
+      <pre><code class="javascript">var errorMessage = "&lt;p class='error'&gt; Error: {{status}}: {{statusText}}&lt;/p&gt;";
 
 function isString(res){
-return typeof res == 'string';
+  return typeof res == 'string';
 }
 
 function not(predicate){
-return function(x){
-  return !predicate(x);
-}
+  return function(x){
+    return !predicate(x);
+  }
 }
       </code></pre>
       <p>Streams</p>
@@ -42,7 +42,7 @@ var errors = gets.filter(not(isString)).interpolate(errorMessage);
 var responses = successes.merge(errors);</code></pre>
       <p>Side effects</p>
       <pre><code class="javascript">$(document).ready(function(){
-responses.bindTo($(".box"), 'html');
+  responses.bindTo($(".box"), 'html');
 });</code></pre>
       </section>
 
