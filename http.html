@@ -39,14 +39,15 @@
             <nav class='container'>
               <div class='nav-cnt'>
                 <ul>
-                  <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 {{is_active}}"><a href="about.html">About</a></li>
-                  <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 {{is_active}}"><a href="docs.html">API</a></li>
-                  <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 {{is_active}}"><a href="demo.html">Tutorials</a></li>
-                  <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 {{is_active}}"><a href="download.html">Download</a></li>
+                  <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 "><a href="about.html">About</a></li>
+                  <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 "><a href="docs.html">API</a></li>
+                  <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 "><a href="demo.html">Tutorials</a></li>
+                  <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 "><a href="download.html">Download</a></li>
                 </ul>
               </div>
             </nav>
           </header>
+        <input type="hidden" id='active_tab' value="demo">
         <div class="container">
   <div class="row">
     <div eqz class="col-md-3 col-sm-3 col-xs-12 col-lg-2">
@@ -99,7 +100,7 @@ function not(predicate){
       <pre><code class="javascript">var successes = http.gets.filter(isString);
 var errors = http.gets.filter(not(isString)).interpolate(errorMessage);
 var responses = successes.merge(errors);</code></pre>
-      <p>Side effects</p>
+      <h3>Side effects</h3>
       <pre><code class="javascript">$(document).ready(function(){
   responses.bindTo($(".box"), 'html');
 });</code></pre>

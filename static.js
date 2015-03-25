@@ -31,26 +31,30 @@ module.exports = {
 		},
 		'pubsub' : {
 			title : title('Pub/Sub usage'),
-			dependencies : ['aside']
+			dependencies : ['aside'],
+			active : 'demo'
 		},
 		'dragndrop' : {
 			title : title("Drag and Drop example"),
 			dependencies: ['aside'],
 			scripts: ['dnd'],
-			styles: ['dnd']
+			styles: ['dnd'],
+			active : 'demo'
 		},
 		'download' : {
 			title: title("Download"),
 		},
 		'streams' : {
 			title: title('Streams'),
-			dependencies: ['aside']
+			dependencies: ['aside'],
+			active : 'demo'
 		},
 		'counter' : {
 			title : title('Counter example'),
 			scripts : ['counter'],
 			styles : ['counter'],
-			dependencies: ['aside']
+			dependencies: ['aside'],
+			active : 'demo'
 		},
 		'away' : {},
 		'buses' : {},
@@ -58,7 +62,8 @@ module.exports = {
 			title : title('HTTP example'),
 			scripts : ['http'],
 			styles : ['http'],
-			dependencies: ['aside']	
+			dependencies: ['aside'],
+			active : 'demo'
 		},
 	}
 }

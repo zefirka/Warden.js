@@ -68,6 +68,12 @@ for(var pagename in map.pages){
 		str = _.interpolate(str, interpolant);
 	}
 
+	if(page.active){
+		html = _.interpolate(html, {
+			active_tab: page.active
+		});
+	}
+
 	console.log(str);
 
 	var result = _.interpolate(html, {

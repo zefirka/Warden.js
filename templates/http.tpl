@@ -40,7 +40,7 @@ function not(predicate){
       <pre><code class="javascript">var successes = http.gets.filter(isString);
 var errors = http.gets.filter(not(isString)).interpolate(errorMessage);
 var responses = successes.merge(errors);</code></pre>
-      <p>Side effects</p>
+      <h3>Side effects</h3>
       <pre><code class="javascript">$(document).ready(function(){
   responses.bindTo($(".box"), 'html');
 });</code></pre>
