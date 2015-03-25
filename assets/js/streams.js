@@ -9,7 +9,7 @@ var inputs = chars.reduce('', function(res, ch){
 });
 
 $(function(){
-  kd.bindTo($("#clead"), 'html');
+  kd.bindTo($("#clear"), 'html');
   chars.bindTo($("#mapped"), 'html');
   letters.bindTo($("#filtered"), 'html');
   inputs.bindTo($("#reduced"), 'html');
