@@ -1,0 +1,8 @@
+.box.counter{
+  border: solid 2px black;
+  overflow: hidden;
+}
+
+.btn-cnt a{
+  margin-right: 10px;
+}

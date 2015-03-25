@@ -5,8 +5,12 @@
       <div class="col-md-9 col-sm-9 col-xs-12 col-lg-10">
         <section class='b-doc-section'>
           <h2>HTTP Ajax Module</h2>
-          <div class='box counter'>
-            
+          <div class='box http'>
+          </div>
+          <div class="btn-cnt">
+            <a href="#" class='btn exist'>Load existing file</a>
+            <a href="#" class='btn nexist'>Try load not existing file</a>
+            <a href="#" class='btn wrd'>Load index page</a>
           </div>
           <h3>Implementation</h3>
           <p>Streams</p>
