@@ -40,8 +40,8 @@
               <div class='nav-cnt'>
                 <ul>
                   <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 {{is_active}}"><a href="about.html">About</a></li>
-                  <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 {{is_active}}"><a href="docs.html">Documentation</a></li>
-                  <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 {{is_active}}"><a href="demo.html">Demo</a></li>
+                  <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 {{is_active}}"><a href="docs.html">API</a></li>
+                  <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 {{is_active}}"><a href="demo.html">Tutorials</a></li>
                   <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 {{is_active}}"><a href="download.html">Download</a></li>
                 </ul>
               </div>
@@ -72,8 +72,38 @@
             <a href="#" class='btn btn-primary wrd'>Load index page</a>
           </div>
           <h3>Implementation</h3>
-          <p>Streams</p>
-          <pre><code class="javascript"></code></pre>
+          <p>Module</p>
+          <pre><code class="javascript">var http = {}; //module
+//bus
+http.gets = Warden.Stream(function(trigger){
+  this.get = function(url){
+    $.get(url, trigger)
+      .fail(function(err){
+        trigger(err);
+      });
+  }
+}, http);</code></pre>
+        <p>Helper functions and const data</p>
+        <pre><code class="javascript">var errorMessage = "<p class='error'> Error: {{status}}: {{statusText}}</p>";
+
+function isString(res){
+  return typeof res == 'string';
+}
+
+function not(predicate){
+  return function(x){
+    return !predicate(x);
+  }
+}
+        </code></pre>
+        <p>Streams</p>
+        <pre><code class="javascript">var successes = gets.filter(isString);
+var errors = gets.filter(not(isString)).interpolate(errorMessage);
+var responses = successes.merge(errors);</code></pre>
+        <p>Side effects</p>
+        <pre><code class="javascript">$(document).ready(function(){
+  responses.bindTo($(".box"), 'html');
+});</code></pre>
         </section>
       </div>
     </div>
