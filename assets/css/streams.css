@@ -1,0 +1,9 @@
+.msgs{
+  margin-bottom: 15px;
+}
+
+.msg {
+  margin-bottom: 10px;
+  border: solid 1px;
+  padding: 10px;
+}

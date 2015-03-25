@@ -2,8 +2,7 @@
   <div class="row">
     {{aside}}
     <div class="col-md-9 col-sm-9 col-xs-12 col-lg-10">
-      <div class="col-md-9 col-sm-9 col-xs-12 col-lg-10">
-        <section class='b-doc-section'>
+      <section class='b-doc-section'>
         <h2>Using Pub/Sub pattern with Warden</h2>
         <p>Using simple objects and ready modules</p>
         <pre><code  class="javascript">var empty = Warden();
@@ -38,7 +37,6 @@ document.listen('click', function(){
 
         </section>
       </div>
-    </div>
     </div>
   </div>
 </div>
