@@ -1,11 +1,13 @@
 <div class="container">
   <div class="row">
     <div class="col-md-12">
-      <h3>Concept</h3>
-      
-      <p>Warden.js provides a functionality for the development of reactive event-driven applications in functional style. It requires no dependencies.</p>
-
+      <h2>Concept</h2>
+      <p>Warden.js - это возможность разрабатывать event-driven приложения в декларативном стиле.</p>
       <p>General idea of Warden.js that to make composing, combining and resolving concurrent events simpler. In mathematical sense, idea that to change your app's representation from tree of states to the partially ordered set of events in time (or other) priority relation.</p>
+    </div>
+    <div class="col-md-12">
+      <h2>Rationale</h2>
+      <p></p>
     </div>
   </div>
 </div>

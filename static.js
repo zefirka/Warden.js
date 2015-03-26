@@ -58,8 +58,18 @@ module.exports = {
 			dependencies: ['aside'],
 			active : 'demo'
 		},
-		'away' : {},
-		'buses' : {},
+		'away' : {
+			dependencies: ['aside'],
+		},
+		'buses' : {
+			dependencies: ['aside'],
+		},
+		'sync' : {
+			title : title("Synchronization"),
+			scripts : ['sync'],
+			styles : ['sync'],
+			dependencies: ['aside'],
+		},
 		'http' : {
 			title : title('HTTP example'),
 			scripts : ['http'],

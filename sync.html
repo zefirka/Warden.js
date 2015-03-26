@@ -3,24 +3,24 @@
     <head>
     <meta charset='utf-8'>
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="description" content="Warden.js : Demos">
+    <meta name="description" content="Warden.js : Synchronization">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <script type="text/javascript" src="assets/js/jquery.min.js"></script>
     <script type="text/javascript" src="assets/js/warden.min.js"></script>
     <script type="text/javascript" src="assets/js/highlight.pack.js"></script>
     <script type="text/javascript" src="assets/js/main.js"></script>
-    <script type='text/javascript' src='assets/js/demos.js'></script>
+    <script type='text/javascript' src='assets/js/sync.js'></script>
 
     <link rel="stylesheet" type="text/css" media="screen" href="assets/css/bootstrap.css">
     <link rel="stylesheet" type="text/css" media="screen" href="assets/css/main.css">
     <link rel="stylesheet" href="assets/css/github.css">    
-     
+    <link href='assets/css/sync.css' rel='stylesheet' type='text/css'>
 
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="icon" type="image/png" href="favicon.png">
 
-    <title>Warden.js : Demos</title>
+    <title>Warden.js : Synchronization</title>
 </head>
     <body>
         <header>
@@ -47,7 +47,7 @@
               </div>
             </nav>
           </header>
-        <input type="hidden" id='active_tab' value="{{active_tab}}">
+        <input type="hidden" id='active_tab' value="demo">
         <div class="container">
   <div class="row">
     <div eqz class="col-md-3 col-sm-3 col-xs-12 col-lg-2">
@@ -63,7 +63,65 @@
   </ul>
 </div>
     <div class="col-md-9 col-sm-9 col-xs-12 col-lg-10">
-      <p></p>
+      <section class='b-doc-section'>
+      <h2>Synchronization</h2>
+      <div class='example'>
+        <table>
+          <thead>
+            <tr>
+              <td>Source</td>
+              <td>Status</td>
+              <td>Result</td>
+            </tr>
+            <tr>
+              <td><a href='javascript: void 0' class='btn btn-primary a'>Alpha</a></td>
+              <td rowspan="3"><span id='status'></span></td>
+              <td rowspan="3"><span id='result'></span></td>
+            </tr>
+            <tr>
+              <td><a href='javascript: void 0' class='btn btn-primary b'>Betta</a></td>
+            </tr>
+            <tr>
+              <td><a href='javascript: void 0' class='btn btn-primary c'>Gamma</a></td>              
+            </tr>
+          </thead>
+        </table>
+      </div>
+      <h3>Streams</h3>
+      <p><strong>From DOM elements</strong></p>
+      <pre><code  class="javascript">Warden(document);
+var keydowns = document.stream('keydown');</code></pre>
+      <p><strong>From custom callback</strong></p>
+      <pre><code  class="javascript">var keydowns = Warden.Stream(function(emit){
+  document.addEventListener('keydown', emit);
+});</code></pre>
+      <h3>Processing</h3>
+      <p><strong>Map</strong></p>
+      <pre><code  class="javascript">var chars = keydowns
+  .map('.keyCode')
+  .map(String.fromCharCode)
+      </code></pre>
+      <p><strong>Filter</strong></p>
+      <pre><code  class="javascript">var letters = chars
+  .filter(function(ch){
+    return "0123456789".indexOf(ch) == -1;
+  });</code></pre>
+      <p><strong>Reduce</strong></p>
+          <pre><code  class="javascript">var inputs = chars
+      .reduce('', function(res, ch){
+        return res.concat(ch);
+      });</code></pre>
+      <p><strong>Bindings</strong></p>
+      <p><strong>Reduce</strong></p>
+          <pre><code  class="javascript">document.onreadystatechange = function(){
+  kd.bindTo(pureDOMElement, 'innerHTML');
+  chars.bindTo(mappedDOMElement, 'innerHTML');
+  letters.bindTo(filteredDOMElement, 'innerHTML');
+  inputs.bindTo(reducedDOMElement, 'innerHTML');
+};
+</code></pre>
+      </section>
+      </div>
     </div>
   </div>
 </div>
