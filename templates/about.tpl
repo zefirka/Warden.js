@@ -5,7 +5,7 @@
       <p></p>
       <h2>FRP Way</h2>
       <p>Functional reacitve programming brings declarative style into EDD applications, where you implement events processing, combining, composing as streams.</p>
-      <img src="assets/sheme.png">
+      <img src="assets/scheme.png">
     </div>
   </div>
 </div>
