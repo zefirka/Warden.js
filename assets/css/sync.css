@@ -10,10 +10,6 @@
   border-right: solid 1px gray;
 }
 
-.example table tr td:last-child{
-  border-left: solid 1px gray;
-}
-
 .example thead td{
   font-weight:  bold;
   border-bottom: solid 1px gray;
