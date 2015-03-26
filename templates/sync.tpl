@@ -27,38 +27,20 @@
         </table>
       </div>
       <h3>Streams</h3>
-      <p><strong>From DOM elements</strong></p>
-      <pre><code  class="javascript">Warden(document);
-var keydowns = document.stream('keydown');</code></pre>
-      <p><strong>From custom callback</strong></p>
-      <pre><code  class="javascript">var keydowns = Warden.Stream(function(emit){
-  document.addEventListener('keydown', emit);
+      <pre><code  class="javascript">var alpha = $(".a").stream('click').map('alpha');
+var betta = $(".b").stream('click').map('betta');
+var gamma = $(".c").stream('click').map('gamma');
+
+var result = alpha.sync(betta, gamma).map(function(arr){
+  return arr.join(', ');
+});
+
+var status = alpha.take(1).merge(betta.take(1), gamma.take(1)).reduce('Already clicked: ', function(a, b){
+  return a + " ," + b;
 });</code></pre>
-      <h3>Processing</h3>
-      <p><strong>Map</strong></p>
-      <pre><code  class="javascript">var chars = keydowns
-  .map('.keyCode')
-  .map(String.fromCharCode)
-      </code></pre>
-      <p><strong>Filter</strong></p>
-      <pre><code  class="javascript">var letters = chars
-  .filter(function(ch){
-    return "0123456789".indexOf(ch) == -1;
-  });</code></pre>
-      <p><strong>Reduce</strong></p>
-          <pre><code  class="javascript">var inputs = chars
-      .reduce('', function(res, ch){
-        return res.concat(ch);
-      });</code></pre>
-      <p><strong>Bindings</strong></p>
-      <p><strong>Reduce</strong></p>
-          <pre><code  class="javascript">document.onreadystatechange = function(){
-  kd.bindTo(pureDOMElement, 'innerHTML');
-  chars.bindTo(mappedDOMElement, 'innerHTML');
-  letters.bindTo(filteredDOMElement, 'innerHTML');
-  inputs.bindTo(reducedDOMElement, 'innerHTML');
-};
-</code></pre>
+      <h3>Side effects</h3>
+      <pre><code  class="javascript">result.bindTo($("#result"), "html");
+status.bindTo($("#status"), "html");</code></pre>
       </section>
       </div>
     </div>
