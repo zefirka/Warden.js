@@ -31,12 +31,10 @@
 var betta = $(".b").stream('click').map('betta');
 var gamma = $(".c").stream('click').map('gamma');
 
-var result = alpha.sync(betta, gamma).map(function(arr){
-  return arr.join(', ');
-});
+var result = alpha.sync(betta, gamma).map('Synced');
 
 var status = alpha.take(1).merge(betta.take(1), gamma.take(1)).reduce('Already clicked: ', function(a, b){
-  return a + " ," + b;
+  return a + " " + b;
 });</code></pre>
       <h3>Side effects</h3>
       <pre><code  class="javascript">result.bindTo($("#result"), "html");
