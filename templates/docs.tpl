@@ -1,6 +1,7 @@
 <div class="container">
   <div class="row">
     <div class="col-md-3 col-sm-3 hidden-xs col-lg-3">
+      <h2>Methods</h2>
       <ul>
       	<li><a href="#extend">extend</a></li>
       	<li><a href="#extend">emit</a></li>
@@ -19,7 +20,8 @@
       </ul>
     </div>
     <div class="col-md-9 col-sm-9 col-xs-12 col-lg-9">
-    	<h2>extend</h2>
+    	<h2 id="extend">extend</h2>
+    	<p>dasda sdaslk jdals kjd;alks jd;alskjd ;laskjd a;lskdj a;ldskj</p>
     </div>
   </div>
 </div>
