@@ -315,7 +315,7 @@ var DataBus = (function(){
 
       By default: @cmp compares arguments with === operator
     */
-    unique : function(compractor){
+    diff : function(compractor){
       compractor = compractor || Warden.configure.cmp;
 
       return process.call(this, function(event, pipe){
@@ -424,9 +424,9 @@ var DataBus = (function(){
       
       return this.listen(function(data){
         if(toggled){
-          a.call(this, data);
-        }else{
           b.call(this, data);
+        }else{
+          a.call(this, data);
         }
         toggled = !toggled;
       });

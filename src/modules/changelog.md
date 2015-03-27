@@ -7,6 +7,7 @@
   - Refactored `Utils` module
   - Refactored `DataBus` module
   - Added performace tests
+  -Changed `unique` to `diff`
 
 ####  Extend module:
 `docs: ./docs/Extend.md`
