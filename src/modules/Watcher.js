@@ -9,10 +9,10 @@ Warden.watcher = function(){
 
 	if(argc===1){
 		if(is.str(a)){
-			fn = function(event){this[a] = event;}			
+			fn = function binding(event){this[a] = event;}			
 		}else	
 		if(is.fn(a)){
-			fn = function(event){a(event);}
+			fn = function binding(event){a(event);}
 		}
 	}else{
 		if(is.obj(a) && is.str(b)){
@@ -26,31 +26,26 @@ Warden.watcher = function(){
 					dest += ('["'+name+'"]');
 				});
 
-				fn = function(event){
+				fn = function binding(event){
 					eval("a" + dest + "= event");
 				}
 			}else{
-				fn = is.fn(a[b]) ? function(event){a[b](event);} : fn = function(event){a[b] = event} ;
+				fn = is.fn(a[b]) ? function binding(event){a[b](event);} : fn = function binding(event){a[b] = event} ;
 			}
 		}else
 		if(is.fn(b)){
-			fn = function(event){b.call(a, event);}
+			fn = function binding(event){b.call(a, event);}
 		} 
 	}
 
 	st = fn;
 
-	bus.watch();
+	bus.listen(fn);
 
 	return {
-		update : fn,
-		unbind : function(name){
-			st = fn;
-			fn = function(){} 
-		},
-		bind : function(f){
-			fn = st;
+		update: fn,
+		remove: function(){
+			bus.mute('binding');
 		}
-	};
-
+	}
 };

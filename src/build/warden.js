@@ -21,6 +21,7 @@
     cmp : function(x,y){ return x === y; }
   };
 
+
   /* Globals */
   var Utils;
 
@@ -33,10 +34,10 @@
       _UND = 'undefined';
 
   function each(arr, fn){ 
-      for(var i=0, l=arr.length; i<l;i++){ 
-        fn(arr[i], i);
-      }
+    for(var i=0, l=arr.length; i<l;i++){ 
+      fn(arr[i], i);
     }
+  }
 
   function forWhile(arr, fn, preventValue, depreventValue){
     preventValue = preventValue || false; 
@@ -699,8 +700,8 @@
       pipes[this.$$id] = Pipeline(line || [], this);
 
       this.data = {
-        fires : new Utils.Queue(4),
-        takes : new Utils.Queue(4),
+        fires : new Utils.Queue(3),
+        takes : new Utils.Queue(3),
         last : null
       };   
 
@@ -711,13 +712,6 @@
         var binding = Warden.watcher.apply(null, [this].concat(toArray(arguments)));
         this.bindings.push(binding);
         return binding;
-      },
-
-      update : function(e){
-        var self = this;
-        each(this.bindings, function(binding){
-          binding.update(e || self.data.takes.last());
-        });
       },
 
       fire : function(data, context) {
@@ -731,7 +725,6 @@
 
         pipes[id].start(data, context, function(result){
           self.data.takes.push(result); // pushing taked data to @takes queue
-          self.update(self.data.last = result);
 
           /* Executing all handlers of this DataBus */
           each(handlers[id], function(handler){
@@ -785,7 +778,7 @@
 
       /* Logging recieved data to console or logger */
       log : function(x){
-        return this.listen(function(data){
+        return this.listen(function log(data){
           console.log(x || data);
         });
       },
@@ -975,7 +968,7 @@
 
         By default: @cmp compares arguments with === operator
       */
-      unique : function(compractor){
+      diff : function(compractor){
         compractor = compractor || Warden.configure.cmp;
 
         return process.call(this, function(event, pipe){
@@ -1056,7 +1049,7 @@
           collection.push(e);
         });
 
-        return Warden.makeStream(function(emit){
+        return Warden.Stream(function(emit){
           bus.listen(function(){
             emit(collection);
             collection = [];
@@ -1084,9 +1077,9 @@
         
         return this.listen(function(data){
           if(toggled){
-            a.call(this, data);
-          }else{
             b.call(this, data);
+          }else{
+            a.call(this, data);
           }
           toggled = !toggled;
         });
@@ -1113,7 +1106,7 @@
       repeat : function(times, delay){
         var self = this,
             cached = times,
-        nbus = Warden.makeStream(function(emit){
+        nbus = Warden.Stream(function(emit){
           self.listen(function(data){
             var interval = setInterval(function(){
               if(times){
@@ -1132,7 +1125,7 @@
 
       waitFor : function(bus){
         var self = this;
-        return Warden.makeStream(function(emit){
+        return Warden.Stream(function(emit){
           var exec = false, val,
               clear = function(){
                 val = null;
@@ -1175,7 +1168,7 @@
 
       resolveWith : function(bus, fn) {
         var self = this, ctx = this.host.$$context;
-        return Warden.makeStream(function(emit){
+        return Warden.Stream(function(emit){
           self.sync(bus).listen(function(data){
             emit(fn.call(ctx, data[0], data[1]));
           });
@@ -1186,7 +1179,7 @@
       combine : function(bus, fn, seed){
         var self = this, ctx = this.host.$$context;
 
-        return Warden.makeStream(function(emit){
+        return Warden.Stream(function(emit){
           function e(a,b){
             emit(fn.call(ctx, a,b));
           }
@@ -1213,7 +1206,7 @@
 
         values.length = executions.length = argv.length;
 
-        nbus = Warden.makeStream(function(emit){
+        nbus = Warden.Stream(function(emit){
           each(argv, function(bus, index){
             bus.listen(function(data){
               var exec = executions.length ? true : false;
@@ -1250,7 +1243,7 @@
         var self = this,
             argv = Utils.toArray(arguments),
 
-        nbus = Warden.makeStream(function(emit){
+        nbus = Warden.Stream(function(emit){
           self.sync.apply(self, argv).listen(function(arr){
             emit.call(this, Utils.flatten(arr));
           })
@@ -1344,10 +1337,10 @@
 
   	if(argc===1){
   		if(is.str(a)){
-  			fn = function(event){this[a] = event;}			
+  			fn = function binding(event){this[a] = event;}			
   		}else	
   		if(is.fn(a)){
-  			fn = function(event){a(event);}
+  			fn = function binding(event){a(event);}
   		}
   	}else{
   		if(is.obj(a) && is.str(b)){
@@ -1361,33 +1354,28 @@
   					dest += ('["'+name+'"]');
   				});
 
-  				fn = function(event){
+  				fn = function binding(event){
   					eval("a" + dest + "= event");
   				}
   			}else{
-  				fn = is.fn(a[b]) ? function(event){a[b](event);} : fn = function(event){a[b] = event} ;
+  				fn = is.fn(a[b]) ? function binding(event){a[b](event);} : fn = function binding(event){a[b] = event} ;
   			}
   		}else
   		if(is.fn(b)){
-  			fn = function(event){b.call(a, event);}
+  			fn = function binding(event){b.call(a, event);}
   		} 
   	}
 
   	st = fn;
 
-  	bus.watch();
+  	bus.listen(fn);
 
   	return {
-  		update : fn,
-  		unbind : function(name){
-  			st = fn;
-  			fn = function(){} 
-  		},
-  		bind : function(f){
-  			fn = st;
+  		update: fn,
+  		remove: function(){
+  			bus.mute('binding');
   		}
-  	};
-
+  	}
   };
 
 
@@ -1413,9 +1401,10 @@
       throw "This browser doesn't implement Object.observe"
     }
   }
+  
 
   if(jQueryInited){
-    Warden.extend(jQuery);
+    Warden(jQuery);
   }
 
   return Warden;

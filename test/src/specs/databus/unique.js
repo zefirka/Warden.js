@@ -1,8 +1,8 @@
-describe('.unique()', function () {  		
+describe('.diff()', function () {  		
 	it('-- no function', function (done) {
 		var res = "";
 		
-		var u = bus.unique().listen(function(e){
+		var u = bus.diff().listen(function(e){
 			res++;
 		});
 		
@@ -19,7 +19,7 @@ describe('.unique()', function () {
     it('-- compare second letter', function (done) {
 		var res = 0;
 		
-		var u = bus.unique(function(a,b){
+		var u = bus.diff(function(a,b){
 			return  a[1] == b[1];
 		}).listen(function(e){
 			res++;
@@ -40,7 +40,7 @@ describe('.unique()', function () {
     it('-- compare length of string', function (done) {
 		var res = 0;
 		
-		var u = bus.unique(function(a,b){
+		var u = bus.diff(function(a,b){
 			return  a.length == b.length
 		}).listen(function(e){
 			res++;

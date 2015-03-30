@@ -7,7 +7,8 @@
   - Refactored `Utils` module
   - Refactored `DataBus` module
   - Added performace tests
-  -Changed `unique` to `diff`
+  - Changed `unique` to `diff`
+  - `toggle` now runs first argument
 
 ####  Extend module:
 `docs: ./docs/Extend.md`

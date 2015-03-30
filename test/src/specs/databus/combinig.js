@@ -143,8 +143,8 @@ describe('Combining methods ', function () {
 	it('-- combine (+)' ,function (done){
 		var sum = 0;
 
-		var bus1 = bus.map(10),
-			bus2 = bus.map(20),
+		var bus1 = Warden.Stream().map(10),
+			bus2 = Warden.Stream().map(20),
 			combined = bus1.combine(bus2, function(a,b){
 				return a + b;
 			}, 0).listen(function(res){

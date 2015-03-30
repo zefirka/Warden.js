@@ -10,10 +10,10 @@ var _FUN = 'function',
     _UND = 'undefined';
 
 function each(arr, fn){ 
-    for(var i=0, l=arr.length; i<l;i++){ 
-      fn(arr[i], i);
-    }
+  for(var i=0, l=arr.length; i<l;i++){ 
+    fn(arr[i], i);
   }
+}
 
 function forWhile(arr, fn, preventValue, depreventValue){
   preventValue = preventValue || false; 

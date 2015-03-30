@@ -39,8 +39,8 @@ var DataBus = (function(){
     pipes[this.$$id] = Pipeline(line || [], this);
 
     this.data = {
-      fires : new Utils.Queue(4),
-      takes : new Utils.Queue(4),
+      fires : new Utils.Queue(3),
+      takes : new Utils.Queue(3),
       last : null
     };   
 
@@ -51,13 +51,6 @@ var DataBus = (function(){
       var binding = Warden.watcher.apply(null, [this].concat(toArray(arguments)));
       this.bindings.push(binding);
       return binding;
-    },
-
-    update : function(e){
-      var self = this;
-      each(this.bindings, function(binding){
-        binding.update(e || self.data.takes.last());
-      });
     },
 
     fire : function(data, context) {
@@ -71,7 +64,6 @@ var DataBus = (function(){
 
       pipes[id].start(data, context, function(result){
         self.data.takes.push(result); // pushing taked data to @takes queue
-        self.update(self.data.last = result);
 
         /* Executing all handlers of this DataBus */
         each(handlers[id], function(handler){
@@ -125,7 +117,7 @@ var DataBus = (function(){
 
     /* Logging recieved data to console or logger */
     log : function(x){
-      return this.listen(function(data){
+      return this.listen(function log(data){
         console.log(x || data);
       });
     },
@@ -396,7 +388,7 @@ var DataBus = (function(){
         collection.push(e);
       });
 
-      return Warden.makeStream(function(emit){
+      return Warden.Stream(function(emit){
         bus.listen(function(){
           emit(collection);
           collection = [];
@@ -453,7 +445,7 @@ var DataBus = (function(){
     repeat : function(times, delay){
       var self = this,
           cached = times,
-      nbus = Warden.makeStream(function(emit){
+      nbus = Warden.Stream(function(emit){
         self.listen(function(data){
           var interval = setInterval(function(){
             if(times){
@@ -472,7 +464,7 @@ var DataBus = (function(){
 
     waitFor : function(bus){
       var self = this;
-      return Warden.makeStream(function(emit){
+      return Warden.Stream(function(emit){
         var exec = false, val,
             clear = function(){
               val = null;
@@ -515,7 +507,7 @@ var DataBus = (function(){
 
     resolveWith : function(bus, fn) {
       var self = this, ctx = this.host.$$context;
-      return Warden.makeStream(function(emit){
+      return Warden.Stream(function(emit){
         self.sync(bus).listen(function(data){
           emit(fn.call(ctx, data[0], data[1]));
         });
@@ -526,7 +518,7 @@ var DataBus = (function(){
     combine : function(bus, fn, seed){
       var self = this, ctx = this.host.$$context;
 
-      return Warden.makeStream(function(emit){
+      return Warden.Stream(function(emit){
         function e(a,b){
           emit(fn.call(ctx, a,b));
         }
@@ -553,7 +545,7 @@ var DataBus = (function(){
 
       values.length = executions.length = argv.length;
 
-      nbus = Warden.makeStream(function(emit){
+      nbus = Warden.Stream(function(emit){
         each(argv, function(bus, index){
           bus.listen(function(data){
             var exec = executions.length ? true : false;
@@ -590,7 +582,7 @@ var DataBus = (function(){
       var self = this,
           argv = Utils.toArray(arguments),
 
-      nbus = Warden.makeStream(function(emit){
+      nbus = Warden.Stream(function(emit){
         self.sync.apply(self, argv).listen(function(arr){
           emit.call(this, Utils.flatten(arr));
         })

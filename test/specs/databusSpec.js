@@ -384,11 +384,11 @@ describe('Warden DataBus methods', function () {
 	      done();
 	    });
 	});
-	describe('.unique()', function () {  		
+	describe('.diff()', function () {  		
 		it('-- no function', function (done) {
 			var res = "";
 			
-			var u = bus.unique().listen(function(e){
+			var u = bus.diff().listen(function(e){
 				res++;
 			});
 			
@@ -405,7 +405,7 @@ describe('Warden DataBus methods', function () {
 	    it('-- compare second letter', function (done) {
 			var res = 0;
 			
-			var u = bus.unique(function(a,b){
+			var u = bus.diff(function(a,b){
 				return  a[1] == b[1];
 			}).listen(function(e){
 				res++;
@@ -426,7 +426,7 @@ describe('Warden DataBus methods', function () {
 	    it('-- compare length of string', function (done) {
 			var res = 0;
 			
-			var u = bus.unique(function(a,b){
+			var u = bus.diff(function(a,b){
 				return  a.length == b.length
 			}).listen(function(e){
 				res++;
@@ -629,8 +629,8 @@ describe('Warden DataBus methods', function () {
 		it('-- combine (+)' ,function (done){
 			var sum = 0;
 
-			var bus1 = bus.map(10),
-				bus2 = bus.map(20),
+			var bus1 = Warden.Stream().map(10),
+				bus2 = Warden.Stream().map(20),
 				combined = bus1.combine(bus2, function(a,b){
 					return a + b;
 				}, 0).listen(function(res){
