@@ -35,7 +35,7 @@
         <li><code>listener</code> - Name of native listener function if you have such. For example $.on() for jQuery, or .addEventListener for native browser's DOM API, both of them you can don't configure.  By default equals <code>addEventListener</code></li>
         <li><code>names</code> - Object of names you want to take your mathods. Can contain next properties: <code>emit</code>, <code>listen</code>, <code>stream</code>, <code>unlisten</code>. Values are adequate to Warden's mehthods.</li>
       </ul>
-
+      <hr class='bhr'>
       <h2 id="listen">listen</h2>
       <p class='d-synopsis'>Synopsis: <code>object.listen(eventType, callback)</code></p>
       <p class='d-description'>Description: Adds to the <code>object</code> handler of events with type of <code>eventType</code>.</p>
