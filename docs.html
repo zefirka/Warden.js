@@ -141,13 +141,12 @@ object.emit('x', 1);
 
 <!-- ================================================================== -->
 
-
 <hr>
 <h2 id="emit">emit</h2>
 <p class='d-synopsis'>Synopsis: <code>object.emit(eventType, eventData)</code> or <code>object.emit(event)</code></p>
 <p class='d-description'>Description: Fires event on <code>object</code>.</p>
 <h3>Usage:</h3>
-<p>Similiar to jQuery's <code>trigger</code> method.</p>
+<p>Similiar to jQuery's <code>trigger</code> method. If you use map as single argument then event type is on <code>type</code> property and it's required! Note that <code>emit</code> - is method of object that emits event which you will should listen on <strong>same</strong> object.</p>
 <pre><code class='javascript'>object.listen('custom', function(e){
   console.log(e);
 })
@@ -164,10 +163,14 @@ object.emit({
 // -> {type: 'custom',  value: 'value' }
 </code></pre>    
 
+<!-- ================================================================== -->
+
 <hr>
 <h2 id="stream">stream</h2>
 <p class='d-synopsis'>Synopsis: <code>object.stream(eventType, [context])</code></p>
 <p class='d-description'>Description: Creates a stream of events by given type.</p>
+
+
 
 <hr class='bhr'>
 <h2 id="listen">Warden.Stream</h2>
