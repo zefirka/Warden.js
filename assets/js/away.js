@@ -15,15 +15,16 @@ var awayModule = {
 };
 
 awayModule.aways = Warden.Stream(function(trigger) {
-      var timeout; 
+      var timeout,
+          self = this;
       
       this.start = function(){
         timeout = setTimeout(trigger, 5000);
       }
 
       this.restart = function(){
-        this.clear();
-        this.start();
+        self.clear();
+        self.start();
       }
       
       this.clear = function(){
