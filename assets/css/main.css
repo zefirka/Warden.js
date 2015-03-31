@@ -10,10 +10,11 @@ nav ul {
   width: 100%;
   margin: 0;
   padding: 0;
-  display: table;
+  /*display: table;*/
+  position: relative;
 }
 nav ul li {
-  display: table-cell;
+  /*display: table-cell;*/
   text-align: center;
   padding: 10px;
 }
@@ -79,4 +80,10 @@ h2 {
 }
 .no-padding {
   padding: 0;
+}
+.fork {
+  position: absolute;
+  right: 10px;
+  top: 0px;
+  background: url('../images/blacktocat.png') no-repeat;
 }
