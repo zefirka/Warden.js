@@ -59,7 +59,10 @@ module.exports = {
 			active : 'demo'
 		},
 		'away' : {
+			title : title('Away'),
 			dependencies: ['aside'],
+			scripts : ['away'],
+			styles : ['away'],
 		},
 		'buses' : {
 			dependencies: ['aside'],

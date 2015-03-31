@@ -4,8 +4,10 @@
       <h2>Event-driven development</h2>
       <p></p>
       <h2>FRP Way</h2>
-      <p>Functional reacitve programming brings declarative style into EDD applications, where you implement events processing, combining, composing as streams.</p>
-      <img src="assets/images/scheme.png">
+      <p>Functional reacitve programming brings declarative style into EDD applications, where you implement events processing, combining, composing as streams of data.</p>
+      <div class='g-img-container'>
+      	<img src="assets/images/scheme.png">
+      </div>
     </div>
   </div>
 </div>

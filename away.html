@@ -3,24 +3,24 @@
     <head>
     <meta charset='utf-8'>
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="description" content=" ">
+    <meta name="description" content="Warden.js : Away">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <script type="text/javascript" src="assets/js/jquery.min.js"></script>
     <script type="text/javascript" src="assets/js/warden.min.js"></script>
     <script type="text/javascript" src="assets/js/highlight.pack.js"></script>
     <script type="text/javascript" src="assets/js/main.js"></script>
-     
+    <script type='text/javascript' src='assets/js/away.js'></script>
 
     <link rel="stylesheet" type="text/css" media="screen" href="assets/css/bootstrap.css">
     <link rel="stylesheet" type="text/css" media="screen" href="assets/css/main.css">
     <link rel="stylesheet" href="assets/css/github.css">    
-     
+    <link href='assets/css/away.css' rel='stylesheet' type='text/css'>
 
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="icon" type="image/png" href="favicon.png">
 
-    <title> </title>
+    <title>Warden.js : Away</title>
 </head>
     <body>
         <header>
@@ -36,24 +36,71 @@
                 <a href="index.html"><h1>Warden.js</h1></a>
               </div>
             </section>
-            <nav class='container'>
-              <div class='nav-cnt'>
-                <ul>
-                  <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 "><a href="about.html">About</a></li>
-                  <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 "><a href="docs.html">API</a></li>
-                  <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 "><a href="demo.html">Tutorials</a></li>
-                  <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 "><a href="download.html">Download</a></li>
-                </ul>
-              </div>
+            <nav>
+              <ul class='container no-padding'>
+                <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 "><a href="about.html">About</a></li>
+                <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 "><a href="docs.html">API</a></li>
+                <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 "><a href="demo.html">Tutorials</a></li>
+                <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 "><a href="download.html">Download</a></li>
+              </ul>
             </nav>
           </header>
         <input type="hidden" id='active_tab' value="demo">
         <div class="container">
   <div class="row">
-    <div class="col-md-12 col-sm-12 col-xs-12 col-lg-12">
-      <p></p>
+    <div eqz class="col-md-3 col-sm-3 col-xs-12 col-lg-2">
+  <ul id='submenu'>
+    <li><a href="pubsub.html">Pub/Sub</a></li>
+    <li class="mg-bottom"><a href="streams.html">Streams</a></li>
+    <li><a href="counter.html">Counter</a></li>
+    <li><a href="dragndrop.html">Drag'n'Drop</a></li>
+    <li><a href="away.html">Away module</a></li>
+    <li><a href="buses.html">DataBuses</a></li>
+    <li><a href="sync.html">Synchronization</a></li>
+    <li><a href="http.html">HTTP Ajax module</a></li>
+  </ul>
+</div>
+    <div class="col-md-9 col-sm-9 col-xs-12 col-lg-10">
+      <div class="col-md-9 col-sm-9 col-xs-12 col-lg-10">
+        <section class='b-doc-section'>
+          <h2>Away</h2>
+          <p>Simple drag'n'drop with coordinate observing</p>
+          <div class='box'>
+            <div class='overlay'></div>
+          </div>
+          <h3>Implementation</h3>
+          <p>Streams</p>
+          <pre><code class="javascript">var downs = circle.stream('mousedown'),
+  ups = document.stream('mouseup'),
+  moves = document.stream('mousemove', circle);
+
+var position = {
+  x: '.clientX',
+  y: '.clientY'
+}
+
+var drags = moves
+  .after(downs)
+  .map(position)
+  .map(function(coors){
+  /* Math logic to find absolute position of object */
+  })</code></pre>
+        <p>Logic</p>
+        <pre><code class="javascript">drags.lock(ups).unlock(downs);
+        </code></pre>
+        <p>Side effects</p>
+        <pre><code class="javascript">drags.interpolate("Current position: (X:{{x}}, Y:{{y}})").bindTo(DOMelement, 'innerHTML');
+
+drags.listen(function(coors){
+  this.style.top = coors.y + "px";
+  this.style.left = coors.x + "px";
+});          </code></pre>
+        </section>
+      </div>
+    </div>
     </div>
   </div>
 </div>
+
     </body>
 </html>

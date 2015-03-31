@@ -15,15 +15,13 @@
                 <a href="index.html"><h1>Warden.js</h1></a>
               </div>
             </section>
-            <nav class='container'>
-              <div class='nav-cnt'>
-                <ul>
-                  <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 "><a href="about.html">About</a></li>
-                  <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 "><a href="docs.html">API</a></li>
-                  <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 "><a href="demo.html">Tutorials</a></li>
-                  <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 "><a href="download.html">Download</a></li>
-                </ul>
-              </div>
+            <nav>
+              <ul class='container no-padding'>
+                <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 "><a href="about.html">About</a></li>
+                <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 "><a href="docs.html">API</a></li>
+                <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 "><a href="demo.html">Tutorials</a></li>
+                <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 "><a href="download.html">Download</a></li>
+              </ul>
             </nav>
           </header>
         <input type="hidden" id='active_tab' value="{{active_tab}}">
