@@ -130,7 +130,14 @@ object.emit({
 <h2 id="stream">stream</h2>
 <p class='d-synopsis'>Synopsis: <code>object.stream(eventType, [context])</code></p>
 <p class='d-description'>Description: Creates a stream of events by given type.</p>
-
+<h3>Usage:</h3>
+<p><code>stream</code> method returns DataBus object.</p>
+<pre><code class='javascript'>var clicks = $(document).stream('click');
+clicks.listen(function(event){
+  console.log('Clicket at: X=' + event.clientX +  ' Y=' + event.clientY);
+})
+</pre></code>
+<p>By default context of evaluation is object self. Bus you can set context as second argument. Also you can use RegEx notation to set the types of stream.</p>
 
 
 <hr class='bhr'>
@@ -182,13 +189,11 @@ var pulses = Warden.Stream(function(fire){
     clearInterval(timer);
   }
 
-  start(1000);
+  this.start(1000);
 }, pulsar);
 
-pulses.log();
-
+pulses.map('PULSE').log();
 pulsar.clear(); // stops pulses
-
 pulsar.start(100); // runs pulses again with interval 100ms
 </pre></code>
 <pre><code class='javascript'></pre></code>
