@@ -14,7 +14,7 @@
           <pre><code class="javascript">var awayModule = {
   box: $('.box .overlay'),
   show: function(){
-    this.box.show().fadeIn();
+    this.box.fadeIn();
   },
   hide: function(){
     this.box.fadeOut();

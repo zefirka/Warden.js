@@ -5,12 +5,10 @@ var userActions = $(document).stream('mousemove, mousedown, keydown, scroll');
 var awayModule = {
   box: $('.box .overlay'),
   show: function(){
-    this.box.show().fadeIn();
+    this.box.fadeIn();
   },
   hide: function(){
-    this.box.fadeOut(function(){
-      this.box.hide();
-    }.bind(this));
+    this.box.fadeOut();
   }
 };
 
