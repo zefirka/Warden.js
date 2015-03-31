@@ -187,15 +187,26 @@ object.emit({
 <p class='d-synopsis'>Synopsis: <code>Warden.Stream([creator], [context], [isStrict])</code>.</p>
 <p class='d-description'>Description: Creates stream of data.</p>
 <h3>Usage:</h3>
+<p><code>Warden.Stream</code> gives simple interface to create streams from any data source. Streams can contain data of any type.</p>
+<pre><code class='javascript'>var clicks = $(document).stream('click');</pre></code>
+<p>Can be rewrited as:</p>
+<pre><code class='javascript'>var clicks = Warden.Stream(function(fire){
+  $(document).on('click', fire);
+}, $(document))</pre></code>
+<p>Obsious that nobody will do that, but this example shows how to use <code>Warden.Stream</code></p>
+<p>More common example:</p>
 <pre><code class='javascript'>var seconds = Warden.Stream(function(fire){
   setInterval(fire, 1000);
-})</pre></code>
+})
 
-<pre><code class='javascript'>var response = Warden.Stream(function(fire){
+var response = Warden.Stream(function(fire){
   $.get('url', fire);
 })</pre></code>
 
 <h3>Context:</h3>
+<p>This method allows you to wrap all changes in system's state as data transmissions (synchronious or not), so you can manipulate your system easy with pure function without any side effects in while processing data.</p>
+<p>Althrough, it's not required to use functional thinking while developing big applications with Warden. Warden gives a way to develop simple modules where you can incapsulate simple and predictive state. These modules can use dirty-functions, mutable state and not-protected data-sharing, and after, you can combine such simple components with each others with pure functions. It's a trade-off between true functional reactive programming and traditional event-driven style in imperative languages.</p>
+<p>So context in Warden allows to implement these modules. In <code>Warden.Stream</code>, second argumens is context in <code>creator</code> function</p>
 <pre><code class='javascript'>var http = {};
 var gets = Warden.Stream(function(fire){
   this.get = function(url){
@@ -206,7 +217,29 @@ var gets = Warden.Stream(function(fire){
 gets.log();
 http.get(location.href); //will logs curent document's markup to console
 </pre></code>
-<pre><code class='javascript'></pre></code>
+<p>Or more idiomatic example, where we creating realy module with mutable state:</p>
+<p><a href="away.html">(Look at Away example in tutorials)</a></p>
+<pre><code class='javascript'>var pulsar = {};
+var pulses = Warden.Stream(function(fire){
+  var timer;
+
+  this.start = function(interval){
+    timer = setInterval(fire, interval)
+  }
+
+  this.clear = function(){
+    clearInterval(timer);
+  }
+
+  start(1000);
+}, pulsar);
+
+pulses.log();
+
+pulsar.clear(); // stops pulses
+
+pulsar.start(100); // runs pulses again with interval 100ms
+</pre></code>
 <pre><code class='javascript'></pre></code>
 
     </div>

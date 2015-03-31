@@ -7,7 +7,7 @@
     </div>
     <div class="col-md-12">
       <h2>Rationale</h2>
-      <p></p>
+      <h3>Event driven applications</h3>
     </div>
   </div>
 </div>
@@ -20,7 +20,7 @@
         <li>There are no dependencies with DOM, jQuery or other libraries or event emitting system in the Warden.js. You can use it on the front and on the back. With jQuery or with Node's Event Emiter or without anything.</li>
         <li>Simple combine, conjuncte and resolve concpetually connected events. If your application turns to tangled web of simple events and you spoiling time to resolve synchronization, combining events in time and resolving problems - that Warden.js is for you.</li>
         <li>Pretty flexible API. There are no much of ready solutions, but there is way to add your own data stream processing method, combine methods and construct application in your way.</li>
-        <li>It's lighweight. Current version (0.1.4): 15.7 KB. And it's with datatype checking, utilities package and internal plugin system with configuration.</li>
+        <li>It's lighweight. Current version (0.3.0): 14.1 KB. And it's with utilities package and internal plugin system with configuration.</li>
         <li>Low-level functional abstraction. You can write a bunch of cool things. An events sampler (for example).</li>
       </ul>
     </div>
