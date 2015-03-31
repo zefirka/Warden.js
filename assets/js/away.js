@@ -9,7 +9,7 @@ var awayModule = {
   },
   hide: function(){
     this.box.fadeOut(function(){
-      this.box.show();
+      this.box.hide();
     }.bind(this));
   }
 };
@@ -38,6 +38,8 @@ awayModule.aways = Warden.Stream(function(trigger) {
 
 userActions
   .listen(awayModule.restart.bind(awayModule))
+
+userActions.after(awayModule.aways)
   .listen(awayModule.hide.bind(awayModule));
 
 awayModule.aways
