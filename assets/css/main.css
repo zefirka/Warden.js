@@ -97,8 +97,15 @@ h3 {
 .fork {
   position: absolute;
   right: 10px;
-  top: 0px;
+  width: 60px;
   background: url('../images/blacktocat.png') no-repeat;
+  height: 60px;
+  top: 5px;
+}
+@media (max-width: 768px) {
+  .fork {
+    display: none;
+  }
 }
 #docs h1,
 #docs h2 {
