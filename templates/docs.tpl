@@ -3,12 +3,12 @@
     <div class="col-md-3 col-sm-3 hidden-xs col-lg-3">
       <h2>Methods</h2>
       <ul>
-        <li><h4>Pub/Sub</h4></li>
+        <h4>Pub/Sub</h4>
       	<li><a href="#extend">extend</a></li>
       	<li><a href="#listen">listen</a></li>
       	<li><a href="#unlisten">unlisten</a></li>
         <li><a href="#emit">emit</a></li>
-        <li><h4>FRP</h4></li>
+        <h4>FRP</h4>
       	<li><a href="#stream">stream</a></li>
       	<li><a href="#stream_cr">Stream</a></li>
       	<li><a href="#listen">listen</a></li>
@@ -20,7 +20,7 @@
       	<li><a href="#reduce">reduce</a></li>
       	<li><a href="#take">take</a></li>
       	<li><a href="#skip">skip</a></li>
-        <li><h4>EDD</h4></li>
+        <h4>EDD</h4>
         <li><a href="#wait">waitFor</a></li>
         <li><a href="#after">after</a></li>
         <li><a href="#sync">sync</a></li>
