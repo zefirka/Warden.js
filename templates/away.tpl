@@ -6,6 +6,7 @@
           <h2>Away</h2>
           <p>Simple module which detecting when user gone away by listening useractions (mouse moves, key presses and scrolls).</p>
           <div class='box'>
+            <div>This text wil be overlayed if user will not act with document for 5 second</div>
             <div class='overlay'></div>
           </div>
           <h2>Implementation</h2>

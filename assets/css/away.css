@@ -2,6 +2,7 @@
   width: 100%;
   position: relative;
   min-height: 200px;
+  border: solid 2px black;
 }
 
 .overlay{
