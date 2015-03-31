@@ -2,7 +2,6 @@
   <div class="row">
     {{aside}}
     <div class="col-md-9 col-sm-9 col-xs-12 col-lg-10">
-      <div class="col-md-9 col-sm-9 col-xs-12 col-lg-10">
         <section class='b-doc-section'>
           <h2>Away</h2>
           <p>Simple module which detecting when user gone away by listening useractions (mouse moves, key presses and scrolls).</p>
@@ -59,7 +58,6 @@ userActions.after(awayModule.aways)
 </code></pre>
         </section>
       </div>
-    </div>
     </div>
   </div>
 </div>

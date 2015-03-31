@@ -2,7 +2,7 @@
   <div class="row">
     {{aside}}
     <div class="col-md-9 col-sm-9 col-xs-12 col-lg-10">
-      <div class="col-md-9 col-sm-9 col-xs-12 col-lg-10">
+      
         <section class='b-doc-section'>
           <h2>Drag & Drop</h2>
           <p>Simple drag'n'drop with coordinate observing</p>
@@ -39,7 +39,6 @@ drags.listen(function(coors){
 });          </code></pre>
         </section>
       </div>
-    </div>
     </div>
   </div>
 </div>
