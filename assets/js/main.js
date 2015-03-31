@@ -195,7 +195,7 @@ $(function(){
 		fn_active($(this), $("#active_tab").val());
 	});	
 
-	
+	$(".sticky").sticky({topSpacing: 20});
 });
 
 
