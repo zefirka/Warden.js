@@ -19,7 +19,7 @@ Warden.extend = (function(){
 
     setHandlers = function(id){
       ghandlers[id] = ghandlers[id] || [];
-      each(Utils.toArray(arguments).slice(1), function(handler){
+      each(toArray(arguments).slice(1), function(handler){
         ghandlers[id].push(handler);
       });
       return ghandlers[id];
@@ -105,7 +105,7 @@ Warden.extend = (function(){
               type: name,
               prev : prev,
               current: this,
-              data: Utils.toArray(arguments)
+              data: toArray(arguments)
             });
           };
         });
@@ -161,7 +161,7 @@ Warden.extend = (function(){
         }, getHandlers(this['$$id'] = this['$$id'] || hashc.set('o')), callback);
 
       each(types.split(','), function(type){
-        type = Utils.trim(type);
+        type = trim(type);
         reactor.call(self, isRegExp(type) ? new RegExp(type) : type);
       });
 
@@ -172,7 +172,7 @@ Warden.extend = (function(){
     inheritor[names.unlisten] = function(type, name){
       var self = this, 
           indexes = [], //to remove
-          type = Utils.trim(type),
+          type = trim(type),
           handlers = getHandlers(this['$$id'] = this['$$id'] || hashc.set('o')); // link to object
 
       if(handlers.length){
@@ -204,7 +204,7 @@ Warden.extend = (function(){
           reactor = binder(seval, getHandlers(this['$$id'] = this['$$id'] || hashc.set('o')), seval);
       
       each(types.split(','), function(type){
-        type = Utils.trim(type);
+        type = trim(type);
         reactor.call(self, isRegExp(type) ? new RegExp(type) : type);
       });
 

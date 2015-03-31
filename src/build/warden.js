@@ -59,6 +59,22 @@
     return filtered;
   }
 
+  function heach(coll, fn){
+    for(var i in coll){ 
+      fn(coll[i], i);
+    }
+  }
+
+  function hfilter(coll, fn){
+    var filtered = [];
+    each(coll, function(i, key){
+      if(fn(i, key)===true){
+        filtered.push(i);
+      }
+    });
+    return filtered;
+  }
+
   function reduce(arr, fn){
     var res = arr[0];
     for(var i=1,l=arr.length;i<l;i++){
@@ -91,6 +107,10 @@
     return function(x){
       return typeof x === n;
     }
+  }
+
+  function trim(str){
+    return str.replace(/^\s+|\s+$/g, '')
   }
 
   function not(predicate){
@@ -212,7 +232,7 @@
         return r;
       },
       extend: extend,
-      trim: function(str){return str.replace(/^\s+|\s+$/g, '')},    
+      trim: trim,
 
       getObject : function(data, s){
         if(!is.obj(data)){
@@ -298,7 +318,7 @@
 
       setHandlers = function(id){
         ghandlers[id] = ghandlers[id] || [];
-        each(Utils.toArray(arguments).slice(1), function(handler){
+        each(toArray(arguments).slice(1), function(handler){
           ghandlers[id].push(handler);
         });
         return ghandlers[id];
@@ -384,7 +404,7 @@
                 type: name,
                 prev : prev,
                 current: this,
-                data: Utils.toArray(arguments)
+                data: toArray(arguments)
               });
             };
           });
@@ -440,7 +460,7 @@
           }, getHandlers(this['$$id'] = this['$$id'] || hashc.set('o')), callback);
 
         each(types.split(','), function(type){
-          type = Utils.trim(type);
+          type = trim(type);
           reactor.call(self, isRegExp(type) ? new RegExp(type) : type);
         });
 
@@ -451,7 +471,7 @@
       inheritor[names.unlisten] = function(type, name){
         var self = this, 
             indexes = [], //to remove
-            type = Utils.trim(type),
+            type = trim(type),
             handlers = getHandlers(this['$$id'] = this['$$id'] || hashc.set('o')); // link to object
 
         if(handlers.length){
@@ -483,7 +503,7 @@
             reactor = binder(seval, getHandlers(this['$$id'] = this['$$id'] || hashc.set('o')), seval);
         
         each(types.split(','), function(type){
-          type = Utils.trim(type);
+          type = trim(type);
           reactor.call(self, isRegExp(type) ? new RegExp(type) : type);
         });
 
@@ -569,7 +589,7 @@
     return self;
   }
 
-  Warden.pipeline = Pipeline
+  Warden.Pipeline = Pipeline
 
   /*
     Globals:
@@ -709,7 +729,7 @@
 
     Utils.extend(DataBus.prototype, {
       bindTo : function() {
-        var binding = Warden.watcher.apply(null, [this].concat(toArray(arguments)));
+        var binding = Warden.Watcher.apply(null, [this].concat(toArray(arguments)));
         this.bindings.push(binding);
         return binding;
       },
@@ -1256,24 +1276,32 @@
         bus.host = this.host;
         return bus;
       },
+      
+      swap : function(state){
+        var self = this;
+
+        function swap(e, val){
+          e.locked = !val;
+          each(e.children, swap);
+        }
+
+        swap(this, state);      
+      },
+      
+      toggleOn: function(bus, state){
+        if(bus instanceof DataBus){
+          bus.listen(function(){
+            bus.swap(state);
+          });
+        }
+      },
 
       /* Lock/unlock methods */
       lock : function(bus){
-        var self = this;
-
-        function lock(e, val){
-          e.locked = true;
-          each(e.children, lock);
+        this.swap(false);
+        if(bus){
+          this.toggleOn(bus, false);
         }
-
-        if(bus && bus instanceof DataBus){
-          bus.listen(function(){
-            lock(self);
-          });
-        }else{
-          lock(this);
-        }
-
         return this;
       },
 
@@ -1288,30 +1316,15 @@
       },
 
       unlock : function(bus){
-        var self = this;
-        function unlock(e){
-          e.locked = false;
-          each(e.children, unlock);
+        this.swap(true);
+        if(bus){
+          this.toggleOn(bus, true);
         }
-
-        if(bus && bus instanceof DataBus){
-          bus.listen(function(){
-            unlock(self);
-          });
-        }else{
-          unlock(this);
-        }
-
-        return this;
-      },
-      unlockChildren : function(){
-        this.unlock();
         return this;
       }
     })
 
-    Warden.configure.addToDatabus = function(fn, name, argc, toAnalyze){
-      name = name || fn.name;
+    Warden.configure.addToDatabus = function(name, fn){
       DataBus.prototype[name] = function() {
         var self = this,
             argv = arguments;
@@ -1326,7 +1339,7 @@
     Globals:
       Warden.watcher
   */
-  Warden.watcher = function(){
+  Warden.Watcher = function(){
   	var argv = Utils.toArray(arguments).slice(1,arguments.length),
   		argc = argv.length,
   		bus = arguments[0],
@@ -1388,7 +1401,7 @@
     }
     stream.post = worker.postMessage;
     stream.onmessage = worker.onmessage
-    return stream;
+    return stream.newBust();
   }
 
   Warden.Observe = function(obj){
@@ -1397,6 +1410,7 @@
       Object.observe(obj, function(){
         stream.eval.apply(obj, arguments);
       })
+      return stream.newBus();
     }else{
       throw "This browser doesn't implement Object.observe"
     }

@@ -35,6 +35,22 @@ function filter(arr, fn){
   return filtered;
 }
 
+function heach(coll, fn){
+  for(var i in coll){ 
+    fn(coll[i], i);
+  }
+}
+
+function hfilter(coll, fn){
+  var filtered = [];
+  each(coll, function(i, key){
+    if(fn(i, key)===true){
+      filtered.push(i);
+    }
+  });
+  return filtered;
+}
+
 function reduce(arr, fn){
   var res = arr[0];
   for(var i=1,l=arr.length;i<l;i++){
@@ -67,6 +83,10 @@ function typeIs(n){
   return function(x){
     return typeof x === n;
   }
+}
+
+function trim(str){
+  return str.replace(/^\s+|\s+$/g, '')
 }
 
 function not(predicate){
@@ -188,7 +208,7 @@ Utils = {
       return r;
     },
     extend: extend,
-    trim: function(str){return str.replace(/^\s+|\s+$/g, '')},    
+    trim: trim,
 
     getObject : function(data, s){
       if(!is.obj(data)){

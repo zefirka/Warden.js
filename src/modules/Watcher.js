@@ -1,4 +1,4 @@
-Warden.watcher = function(){
+Warden.Watcher = function(){
 	var argv = Utils.toArray(arguments).slice(1,arguments.length),
 		argc = argv.length,
 		bus = arguments[0],

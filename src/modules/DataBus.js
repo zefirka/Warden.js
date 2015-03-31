@@ -48,7 +48,7 @@ var DataBus = (function(){
 
   Utils.extend(DataBus.prototype, {
     bindTo : function() {
-      var binding = Warden.watcher.apply(null, [this].concat(toArray(arguments)));
+      var binding = Warden.Watcher.apply(null, [this].concat(toArray(arguments)));
       this.bindings.push(binding);
       return binding;
     },
@@ -595,24 +595,32 @@ var DataBus = (function(){
       bus.host = this.host;
       return bus;
     },
+    
+    swap : function(state){
+      var self = this;
+
+      function swap(e, val){
+        e.locked = !val;
+        each(e.children, swap);
+      }
+
+      swap(this, state);      
+    },
+    
+    toggleOn: function(bus, state){
+      if(bus instanceof DataBus){
+        bus.listen(function(){
+          bus.swap(state);
+        });
+      }
+    },
 
     /* Lock/unlock methods */
     lock : function(bus){
-      var self = this;
-
-      function lock(e, val){
-        e.locked = true;
-        each(e.children, lock);
+      this.swap(false);
+      if(bus){
+        this.toggleOn(bus, false);
       }
-
-      if(bus && bus instanceof DataBus){
-        bus.listen(function(){
-          lock(self);
-        });
-      }else{
-        lock(this);
-      }
-
       return this;
     },
 
@@ -627,30 +635,15 @@ var DataBus = (function(){
     },
 
     unlock : function(bus){
-      var self = this;
-      function unlock(e){
-        e.locked = false;
-        each(e.children, unlock);
+      this.swap(true);
+      if(bus){
+        this.toggleOn(bus, true);
       }
-
-      if(bus && bus instanceof DataBus){
-        bus.listen(function(){
-          unlock(self);
-        });
-      }else{
-        unlock(this);
-      }
-
-      return this;
-    },
-    unlockChildren : function(){
-      this.unlock();
       return this;
     }
   })
 
-  Warden.configure.addToDatabus = function(fn, name, argc, toAnalyze){
-    name = name || fn.name;
+  Warden.configure.addToDatabus = function(name, fn){
     DataBus.prototype[name] = function() {
       var self = this,
           argv = arguments;

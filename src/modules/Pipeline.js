@@ -69,4 +69,4 @@ function Pipeline(proc, host){
   return self;
 }
 
-Warden.pipeline = Pipeline
+Warden.Pipeline = Pipeline

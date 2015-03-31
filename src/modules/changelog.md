@@ -9,6 +9,10 @@
   - Added performace tests
   - Changed `unique` to `diff`
   - `toggle` now runs first argument
+  - Changed lock/unlock logic though `swap` method in DataBus
+ - Added `Warden.Worker` and `Warden.Observe`
+ - Renamed `Warden.pipline` to `Warden.Pipeline`
+ - Renamed `Warden.watcher` to `Warden.Watcher`
 
 ####  Extend module:
 `docs: ./docs/Extend.md`
