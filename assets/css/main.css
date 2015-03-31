@@ -10,11 +10,11 @@ nav ul {
   width: 100%;
   margin: 0;
   padding: 0;
-  /*display: table;*/
+  display: table;
   position: relative;
 }
 nav ul li {
-  /*display: table-cell;*/
+  display: table-cell;
   text-align: center;
   padding: 10px;
 }
