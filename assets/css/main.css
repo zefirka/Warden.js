@@ -40,6 +40,9 @@ h1,
 h2 {
   text-shadow: 2px 2px 4px rgba(244, 213, 245, 0.6);
 }
+h3 {
+  font-size: 22px;
+}
 #logo {
   padding: 25px;
   padding-bottom: 5px;
@@ -96,4 +99,8 @@ h2 {
   right: 10px;
   top: 0px;
   background: url('../images/blacktocat.png') no-repeat;
+}
+#docs h1,
+#docs h2 {
+  font-weight: bold;
 }
