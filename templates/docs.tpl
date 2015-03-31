@@ -66,8 +66,25 @@ object.emit('get:two', 'bar');
     <h2 id="listen">unlisten</h2>
     <p class='d-synopsis'>Synopsis: <code>object.unlisten(eventType, callback)</code></p>
     <p class='d-description'>Description: Removes from <code>object</code> handler of events with type of <code>eventType</code> with name <code>callback</code>.</p>
-    <p>Second arguments can be function or string which is name of handler</p>
-    
+    <h3>Usage:</h3>
+    <p>Similiar to native <code>removeEventListener</code>, when second arguments can be function or string which is name of handler.</p>
+    <p><strong>Warning: you can't use RegEx notation in <code>unlisten</code> method.</strong></p>
+   <pre><code class='javascript'>object.listen('x', function callback(v){
+  console.log(v);
+});
+
+object.emit('x', 1);
+
+// --> 1
+
+// Now removing handler
+
+object.unlisten('x', 'callback');
+
+object.emit('x', 1);
+// nothing happens
+</code></pre>    
+
     <hr class='bhr'>
     <h2 id="listen">emit</h2>
     <p class='d-synopsis'>Synopsis: <code>object.emit(eventType, eventData)</code> or <code>object.emit(event)</code></p>
