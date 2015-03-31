@@ -39,7 +39,7 @@ userActions
   .listen(awayModule.restart)
   .listen(awayModule.hide);
 
-awayModule
+awayModule.aways
   .listen(awayModule.show);
 
 });
