@@ -62,7 +62,16 @@ object.emit('get:one', 'foo');
 object.emit('get:two', 'bar');
 //--> bar
 </code></pre>
-
+    <hr class='bhr'>
+    <h2 id="listen">unlisten</h2>
+    <p class='d-synopsis'>Synopsis: <code>object.unlisten(eventType, callback)</code></p>
+    <p class='d-description'>Description: Removes from <code>object</code> handler of events with type of <code>eventType</code> with name <code>callback</code>.</p>
+    <p>Second arguments can be function or string which is name of handler</p>
+    
+    <hr class='bhr'>
+    <h2 id="listen">emit</h2>
+    <p class='d-synopsis'>Synopsis: <code>object.emit(eventType, eventData)</code> or <code>object.emit(event)</code></p>
+    <p class='d-description'>Description: Removes from <code>object</code> handler of events with type of <code>eventType</code> with name <code>callback</code>.</p>
 
     </div>
   </div>
