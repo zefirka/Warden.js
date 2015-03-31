@@ -65,7 +65,7 @@
       <section class='b-doc-section'>
         <h2>Using Pub/Sub pattern with Warden</h2>
         <h3>Simple objects and ready modules</h3>
-        <p><code>Warden</code> is function that extends object with methods <code>listen, unlisten, emit, stream</code>.</p>
+        <p><code>Warden</code> is function that extends object with methods <code>listen</code>, <code>unlisten</code>, <code>emit</code>, <code>stream</code>.</p>
         <pre><code  class="javascript">var empty = Warden();
 empty.listen('foo', function(event){
   console.log(event.message);
@@ -86,7 +86,7 @@ module.emit({type: 'foo', message: 'Hello World!'});
 
 // -> Hellow World!
 </code></pre>
-        <p>With modules which already have Pub/Sub methods with 'addEventListener' or 'on' methods</p>
+        <p>With modules which already have Pub/Sub methods with <code>addEventListener</code> or <code>on</code> methods</p>
         <pre><code  class="javascript">Warden(document);
 document.listen('click', function(){
   console.log('Hey! You clicked at me!');
