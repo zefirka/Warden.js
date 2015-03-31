@@ -33,7 +33,7 @@
       <ul>
         <li><code>emitter</code> - Name of native emitter function if you have such. For example <code>$.trigger()</code> for jQuery. Use it if your framework has already have event emitter method and you creating emittor from object that contains native emittor. If you use jQuery you can't dont use this configuration item because Warden automaticaly find it.</li>
         <li><code>listener</code> - Name of native listener function if you have such. For example $.on() for jQuery, or .addEventListener for native browser's DOM API, both of them you can don't configure.  By default equals <code>addEventListener</code></li>
-        <li><code>names</code> - Object of names you want to take your mathods. Can contain next properties: <code>emit<code>, <code>listen<code>, <code>stream<code>, <code>unlisten<code>. Values are adequate to Warden's mehthods.</li>
+        <li><code>names</code> - Object of names you want to take your mathods. Can contain next properties: <code>emit</code>, <code>listen</code>, <code>stream</code>, <code>unlisten</code>. Values are adequate to Warden's mehthods.</li>
       </ul>
 
       <h2 id="listen">listen</h2>
