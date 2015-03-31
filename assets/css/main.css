@@ -118,3 +118,8 @@ h3 {
 #docs hr.bhr {
   margin: 40px 0;
 }
+.eval {
+  float: right;
+  padding: 4px 10px;
+  font-family: Helvetica !important;
+}
