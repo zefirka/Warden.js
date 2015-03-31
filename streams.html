@@ -72,12 +72,19 @@
       </div>
       <h3>Streams</h3>
       <p><strong>From DOM elements</strong></p>
+      <p>Streams may be created from DOM elements (or every other objects which implements <code>addEventListener</code> method) by extending hosting object (e.g. <code>document</code>). You can extend jQuery objects to use <code>stream</code> with depending on jQuery's <code>on</code> method.</p>
+      <p>Actually Warden.js automatically extends jQuery (as constructor) if finds it. So you shouldn't write <code>Warden($('.some-class'))</code> every time.</p>
+      <p><a href="docs.html#streams">Look here to find out more about stream declaring.</a></p>
       <pre><code  class="javascript">Warden(document);
-var keydowns = document.stream('keydown');</code></pre>
+var keydowns = document.stream('keydown');
+var clicks = $(document).stream('click');
+</code></pre>
       <p><strong>From custom callback</strong></p>
       <pre><code  class="javascript">var keydowns = Warden.Stream(function(emit){
   document.addEventListener('keydown', emit);
 });</code></pre>
+      <p><strong>Context</strong></p>
+      <p>Every stream has context of evaluation. Default context is object itself (e.g. <code>document</code> for stream made by <code>document.stream("click")</code>. But you can set context by second argument at method <code>stream</code> and <code>Warden.Stream</code></p>
       <h3>Processing</h3>
       <p><strong>Map</strong></p>
       <pre><code  class="javascript">var chars = keydowns
@@ -94,14 +101,19 @@ var keydowns = document.stream('keydown');</code></pre>
       .reduce('', function(res, ch){
         return res.concat(ch);
       });</code></pre>
-      <p><strong>Bindings</strong></p>
-      <p><strong>Reduce</strong></p>
-          <pre><code  class="javascript">document.onreadystatechange = function(){
+      <h3>Bindings</p>
+      <p>By method <code>bindTo</code> we set side effects. It means that each time stream gets a value we overwrite some element's <code>innerHTML</code> property.</p>
+      <pre><code  class="javascript">document.onreadystatechange = function(){
   kd.bindTo(pureDOMElement, 'innerHTML');
   chars.bindTo(mappedDOMElement, 'innerHTML');
   letters.bindTo(filteredDOMElement, 'innerHTML');
   inputs.bindTo(reducedDOMElement, 'innerHTML');
 };
+
+//bindTo can be replaced with functions like:
+kd.listen(function(value){
+  pureDOMElement.innerHTML = value;
+})
 </code></pre>
       </section>
       </div>
