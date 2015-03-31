@@ -8,10 +8,13 @@ function file(str){
 	return fs.readFileSync("./templates/" + str + '.tpl', "utf8");
 }
 
-var html = file('common/html'),
-	head = file('common/head');
+var g_html = file('common/html'),
+	g_head = file('common/head');
 
 for(var pagename in map.pages){
+	var html = g_html,
+		head = g_head;
+
 	var page = map.pages[pagename];
 	var str;
 
@@ -73,8 +76,6 @@ for(var pagename in map.pages){
 			active_tab: page.active
 		});
 	}
-
-	console.log(str);
 
 	var result = _.interpolate(html, {
 		head: currentHead,

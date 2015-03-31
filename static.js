@@ -41,11 +41,6 @@ module.exports = {
 			styles: ['dnd'],
 			active : 'demo'
 		},
-		'download' : {
-			title: title("Download"),
-			dependencies: ['links'],
-			active : 'download'
-		},
 		'streams' : {
 			title: title('Streams'),
 			scripts: ['streams'],
@@ -81,6 +76,11 @@ module.exports = {
 			styles : ['http'],
 			dependencies: ['aside'],
 			active : 'demo'
+		},
+		'download' : {
+			title: title("Download"),
+			dependencies: ['links'],
+			active : 'download'
 		},
 	}
 }
