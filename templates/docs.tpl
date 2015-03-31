@@ -122,8 +122,31 @@ object.emit({
 
 <hr class='bhr'>
 <h2 id="listen">Warden.Stream</h2>
-<p class='d-synopsis'>Synopsis: <code>object.emit(eventType, eventData)</code> or <code>object.emit(event)</code></p>
-<p class='d-description'>Description: Removes from <code>object</code> handler of events with type of <code>eventType</code> with name <code>callback</code>.</p>
+<p class='d-synopsis'>Synopsis: <code>Warden.Stream([creator], [context], [isStrict])</code>.</p>
+<p class='d-description'>Description: Creates stream of data.</p>
+<h3>Usage:</h3>
+<pre><code class='javascript'>var seconds = Warden.Stream(function(fire){
+  setInterval(fire, 1000);
+})</pre></code>
+
+<pre><code class='javascript'>var response = Warden.Stream(function(fire){
+  $.get('url', fire);
+})</pre></code>
+
+<h3>Context:</h3>
+<pre><code class='javascript'>var http = {};
+var gets = Warden.Stream(function(fire){
+  this.get = function(url){
+    $.get(url).always(fire);
+  }
+}, http);
+
+gets.log();
+http.get(location.href); //will logs curent document's markup to console
+</pre></code>
+<pre><code class='javascript'></pre></code>
+<pre><code class='javascript'></pre></code>
+
     </div>
   </div>
 </div>
