@@ -5,37 +5,58 @@
       <div class="col-md-9 col-sm-9 col-xs-12 col-lg-10">
         <section class='b-doc-section'>
           <h2>Away</h2>
-          <p>Simple drag'n'drop with coordinate observing</p>
+          <p>Simple module which detecting when user gone away by listening useractions (mouse moves, key presses and scrolls).</p>
           <div class='box'>
             <div class='overlay'></div>
           </div>
-          <h3>Implementation</h3>
-          <p>Streams</p>
-          <pre><code class="javascript">var downs = circle.stream('mousedown'),
-  ups = document.stream('mouseup'),
-  moves = document.stream('mousemove', circle);
+          <h2>Implementation</h2>
+          <h3>Module</h3>
+          <p>At first, to decrease components concurency, we need module which can incapsulate simple state.</p>
+          <pre><code class="javascript">var awayModule = {
+  box: $('.box .overlay'),
+  show: function(){
+    this.box.show().fadeIn();
+  },
+  hide: function(){
+    this.box.fadeOut();
+  }
+};</code></pre>
+        <h3>Streams and state incapsulation</h3>
+        <pre><code class="javascript">var userActions = $(document).stream('mousemove, mousedown, keydown, scroll');
 
-var position = {
-  x: '.clientX',
-  y: '.clientY'
-}
+// Here we hiding state of timeout into awayModule
+// Here we can use not pure functions
+awayModule.aways = Warden.Stream(function(trigger) {
+  var timeout;
 
-var drags = moves
-  .after(downs)
-  .map(position)
-  .map(function(coors){
-  /* Math logic to find absolute position of object */
-  })</code></pre>
-        <p>Logic</p>
-        <pre><code class="javascript">drags.lock(ups).unlock(downs);
-        </code></pre>
-        <p>Side effects</p>
-        <pre><code class="javascript">drags.interpolate("Current position: (X:{{x}}, Y:{{y}})").bindTo(DOMelement, 'innerHTML');
+  function start(){
+    timeout = setTimeout(trigger, 5000);
+  }
 
-drags.listen(function(coors){
-  this.style.top = coors.y + "px";
-  this.style.left = coors.x + "px";
-});          </code></pre>
+  this.restart = function(){
+    clearTimeout(timeout);
+    start();
+  }
+  
+  start(5000);
+}, awayModule);</code></pre>
+        <h3>Side effects</h3>
+        <pre><code class="javascript">awayModule.aways
+  .listen(awayModule.show.bind(awayModule));
+
+// Naive implementation
+userActions
+  .listen(awayModule.restart.bind(awayModule))
+  .listen(awayModule.hide.bind(awayModule));
+
+// You can see that awayModule.hide will invoke every time when we will make user action
+// Optimal way to prevent unneccesary invokations is use .after method
+
+userActions.after(awayModule.aways)
+  .listen(awayModule.hide.bind(awayModule));
+
+//this stream will invoke awayModule.hide only when it neccessary
+</code></pre>
         </section>
       </div>
     </div>
