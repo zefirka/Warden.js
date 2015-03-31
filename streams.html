@@ -101,7 +101,7 @@ var clicks = $(document).stream('click');
       .reduce('', function(res, ch){
         return res.concat(ch);
       });</code></pre>
-      <h3>Bindings</p>
+      <h3>Bindings</h3>
       <p>By method <code>bindTo</code> we set side effects. It means that each time stream gets a value we overwrite some element's <code>innerHTML</code> property.</p>
       <pre><code  class="javascript">document.onreadystatechange = function(){
   kd.bindTo(pureDOMElement, 'innerHTML');
