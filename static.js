@@ -43,7 +43,7 @@ module.exports = {
 		},
 		'download' : {
 			title: title("Download"),
-			dependencies : ['aside']
+			dependencies: ['links']
 		},
 		'streams' : {
 			title: title('Streams'),
