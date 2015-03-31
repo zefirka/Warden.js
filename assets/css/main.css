@@ -1,10 +1,3 @@
-@font-face {
-  font-family: 'coolvetica';
-  src: url('../font/coolvetica_rg.eot');
-  src: url('../font/coolvetica_rg.eot?#iefix') format('embedded-opentype'), url('../font/coolvetica_rg.woff') format('woff'), url('../font/coolvetica_rg.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-}
 nav {
   width: 100%;
   background: #7b1c47;
@@ -34,7 +27,6 @@ nav ul li.active {
 }
 h1,
 h2 {
-  font-family: 'coolvetica', times, serif;
   text-shadow: 2px 2px 4px rgba(244, 213, 245, 0.6);
 }
 #logo {
@@ -58,6 +50,10 @@ h2 {
   font-weight: bold;
   text-decoration: underline !important;
 }
+#submenu .mg-bottom {
+  margin-bottom: 15px;
+  border-bottom: solid 1px #337ab7;
+}
 .box.counter {
   border: solid 2px;
   min-height: 50px;
@@ -77,4 +73,10 @@ h2 {
 }
 .center {
   text-align: center;
+}
+.g-img-container img {
+  max-width: 100%;
+}
+.no-padding {
+  padding: 0;
 }
