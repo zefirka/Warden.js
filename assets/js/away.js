@@ -37,10 +37,10 @@ awayModule.aways = Warden.Stream(function(trigger) {
 
 
 userActions
-  .listen(awayModule.restart)
-  .listen(awayModule.hide);
+  .listen(awayModule.restart.bind(awayModule))
+  .listen(awayModule.hide.bind(awayModule));
 
 awayModule.aways
-  .listen(awayModule.show);
+  .listen(awayModule.show.bind(awayModule));
 
 });
