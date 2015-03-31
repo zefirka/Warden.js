@@ -197,13 +197,13 @@ $(function(){
 
 	$(".sticky").sticky({topSpacing: 20});
 
-	$("pre").each(function(){
-		$(this).append("<span class='btn btn-primary eval'>Evaluate</span>");
-	});
+	// $("pre").each(function(){
+	// 	$(this).append("<span class='btn btn-primary eval'>Evaluate</span>");
+	// });
 
-	$(".eval").click(function(){
-		eval($(this).prev().text());
-	})
+	// $(".eval").click(function(){
+	// 	eval($(this).prev().text());
+	// })
 });
 
 
