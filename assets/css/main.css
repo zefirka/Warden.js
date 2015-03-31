@@ -5,6 +5,9 @@ code {
   margin: 0 3px;
   font-size: 12px;
 }
+pre code {
+  font-size: 13px;
+}
 nav {
   width: 100%;
   background: #7b1c47;
