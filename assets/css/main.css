@@ -96,7 +96,7 @@ h3 {
 }
 .fork {
   position: absolute;
-  right: 10px;
+  right: -5px;
   width: 60px;
   background: url('../images/blacktocat.png') no-repeat;
   height: 60px;
