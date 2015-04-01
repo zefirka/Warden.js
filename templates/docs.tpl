@@ -13,13 +13,16 @@
         	<li><a href="#stream">stream</a></li>
 
           <h4>FRP</h4>
+          <h5>Streams and side effects</h5>
         	<li><a href="#stream_cr">Warden.Stream</a></li>
-        	<li><a href="#listen">listen</a></li>
+        	<li><a href="#listen_s">listen</a></li>
           <li><a href="#mute">mute</a></li>
           <li><a href="#clear">clear</a></li>
           <li><a href="#log">log</a></li>
         	<li><a href="#toggle">toggle</a></li>
         	<li><a href="#bindTo">bindTo</a></li>
+
+          <h5>Calculus</h5>
         	<li><a href="#map">map</a></li>
         	<li><a href="#filter">filter</a></li>
         	<li><a href="#reduce">reduce</a></li>
@@ -146,7 +149,7 @@ clicks.listen(function(event){
 
 
 <hr class='bhr'>
-<h2 id="listen">Warden.Stream</h2>
+<h2 id="stream_cr">Warden.Stream</h2>
 <p class='d-synopsis'>Synopsis: <code>Warden.Stream([creator], [context], [isStrict])</code>.</p>
 <p class='d-description'>Description: Creates stream of data.</p>
 <h3>Usage:</h3>
@@ -204,7 +207,7 @@ pulsar.start(100); // runs pulses again with interval 100ms
 
 
 <hr>
-<h2 id="listen">.listen</h2>
+<h2 id="listen_s">.listen</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.listen(callback)</code>.</p>
 <p class='d-description'>Description: Subsribes callback to the stream.</p>
 <h3>Usage:</h3>
@@ -221,8 +224,8 @@ ticks.listen(function(data){
 
 object.emit('tick', {value : '*_*'})
 
-// -> Transmitted data is: { value: '*_*' }
-// -> Context is { x: 100 }
+// -> Transmitted data is: Object { value: '*_*' }
+// -> Context is: Object { x: 100 }
 </pre></code>
 
 <h2 id="mute">.mute</h2>
@@ -244,7 +247,7 @@ stream.mute('log');
 stream.mute(log);
 
 </pre></code>
-<p>Note that callback searches by name property, so you can remove wrong function if you use callbacks with same name.</p>
+<p>Note that callback finds by <code>name</code> property, so you can remove wrong function if you use callbacks with same name.</p>
 <pre><code class='javascript'>function callback(data){
   // do something with data
 }
@@ -259,6 +262,22 @@ stream.mute(function callback(){});
 <h2 id="clear">.clear</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.clear()</code>.</p>
 <p class='d-description'>Description: Unsubsribes all handlers from stream.</p>
+
+<h2 id="log">.log</h2>
+<p class='d-synopsis'>Synopsis: <code>stream.log([string])</code>.</p>
+<p class='d-description'>Description: Alias for logging function with <code>.listen</code>. Logs to console transmitted data or <code>string</code>(if it given).</p>
+<pre><code class='javascript'>//.log equals to
+stream.log(); //same to
+stream.listen(function log(e){
+  console.log(e);
+});
+
+stream.log('hey'); // same to
+stream.listen(function log(){
+  console.log('hey');
+});
+</pre></code>
+<p>You can "unlog" with <code>stream.mute('log')</code>.</p>
     </div>
   </div>
 </div>
