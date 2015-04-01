@@ -205,8 +205,13 @@ pulsar.clear(); // stops pulses
 pulsar.start(100); // runs pulses again with interval 100ms
 </pre></code>
 
-
 <hr>
+
+<h2 id="fire">.fire</h2>
+<p class='d-synopsis'>Synopsis: <code>stream.fire(value, [context])</code>.</p>
+<p class='d-description'>Description: Pushes value to the stream.</p>
+
+
 <h2 id="listen_s">.listen</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.listen(callback)</code>.</p>
 <p class='d-description'>Description: Subsribes callback to the stream.</p>
@@ -278,6 +283,34 @@ stream.listen(function log(){
 });
 </pre></code>
 <p>You can "unlog" with <code>stream.mute('log')</code>.</p>
+
+<h2 id="toggle">.toggle</h2>
+<p class='d-synopsis'>Synopsis: <code>stream.toggle(fn1, fn2)</code>.</p>
+<p class='d-description'>Description: Unsubsribes to stream two handlers which calls after each other.</p>
+<h3>Usage:</h3>
+<p></p>
+<pre><code class='javascript'>var stream = Warden.Stream();
+
+stream.toggle(
+  function(){
+    console.log('Fired ODD times');
+  },
+  function(){
+    console.log("Fired EVEN times');
+  });
+
+stream.fire()
+// -> Fired ODD times
+stream.fire()
+// -> Fired EVEN times
+stream.fire()
+// -> Fired ODD times</code></pre>
+
+
+<h2 id="clear">.bindTo</h2>
+<p class='d-synopsis'>Synopsis: <code>stream.bindTo(object, [property])</code>.</p>
+<p class='d-description'>Description: Binds stream's value to the object with a given signature.</p>
+
     </div>
   </div>
 </div>
