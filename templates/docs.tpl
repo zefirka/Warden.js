@@ -4,15 +4,19 @@
       <div class="sticky">
         <h2>Methods</h2>
         <ul>
+          
           <h4>Pub/Sub</h4>
-        	<li><a href="#extend">extend</a></li>
+        	<li><a href="#extend">Warden.extend</a></li>
         	<li><a href="#listen">listen</a></li>
         	<li><a href="#unlisten">unlisten</a></li>
           <li><a href="#emit">emit</a></li>
-          <h4>FRP</h4>
         	<li><a href="#stream">stream</a></li>
-        	<li><a href="#stream_cr">Stream</a></li>
+
+          <h4>FRP</h4>
+        	<li><a href="#stream_cr">Warden.Stream</a></li>
         	<li><a href="#listen">listen</a></li>
+          <li><a href="#mute">mute</a></li>
+          <li><a href="#clear">clear</a></li>
           <li><a href="#log">log</a></li>
         	<li><a href="#toggle">toggle</a></li>
         	<li><a href="#bindTo">bindTo</a></li>
@@ -21,6 +25,7 @@
         	<li><a href="#reduce">reduce</a></li>
         	<li><a href="#take">take</a></li>
         	<li><a href="#skip">skip</a></li>
+          
           <h4>EDD</h4>
           <li><a href="#wait">waitFor</a></li>
           <li><a href="#after">after</a></li>
@@ -202,6 +207,58 @@ pulsar.start(100); // runs pulses again with interval 100ms
 <h2 id="listen">.listen</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.listen(callback)</code>.</p>
 <p class='d-description'>Description: Subsribes callback to the stream.</p>
+<h3>Usage:</h3>
+<p>This methods creates listener of the given stream. Remember that in <code>callback</code> context variable (<code>this</code>) refered to the stream's evaluation context.</p>
+
+<pre><code class='javascript'>var context = {x: 100};
+var object = Warden();
+var ticks = object.stream('tick', context);
+
+ticks.listen(function(data){
+  console.log('Transmitted data is:', data)
+  console.log('Context is:', this)
+});
+
+object.emit('tick', {value : '*_*'})
+
+// -> Transmitted data is: { value: '*_*' }
+// -> Context is { x: 100 }
+</pre></code>
+
+<h2 id="mute">.mute</h2>
+<p class='d-synopsis'>Synopsis: <code>stream.mute([callback])</code>.</p>
+<p class='d-description'>Description: Unsubsribes callback to the stream. <code>callback</code> can be string or function.</p>
+<h3>Usage:</h3>
+<p>This method removes from stream handlers given callback.</p>
+<pre><code class='javascript'>function log(e){
+  console.log(e);
+}
+
+// subsribing
+stream.listen(log);
+
+stream.mute('log');
+
+//or
+
+stream.mute(log);
+
+</pre></code>
+<p>Note that callback searches by name property, so you can remove wrong function if you use callbacks with same name.</p>
+<pre><code class='javascript'>function callback(data){
+  // do something with data
+}
+stream.mute(callback);
+
+// Next examples are totaly equaivalent.
+stream.mute('callback');
+stream.mute(callback);
+stream.mute(function callback(){});
+</pre></code>
+
+<h2 id="clear">.clear</h2>
+<p class='d-synopsis'>Synopsis: <code>stream.clear()</code>.</p>
+<p class='d-description'>Description: Unsubsribes all handlers from stream.</p>
     </div>
   </div>
 </div>
