@@ -47,7 +47,7 @@
 </ul>
 
 <hr>
-<h2 id="listen">listen</h2>
+<h2 id="listen">.listen</h2>
 <p class='d-synopsis'>Synopsis: <code>object.listen(eventType, callback)</code></p>
 <p class='d-description'>Description: Adds to the <code>object</code> handler of events with type of <code>eventType</code>.</p>
 <h3>Usage:</h3>
@@ -78,7 +78,7 @@ object.emit('get:two', 'bar');
 <!-- ================================================================== -->
 
 <hr>
-<h2 id="unlisten">unlisten</h2>
+<h2 id="unlisten">.unlisten</h2>
 <p class='d-synopsis'>Synopsis: <code>object.unlisten(eventType, callback)</code></p>
 <p class='d-description'>Description: Removes from <code>object</code> handler of events with type of <code>eventType</code> with name <code>callback</code>.</p>
 <h3>Usage:</h3>
@@ -103,7 +103,7 @@ object.emit('x', 1);
 <!-- ================================================================== -->
 
 <hr>
-<h2 id="emit">emit</h2>
+<h2 id="emit">.emit</h2>
 <p class='d-synopsis'>Synopsis: <code>object.emit(eventType, eventData)</code> or <code>object.emit(event)</code></p>
 <p class='d-description'>Description: Fires event on <code>object</code>.</p>
 <h3>Usage:</h3>
@@ -127,11 +127,11 @@ object.emit({
 <!-- ================================================================== -->
 
 <hr>
-<h2 id="stream">stream</h2>
+<h2 id="stream">.stream</h2>
 <p class='d-synopsis'>Synopsis: <code>object.stream(eventType, [context])</code></p>
 <p class='d-description'>Description: Creates a stream of events by given type.</p>
 <h3>Usage:</h3>
-<p><code>stream</code> method returns DataBus object.</p>
+<p>This method listens all events of given type and evaluates all streams conjuncted with adequate object (look <a href='#databus'><code>DataBuses</code></a>). This method returns first DataBus associated with stream.</p>
 <pre><code class='javascript'>var clicks = $(document).stream('click');
 clicks.listen(function(event){
   console.log('Clicket at: X=' + event.clientX +  ' Y=' + event.clientY);
@@ -196,8 +196,12 @@ pulses.map('PULSE').log();
 pulsar.clear(); // stops pulses
 pulsar.start(100); // runs pulses again with interval 100ms
 </pre></code>
-<pre><code class='javascript'></pre></code>
 
+
+<hr>
+<h2 id="listen">.listen</h2>
+<p class='d-synopsis'>Synopsis: <code>stream.listen(callback)</code>.</p>
+<p class='d-description'>Description: Subsribes callback to the stream.</p>
     </div>
   </div>
 </div>
