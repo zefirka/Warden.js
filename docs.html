@@ -432,45 +432,73 @@ console.log(o);
 <p class='d-synopsis'>Synopsis: <code>stream.map(mapper)</code>.</p>
 <p class='d-description'>Description: Returns new stream mapped by <code>mapper</code> signature.</p>
 <h3>Usage:</h3>
-<p>This method provides syntax sugar for binding side-effects to the stream evaluation on recieving value. Every <code>bindTo</code> signature can be replaced with <code>listen</code>.</p>
-<p>With <code>bindTo</code> you can create and use side-effect fast and efficient. Behavior of handler depends of binding method's arguments signature.</p>
-<h3>Signatures:</h3>
-<h4> Stream -> Function</h4>
-<p>Same as <code>stream.listen(callback)</code></p>
-<pre><code class='javascript'>stream.bindTo(alert); // making side-effect alerting dialog</pre></code>
-<h4>Object -> Method Name</h4>
-<pre><code class='javascript'>stream.bindTo(console, 'log'); 
-// calling console['log'] with recieved
-
-stream.bindTo(window, 'alert');
-//calls window.alert with recived data
-
-stream.bindTo($('body'), 'html'); 
-// calls $('body').html with recieved data
+<pre><code class='javascript'>// creates stream from integers stream where all values mapped with given function
+var stringIntegers = integers.map(function(integer){
+  return integer.toString();
+}); 
 </pre></code>
-<h4>Object -> Route to property</h4>
-<pre><code class='javascript'>var parent = {child: {anotherChild: null }};
+<p>Warden gives a lot of syntax sugar for <code>map</code> function. So common task to take a property, or call method of given data, or call contex's method can be solved pretty fast:</p>
+<pre><code class='javascript'>//take a property 
+var values = stream.map(function(data){
+  return data.value;
+});
 
-stream.bindTo(parent, 'child/anotherChild');
-stream.fire('LOL');
+//equals to
+var values = stream.map('.value');
 
-console.log(parent.child);
-// -> Object: { anotherChild : 'LOL' }
 
-</pre></code>
-<h4>Object -> Property Name</h4>
-<pre><code class='javascript'>var o = {a: 1, b : {c: 2 }};
+// Call a method:
+var namesArray = namesStream.map(function(names){
+  return names.toArray();
+}); 
 
-stream.bindTo(o, a);
-stream.fire('LOL');
-console.log(o);
+var namesArray = namesStream.map('.toArray()');
 
-// -> Object : { a: 'LOL', b : Object : { c : 2} }
+// @-notation
+// @-refers to the context variable
 
-stream.bindTo(o, b);
-stream.fire('WUT');
-console.log(o);
-// -> Object : { a: 'WUT', b : 'WUT' }
+stream.map('@') //same to
+stream.map(function(){
+  return this;
+})
+
+// so
+
+var scrolls = $(window).stream('scroll');
+var scrollTops = scrolls.map('@scrollTop()');
+
+// also Warden can use alias object for map
+
+stream.map({
+  newName : '.oldName',
+  justName : 'justValue',
+  newResult : '.method()',
+  thisVar : '@',
+  thisMethodResult : '@value()'
+})
+
+// same as :
+
+stream.map(function(data){
+  return {
+    newName : data.oldName,
+    justName : 'justValue',
+    newResult : data.method(),
+    thisVar : this,
+    thisMethodResult : this.value(),
+  }
+});
+
+// also you can call map with array of parameters
+
+stream.map(['.name', 'justValue', '.method()', '@', '@value()'])
+
+// same as :
+
+stream.map(function(data){
+  return [ data.name, 'justValue', data.method(), this, this.value()]
+});
+
 </pre></code>
 
     </div>
