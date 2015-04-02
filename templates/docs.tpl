@@ -13,14 +13,14 @@
         	<li><a href="#stream">stream</a></li>
 
           <h4>FRP</h4>
-          <h5>Streams and side effects</h5>
+          <h5>Side effects</h5>
         	<li><a href="#stream_cr">Warden.Stream</a></li>
         	<li><a href="#listen_s">listen</a></li>
           <li><a href="#mute">mute</a></li>
           <li><a href="#clear">clear</a></li>
           <li><a href="#log">log</a></li>
         	<li><a href="#toggle">toggle</a></li>
-        	<li><a href="#bindTo">bindTo</a></li>
+        	<li><a href="#bindto">bindTo</a></li>
 
           <h5>Calculus</h5>
         	<li><a href="#map">map</a></li>
@@ -29,8 +29,21 @@
         	<li><a href="#take">take</a></li>
         	<li><a href="#skip">skip</a></li>
           
-          <h4>EDD</h4>
+          <h4>Time</h4>
+          <li><a href="#debounce">debounce</a></li>
+          <li><a href="#collect">collect</a></li>
+          <li><a href="#collectfor">collectFor</a></li>
+          <li><a href="#delay">delay</a></li>
+          <li><a href="#repeat">repeat</a></li>
+
+          <h4>Combining</h4>
+          <li><a href="#merge">merge</a></li>
+          <li><a href="#combine">combine</a></li>
+          <li><a href="#flatMap">flatMap</a></li>
+
+          <h4>Composing</h4>
           <li><a href="#wait">waitFor</a></li>
+          <li><a href="#flatMap">filterFor</a></li>
           <li><a href="#after">after</a></li>
           <li><a href="#sync">sync</a></li>
           <li><a href="#resolveWith">resolveWith</a></li>
@@ -256,7 +269,7 @@ stream.mute(log);
 <pre><code class='javascript'>function callback(data){
   // do something with data
 }
-stream.mute(callback);
+stream.listen(callback);
 
 // Next examples are totaly equaivalent.
 stream.mute('callback');
@@ -296,7 +309,7 @@ stream.toggle(
     console.log('Fired ODD times');
   },
   function(){
-    console.log("Fired EVEN times');
+    console.log('Fired EVEN times');
   });
 
 stream.fire()
@@ -307,9 +320,50 @@ stream.fire()
 // -> Fired ODD times</code></pre>
 
 
-<h2 id="clear">.bindTo</h2>
+<h2 id="bindto">.bindTo</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.bindTo(object, [property])</code>.</p>
 <p class='d-description'>Description: Binds stream's value to the object with a given signature.</p>
+<h3>Usage:</h3>
+<p>This method provides syntax sugar for binding side-effects to the stream evaluation on recieving value. Every <code>bindTo</code> signature can be replaced with <code>listen</code>.</p>
+<p>With <code>bindTo</code> you can create and use side-effect fast and efficient. Behavior of handler depends of binding method's arguments signature.</p>
+<h3>Signatures:</h3>
+<h4> Stream -> Function</h4>
+<p>Same as <code>stream.listen(callback)</code></p>
+<pre><code class='javascript'>stream.bindTo(alert); // making side-effect alerting dialog</pre></code>
+<h4>Object -> Method Name</h4>
+<pre><code class='javascript'>stream.bindTo(console, 'log'); 
+// calling console['log'] with recieved
+
+stream.bindTo(window, 'alert');
+//calls window.alert with recived data
+
+stream.bindTo($('body'), 'html'); 
+// calls $('body').html with recieved data
+</pre></code>
+<h4>Object -> Route to property</h4>
+<pre><code class='javascript'>var parent = {child: {anotherChild: null }};
+
+stream.bindTo(parent, 'child/anotherChild');
+stream.fire('LOL');
+
+console.log(parent.child);
+// -> Object: { anotherChild : 'LOL' }
+
+</pre></code>
+<h4>Object -> Property Name</h4>
+<pre><code class='javascript'>var o = {a: 1, b : {c: 2 }};
+
+stream.bindTo(o, a);
+stream.fire('LOL');
+console.log(o);
+
+// -> Object : { a: 'LOL', b : Object : { c : 2} }
+
+stream.bindTo(o, b);
+stream.fire('WUT');
+console.log(o);
+// -> Object : { a: 'WUT', b : 'WUT' }
+</pre></code>
 
     </div>
   </div>
