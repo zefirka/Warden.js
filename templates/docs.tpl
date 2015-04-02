@@ -579,6 +579,22 @@ var retweeters = retweets.reduce('', function(authors, author){
 <h2 id="diff">.diff</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.diff([compareFn])</code>.</p>
 <p class='d-description'>Description: Takes only different values. Values compares with <code>Warden.configure.cmp</code> if <code>compareFn</code> don't set.</p>
+<pre><code class='javascript'>var diffed = stream.diff(function(a, b){
+  return a.value - b.value &gt; 100;
+}).log();
+// comparing values with given function;
+
+diffed.fire(100);
+
+// -> 100
+
+diffed.fire(250);
+
+// -> 250
+
+diffed.fire(280);
+
+// nothing happens</pre></code>
 
 <hr>
 <h2 id="interpolate">.interpolate</h2>
@@ -614,6 +630,48 @@ stream.fire("Hello, my name is {{user_name}}, I'm from {{user_city}}");
 // -> Hello, my name is Trdat, I'm from Moscow
 </pre></code>
 
+<hr class='bhr'>
+<h2 id="debounce">.debounce</h2>
+<p class='d-synopsis'>Synopsis: <code>stream.debounce(ms)</code>.</p>
+<p class='d-description'>Description: Debouncing stream propagation in given <code>ms</code> miliseconds.</p>
+<h3>Usage:</h3>
+<pre><code class='javascript'>var stream = Warden.Stream().debounce(100).log();
+
+// synchronoius running stream
+stream.fire(1)
+stream.fire(2)
+stream.fire(3)
+
+// after 100 ms:
+// -> 3
+</code></pre>
+
+<h2 id="collect">.collect</h2>
+<p class='d-synopsis'>Synopsis: <code>stream.collect(ms)</code>.</p>
+<p class='d-description'>Description: Collecting all values of stream for given <code>ms</code> miliseconds to array.</p>
+<h3>Usage:</h3>
+<pre><code class='javascript'>var stream = Warden.Stream().collect(100).log();
+
+// synchronoius running stream
+stream.fire(1)
+stream.fire(2)
+stream.fire(3)
+
+// after 100 ms:
+// -> [1, 2, 3]
+
+// synchronoius running stream
+stream.fire(1)
+stream.fire(2)
+stream.fire(3)
+
+setTimeout(function(){
+  stream.fire(4)
+}, 85);
+
+// after 100 ms:
+// -> [1, 2, 3, 4]
+</code></pre>
     </div>
   </div>
 </div>
