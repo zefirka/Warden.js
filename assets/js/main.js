@@ -201,7 +201,7 @@ $(function(){
 	stickyMenu.sticky({topSpacing: 20});
 
 
-  if(stickyMenu.height() <= wh){
+  if(stickyMenu.height() >= wh){
     stickyMenu.css({
       'height' : wh - 10,
       'overflow-y' : 'scroll'
