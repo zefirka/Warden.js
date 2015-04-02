@@ -222,6 +222,8 @@ $(function(){
 
   $(window).on('hashchange', boly)
 
+  boly()
+
 });
 
 

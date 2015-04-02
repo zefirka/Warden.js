@@ -28,6 +28,8 @@
         	<li><a href="#reduce">reduce</a></li>
         	<li><a href="#take">take</a></li>
         	<li><a href="#skip">skip</a></li>
+          <li><a href="#diff">diff</a></li>
+          <li><a href="#equals">equals</a></li>
           
           <h5>Time</h5>
           <li><a href="#debounce">debounce</a></li>
