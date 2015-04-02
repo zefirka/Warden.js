@@ -208,6 +208,20 @@ $(function(){
     });
   }
 
+  function boly(){
+    stickyMenu.find('li a').css({
+      "font-weight" : 'normal',
+      "text-decoreation" : "none"
+    });
+
+    stickyMenu.find("[href='"+location.hash+"']").css({
+      "font-weight" : 'bold',
+      "text-decoreation" : "underline"
+    });
+  }
+
+  $(window).on('hashchange', boly)
+
 });
 
 
