@@ -24,12 +24,15 @@
 
           <h5>Calculus</h5>
         	<li><a href="#map">map</a></li>
+          <li><a href="#get">get</a></li>
+          <li><a href="#nth">nth</a></li>
         	<li><a href="#filter">filter</a></li>
         	<li><a href="#reduce">reduce</a></li>
         	<li><a href="#take">take</a></li>
         	<li><a href="#skip">skip</a></li>
           <li><a href="#diff">diff</a></li>
-          <li><a href="#equals">equals</a></li>
+          <li><a href="#interpolate">interpolate</a></li>
+          <li><a href="#mask">mask</a></li>
           
           <h5>Time</h5>
           <li><a href="#debounce">debounce</a></li>
@@ -454,6 +457,31 @@ stream.map(function(data){
 
 </pre></code>
 
+<hr>
+<h2 id="get">.get</h2>
+<p class='d-synopsis'>Synopsis: <code>stream.get(route)</code>.</p>
+<p class='d-description'>Description: Returns stream mapped with function which get's recieved data's property with access route equals to <code>route</code></p>
+<h3>Usage:</h3>
+<p>In this function <code>route</code> is a string which represents place of property (or array's item) in given object. For example:</p>
+<pre><code class='javascript'>stream.get("foo/bar/[0]/baz"); // is same to
+
+stream.map(function(object){
+  return object.foo.bar[0].baz;
+});
+</code></pre>
+<p><strong>Note: arrays should derive with object properties also with <code>/</code> symbol</strong></p>
+
+<hr>
+<h2 id="nth">.nth</h2>
+<p class='d-synopsis'>Synopsis: <code>stream.nth(integer)</code>.</p>
+<p class='d-description'>Description: Alias for <code>strem.map</code> with function which takes recived objects (which must be iterable) n-th element.</p>
+<pre><code class='javascript'>stream.nth(0); // is same to
+
+stream.map(function(object){
+  return object[0];
+});
+</code></pre>
+
 <h2 id="filter">.filter</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.filter([filterFn])</code> or <code>stream.filter([value])</code>.</p>
 <p class='d-description'>Description: Returns new filtered stream.</p>
@@ -551,6 +579,40 @@ var retweeters = retweets.reduce('', function(authors, author){
 <h2 id="diff">.diff</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.diff([compareFn])</code>.</p>
 <p class='d-description'>Description: Takes only different values. Values compares with <code>Warden.configure.cmp</code> if <code>compareFn</code> don't set.</p>
+
+<hr>
+<h2 id="interpolate">.interpolate</h2>
+<p class='d-synopsis'>Synopsis: <code>stream.interpolate(string)</code>.</p>
+<p class='d-description'>Description: Takes given string and interpolate to it recived value. Interpolations are simple atom data in mustache-style.</p>
+<h3>Usage:</h3>
+<pre><code class='javascript'>var str = "Hello, my name is {{user_name}}, I'm from {{user_city}}";
+
+stream.interpolate(str).log();
+
+stream.fire({
+  user_name: "Trdat",
+  user_city: "Moscow"
+});
+
+// -> Hello, my name is Trdat, I'm from Moscow
+</pre></code>
+
+<hr>
+<h2 id="mask">.mask</h2>
+<p class='d-synopsis'>Synopsis: <code>stream.mask(data)</code>.</p>
+<p class='d-description'>Description: Takes data and interpolate it to the string recieved from stream.</p>
+<h3>Usage:</h3>
+<pre><code class='javascript'>var data = {
+  user_name: "Trdat",
+  user_city: "Moscow"
+}
+
+stream.mask(data).log();
+
+stream.fire("Hello, my name is {{user_name}}, I'm from {{user_city}}");
+
+// -> Hello, my name is Trdat, I'm from Moscow
+</pre></code>
 
     </div>
   </div>

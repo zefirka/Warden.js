@@ -222,7 +222,12 @@ $(function(){
 
   $(window).on('hashchange', boly)
 
-  boly()
+  boly();
+
+  stickyMenu.on('scroll', function(e){
+    e.preventDefult();
+    return false;
+  })
 
 });
 
