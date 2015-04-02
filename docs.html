@@ -501,6 +501,51 @@ stream.map(function(data){
 
 </pre></code>
 
+<h2 id="filter">.filter</h2>
+<p class='d-synopsis'>Synopsis: <code>stream.filter([filterFn])</code> or <code>stream.filter([value])</code>.</p>
+<p class='d-description'>Description: Returns new filtered stream.</p>
+<h3>Usage:</h3>
+<p>With functions.</p>
+<p>Filtering function should return only boolean type. If function returns <code>0</code> or <code>""</code> it mean false.</p>
+<pre><code class='javascript'>var odds = integers.filter(function(number){
+  return number % 2 == 1;
+});
+
+var readFile;
+
+
+// stream of read tries
+var reads = Warden.Stream(function(fire){
+  readFile = function(url){
+    fs.readFile(url, function(err, data){
+      var success = err ? false : true;
+      fire({
+        file: data,
+        success : success
+      });
+    });
+  }
+});
+
+//stream of readed files
+var files = reads.filter(function(response){
+  return respomse.success;
+});
+</pre></code>
+<p>With values</p>
+<p>If you use simple value then Warden creates filter function that compares recieved value with given. Comparing implemented with <code>Warden.configure.cmp</code> function, which just compares given values with <code>===</code> operator.</p>
+<pre><code class='javascript'>stream.filter(true); // same to
+
+stream.filter(function(e){
+  return Warden.configure.cmp(e, true);
+});
+
+// same to
+
+stream.filter(function(e){
+  return e == true;
+});
+</pre></code>
     </div>
   </div>
 </div>
