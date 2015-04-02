@@ -499,6 +499,53 @@ stream.filter(function(e){
   return e == true;
 });
 </pre></code>
+
+<h2 id="reduce">.reduce</h2>
+<p class='d-synopsis'>Synopsis: <code>stream.reduce([init], fn)</code>.</p>
+<p class='d-description'>Description: Scan stream and calls <code>fn</code> with arguments of reduced value and current value.</p>
+<h3>Usage:</h3>
+<pre><code class='javascript'>var stream = Warden([1,2,3,4,5,6,7,8,9]).sequantiallty(1000);
+
+stream.reduce(function(a, b){
+  return a + b;
+}).log();
+
+// -> 1
+// -> 3
+// -> 6
+// -> 10 ... etc
+
+// creepy way to check out retweets
+
+var retweeters = retweets.reduce('', function(authors, author){
+  if(authors.length){
+    if(authors.split(',').length >= 3){
+      if(authors.indexOf('...')>=0){
+        return authors.replace(/and (\d+) more$/, function(str){
+          return str.replace(/\d+/, function(num){
+            return parseInt(num) + 1;
+          });
+        })
+      }else{
+        return authors + " ... and 1 more";
+      }
+    }else{
+      return authors + ", @" + author;
+    }
+  }else{
+    return "@" + author;
+  }
+});</code></pre>
+
+<hr>
+<h2 id="skip">.skip</h2>
+<p class='d-synopsis'>Synopsis: <code>stream.skip(integer)</code>.</p>
+<p class='d-description'>Description: Skips first <code>integer</code>  values on stream.</p>
+
+<hr>
+<h2 id="take">.take</h2>
+<p class='d-synopsis'>Synopsis: <code>stream.take(integer)</code>.</p>
+<p class='d-description'>Description: Takes only <code>integer</code> values on stream (after last once unsubscribe all handlers).</p>
     </div>
   </div>
 </div>
