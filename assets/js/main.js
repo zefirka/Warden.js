@@ -195,15 +195,19 @@ $(function(){
 		fn_active($(this), $("#active_tab").val());
 	});	
 
-	$(".sticky").sticky({topSpacing: 20});
+  var stickyMenu = $(".sticky"),
+      wh = $(window).height();
 
-	// $("pre").each(function(){
-	// 	$(this).append("<span class='btn btn-primary eval'>Evaluate</span>");
-	// });
+	stickyMenu.sticky({topSpacing: 20});
 
-	// $(".eval").click(function(){
-	// 	eval($(this).prev().text());
-	// })
+
+  if(stickyMenu.height() <= wh){
+    stickyMenu.css({
+      'height' : wh - 10,
+      'overflow-y' : 'scroll'
+    });
+  }
+
 });
 
 
