@@ -13,6 +13,9 @@
  - Added `Warden.Worker` and `Warden.Observe`
  - Renamed `Warden.pipline` to `Warden.Pipeline`
  - Renamed `Warden.watcher` to `Warden.Watcher`
+ - Added `clear` method at DataBus
+ - Fixed errors in `mute`, `reduce`.
+ - Extented `map` method
 
 ####  Extend module:
 `docs: ./docs/Extend.md`

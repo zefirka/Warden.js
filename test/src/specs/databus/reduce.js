@@ -56,4 +56,49 @@ describe('.reduce()', function () {
 	    expect(reduced.sort).toBe(40);
 	    done();
     }); 
+
+	(function(){
+
+		var run;
+		var bus = Warden.Stream(function(f){
+			run = f;
+		})
+
+	    it('--in initial value', function (done){
+	    	var gres = 0;
+
+	    	bus.reduce(100, function(a, b){
+	    		return a + b;
+	    	}).listen(function(res){
+	    		gres = res;
+	    	})
+
+	    	run(0);
+	    	run(10);
+	    	run(20);
+	    	run(30);
+
+	    	expect(gres).toBe(160);
+	    	done();
+	    });
+
+	    it('--no initial value', function (done){
+	    	var gres = 0;
+
+	    	bus.reduce(function(a, b){
+	    		return a + b;
+	    	}).listen(function(res){
+	    		gres = res;
+	    	})
+
+	    	run(0);
+	    	run(10);
+	    	run(20);
+	    	run(30);
+
+	    	expect(gres).toBe(60);
+	    	done();
+	    });
+
+	})();
 });

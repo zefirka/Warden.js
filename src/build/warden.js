@@ -715,7 +715,6 @@
       this.$$id = Utils.$hash.set('d')
       this.parent = null;
       this.children = [];
-      this.bindings = [];
       handlers[this.$$id] = [];
       pipes[this.$$id] = Pipeline(line || [], this);
 
@@ -777,23 +776,24 @@
         return this;
       },
         
-
       /*
         Unbinds handler with name @x (if @x is string) or @x handler (if @x is function)
         If in the handlers list 2 or more handlers with name @x (or @x handlers registered twice) it will remove all handlers
       */
       mute : function(x){
         var self = this;
-        x = is.fn(x) ? x.name : x;
-
         Utils.forWhile(handlers[this.$$id], function(handler, index){
-          if(handler.name == x){
+          if(is.fn(x) ? (handler == x) : handler.name == x){
             handlers[self.$$id].splice(index, 1);
             return false;
           }
         }, false);
 
         return this;
+      },
+
+      clear : function(){
+        handlers[this.$$id] = [];
       },
 
       /* Logging recieved data to console or logger */
@@ -807,100 +807,87 @@
         Filtering recieved data and preventing transmitting through DataBus if @x(event) is false
       */
       filter : function(x) {
-        return process.call(this, function(e, pipe){
-          return x.call(this, e) === true ? pipe.next(e) : pipe.stop();
-        });
+        if(is.fn(x)){
+          return process.call(this, function(e, pipe){
+            return x.call(this, e) === true ? pipe.next(e) : pipe.stop();
+          });
+        }else{
+          return process.call(this, function(e, pipe){
+            return Warden.configure.cmp(x, e) === true ? pipe.next(e) : pipe.stop();
+          });
+        }
       },
 
       /*
         Mapping recieved data and transmit mapped to the next processor
       */
       map : function(x) {
-        var fn, simple = function(e, pipes){
-              return pipes.next(x);
-            }
+        function parseEval(string){
+          var res = "";
 
-        switch(typeof x){
-          case "function":
-            fn = function(e, pipe){
-              return pipe.next(x.call(this, e));
-            }
-          break;
-          case "string":
-            if(x.indexOf('/')>=0){
-              return this.get(x);
-            }
-
-            if(x[0]=='.'){
-              fn = function(e, pipe){
-                var t = x.indexOf("()") > 0 ?  e[x.slice(1,-2)] : e[x.slice(1)],
-                r = is.exist(t) ? t : x,
-                res = r;
-
-                if(is.fn(r) && x.indexOf("()")>0){
-                  res = r();
-                }
-                return pipe.next(res);
-              }
-            }else
-            if(x[0]=='@'){
-              if(x.length==1){
-                fn = function(e, pipes){
-                  pipes.next(this);
-                }
-              }else{
-                fn = function(e, pipe){
-                  var t = x.indexOf("()") > 0 ?  this[x.slice(1,-2)] : this[x.slice(1)],
-                  r = is.exist(t) ? t : x,
-                  res = r;
-
-                  if(is.fn(r) && x.indexOf("()")>0){
-                    res = r.call(this);
-                  }
-                  return pipe.next(res);
-                }
-              }
+          if(string.indexOf('@')>=0){
+            if(string=='@'){
+              res += 'this'
             }else{
-              fn = simple;
+              res += string.replace('@', 'this.');
             }
-          break;
-          case "object":
+          }else
+          if(string.indexOf('.')>=0){
+            if(string=='.'){
+              res += 'event'
+            }else{
+              res += string.replace('.', 'event.');
+            }
+          }else{
+            res += "'" + string + "'";
+          }
+          if(res.match(/\(.+\)/)){
+            res = res.replace(/\(.+\)/, function(args){
+              return "(" + eval(args.slice(1,-1)) + ")"
+            })
+          }
+
+          return res;
+        }
+
+        function map(i, event){
+          if(is.fn(i)){
+            return i.call(this, event);
+          }else
+          if(is.str(i)){
+            return eval(parseEval(i))
+          }else{
+            return i;
+          }
+        }
+
+        var fn = function(eev, pipes){
+          return pipes.next(x);
+        }
+
+
+        if(typeof x == "object"){
             if(is.array(x)){
               fn = function(e, pipe){
                 var res = [];
                 each(x, function(i){
-                  var t;
-                  res.push(is.str(i) ? (i[0]=='.' ? (is.exist(t=e[i.slice(1)]) ? t : i) : i) : i );
+                  res.push(map.call(this, i, e));
                 });
                 return pipe.next(res);
               }
             }else{
               fn = function(e, pipe){
-                var res = {}, val, name;
+                var res = {};
                 for(var prop in x){
-                  name = x[prop];
-
-                  if(name.indexOf('.')==0 && e[name.slice(1)]){
-                    val = e[name.slice(1)];
-                  }
-
-                  if(name.indexOf('@')==0 && (this[name.slice(1)] || this[name.slice(1,-2)])){
-                    if(name.indexOf('()')>0){
-                      val = this[name.slice(1,-2)]()
-                    }else{
-                      val = this[name.slice(1)]
-                    }
-                  }
-
-                  res[prop] = val;
+                  res[prop] = map.call(this, x[prop],e)
                 }
                 return pipe.next(res);
               }
             }
-          break;
-          default:
-            fn = simple;
-          break;
+        }else{
+          fn = function(event, pipe){
+            return pipe.next(map.call(this, x, event));
+          }
         }
 
         return process.call(this, fn);
@@ -937,7 +924,7 @@
       reduce : function(init, fn){
         return process.call(this, function(event, pipe){
           var bus = pipe.bus();
-          return (bus.data.takes.length == 0 && !is.exist(init)) ?  pipe.next(event) : pipe.next(fn.call(this, bus.data.takes.last() || init, event)) ;
+          return (bus.data.takes.length == 0 && !is.exist(init)) ?  pipe.next(event) : pipe.next((fn || init).call(this, bus.data.takes.last() || (fn ? init : null), event)) ;
         });
       },
 
@@ -1077,13 +1064,6 @@
         }).bus();
       },
                                                                                                                           
-      equals : function(x, cmp){
-        cmp = cmp || Warden.configure.cmp;
-        return this.filter(function(y){
-          return cmp(x, y);
-        });
-      },
-
       delay : function(time) {
         return process.call(this, function(e, pipe){
           setTimeout(function(){

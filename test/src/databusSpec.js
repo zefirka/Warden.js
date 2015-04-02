@@ -29,6 +29,7 @@ describe('Warden DataBus methods', function () {
 	});
 
 	include "databus/simple.js"
+	include "databus/listen.js"
 	include "databus/map.js"
 	include "databus/filter.js"
 	include "databus/reduce.js"
