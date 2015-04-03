@@ -19,6 +19,7 @@
  - Renamed `getCollected` to `collect`
  - Removed `equals` and added this functionality to `filter`
  - Removed `syncFlat`
+ - Added `commuteSwitch`
 
 ####  Extend module:
 `docs: ./docs/Extend.md`

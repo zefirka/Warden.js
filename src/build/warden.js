@@ -1059,7 +1059,7 @@
             emit(collection);
             collection = [];
           })
-        }).bus();
+        });
       },
                                                                                                                           
       delay : function(time) {
@@ -1103,8 +1103,9 @@
 
       repeat : function(times, delay){
         var self = this,
-            cached = times,
-        nbus = Warden.Stream(function(emit){
+            cached = times;
+
+        return inheritFrom(Warden.Stream(function(emit){
           self.listen(function(data){
             var interval = setInterval(function(){
               if(times){
@@ -1116,9 +1117,7 @@
               }
             }, delay);
           });
-        }).bus();
-
-        return inheritFrom(nbus, this);
+        }), this);
       },
 
       waitFor : function(bus){
@@ -1163,14 +1162,35 @@
         return inheritFrom(host.newBus(), this);
       },
 
+      commuteSwitch : function(bus){
+        var self = this,
+            queue = 0; // 0 - this, 1 - bus
 
-      resolveWith : function(bus, fn) {
-        var self = this, ctx = this.host.$$context;
+        return Warden.Stream(function(fire){
+          self.listen(function(e){
+            if(queue==0){
+              fire(e)
+              queue = 1;
+            }
+          });
+          bus.listen(function(e){
+            if(queue==1){
+              fire(e);
+              queue = 0;
+            }
+          });
+        })
+
+      },
+
+      resolveWith : function(bus, fn, ctx) {
+        var self = this,
+            ctx = ctx || this.host.$$context
         return Warden.Stream(function(emit){
           self.sync(bus).listen(function(data){
             emit(fn.call(ctx, data[0], data[1]));
           });
-        }, ctx).bus();
+        }, ctx);
       },
 
       /* Combines two bises with given function @fn*/
@@ -1232,7 +1252,7 @@
 
             });
           });
-        }).bus();
+        });
         
         return inheritFrom(nbus, this);
       },
