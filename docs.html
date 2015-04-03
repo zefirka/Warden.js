@@ -86,7 +86,6 @@
           <h5>Time</h5>
           <li><a href="#debounce">debounce</a></li>
           <li><a href="#collect">collect</a></li>
-          <li><a href="#collectfor">collectFor</a></li>
           <li><a href="#delay">delay</a></li>
           <li><a href="#repeat">repeat</a></li>
 
@@ -97,6 +96,7 @@
 
           <h5>Composing</h5>
           <li><a href="#wait">waitFor</a></li>
+          <li><a href="#collectfor">collectFor</a></li>
           <li><a href="#flatMap">filterFor</a></li>
           <li><a href="#after">after</a></li>
           <li><a href="#sync">sync</a></li>
@@ -695,6 +695,7 @@ stream.fire(3)
 // -> 3
 </code></pre>
 
+<hr>
 <h2 id="collect">.collect</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.collect(ms)</code>.</p>
 <p class='d-description'>Description: Collecting all values of stream for given <code>ms</code> miliseconds to array.</p>
@@ -721,8 +722,67 @@ setTimeout(function(){
 // after 100 ms:
 // -> [1, 2, 3, 4]
 </code></pre>
+
+<hr>
+<h2 id="delay">.delay</h2>
+<p class='d-synopsis'>Synopsis: <code>stream.delay(ms)</code>.</p>
+<p class='d-description'>Description: Delay's stream propagation for given <code>ms</code> miliseconds to array.</p>
+<h3>Usage:</h3>
+<pre><code class='javascript'>var stream = Warden.Stream().delay(100).log();
+
+strea.fire('Hi!');
+
+// after 100 ms:
+// -> Hi!
+</code></pre>
+
+<hr>
+<h2 id="repeat">.repeat</h2>
+<p class='d-synopsis'>Synopsis: <code>stream.repeat(times, [delay])</code>.</p>
+<p class='d-description'>Description: Repeats stream evaluation with every value given times with <code>delay</code>. Note: repeats are async, even if you set delay to zero.</p>
+<h3>Usage:</h3>
+<pre><code class='javascript'>var stream = Warden.Stream().repeat(5, 100).log();
+
+strea.fire('Hi!');
+
+// every 100 ms:
+// -> Hi!
+// -> Hi!
+// -> Hi!
+// -> Hi!
+// -> Hi!
+</code></pre>
+
+<hr class='bhr'>
+<h2 id="merge">.merge</h2>
+<p class='d-synopsis'>Synopsis: <code>stream1.merge(stream2, [stream3, stream4, ...])</code>.</p>
+<p class='d-description'>Description: Merges two or more streams to one. Return new stream.</p>
+<h3>Usage:</h3>
+<pre><code class='javascript'>var clicks = $(document).stream('click'),
+    keydowns = $(document).stream('keydown');
+
+var clicksOrKeydowns = clicks.merge(keydowns);
+
+</code></pre>
+
+<hr>
+<h2 id="merge">.combine</h2>
+<p class='d-synopsis'>Synopsis: <code>stream1.combine(stream2, combinerFn)</code>.</p>
+<p class='d-description'>Description: Combines two streams with givetn function <code>combineFn</code>.</p>
+<h3>Usage:</h3>
+<pre><code class='javascript'>function randomizer(max){
+  return (Math.random() * (max + 1)) >> 0;
+}
+
+var maxStream =  stream1.combine(stream2, function (first, second){
+  return first > second ? first : second;
+});
+</code></pre>
+
     </div>
   </div>
 </div>
+
+
     </body>
 </html>

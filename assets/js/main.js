@@ -224,11 +224,6 @@ $(function(){
 
   boly();
 
-  stickyMenu.on('scroll', function(e){
-    e.preventDefult();
-    return false;
-  })
-
 });
 
 
