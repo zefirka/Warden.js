@@ -1,5 +1,5 @@
 describe('Pipeline', function(){
-	var pipe = Warden.pipeline(),
+	var pipe = Warden.Pipeline(),
 		res = 0;
 		
 		pipe.pipe(function(e, pipe){

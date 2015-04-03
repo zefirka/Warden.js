@@ -179,6 +179,87 @@ describe('Warden DataBus methods', function () {
 			mapped.ctxm = e;
 		})
 
+		var total = {};
+		var totalHost = Warden.Host({ 
+			ctxString : "STR",
+			ctxInt : 21,
+			ctxMethod: function(t) {
+				return t*2
+			}
+		});
+
+		var totalBus = totalHost.newBus();
+
+		totalBus.map({
+			string: 'string',
+			Int : 12,
+			ctx : '@',
+			ctxS : '@ctxString',
+			ctxI : '@ctxInt',
+			ctxMC : '@ctxMethod(123)',
+			obj : '.',
+			objS : '.str',
+			objI : '.i',
+			objMC : '.method(666)',
+			objR : ".par.chi"
+		}).listen(function(res){
+			total = res;
+		});
+
+		totalHost.eval({
+			str : 'string',
+			i : 123,
+			method : function(i){
+				return i/3
+			},
+			par : {
+				chi : 666
+			}
+		});
+
+		it('-- aliasing: string', function (done) {     
+		    expect(total.string).toBe('string');
+		    done();
+	    }); 
+	    it('-- aliasing: integer', function (done) {     
+		    expect(total.Int).toBe(12);
+		    done();
+	    }); 
+	    it('-- aliasing: context', function (done) {     
+		    expect(total.ctx.ctxString).toBe("STR");
+		    expect(total.ctx.ctxInt).toBe(21);
+		    expect(typeof total.ctx.ctxMethod).toBe(typeof function(t) {return t*2});
+		    done();
+	    }); 
+	    it('-- aliasing: context string', function (done) {     
+		    expect(total.ctxS).toBe('STR');
+		    done();
+	    }); 
+	    it('-- aliasing: context integer', function (done) {     
+		    expect(total.ctxI).toBe(21);
+		    done();
+	    }); 
+	    it('-- aliasing: context method call', function (done) {     
+		    expect(total.ctxMC).toBe(123*2);
+		    done();
+	    }); 
+
+	    it('-- aliasing: object string', function (done) {     
+		    expect(total.objS).toBe('string');
+		    done();
+	    }); 
+	    it('-- aliasing: object integer', function (done) {     
+		    expect(total.objI).toBe(123);
+		    done();
+	    }); 
+	    it('-- aliasing: object method call', function (done) {     
+		    expect(total.objMC).toBe(666/3);
+		    done();
+	    }); 
+	    it('-- aliasing: object route', function (done) {     
+		    expect(total.objR).toBe(666);
+		    done();
+	    }); 
 
 		/* Mappings: Array of Simple*/
 		bus.map([10, 12]).listen(function(e){
@@ -291,12 +372,6 @@ describe('Warden DataBus methods', function () {
 		bus.get('root/parent/object').listen(function(e){
 			mapped.getFObject = e;
 		});
-
-		it('-- from .map()', function (done) {     
-			sync.transmit(data);
-		    expect(mapped.getFMap).toEqual('name');
-		    done();
-	    }); 
 
 	    it('-- from .get()', function (done) {     
 			sync.transmit(data);
@@ -580,7 +655,6 @@ describe('Warden DataBus methods', function () {
 		    sync.transmit("222");
 		    sync.transmit("321");
 		    sync.transmit("524444");
-		    sync.transmit([0,"2",3]);
 		    sync.transmit("011");
 
 		    expect(res).toBe(2);
@@ -630,10 +704,10 @@ describe('Warden DataBus methods', function () {
 		    }, 300);		    
 	    });
 
-	    it('-- getCollected (200 ms)', function (done) {
+	    it('-- collect (200 ms)', function (done) {
 			var res = "";
 			
-			var u = bus.getCollected(200).listen(function(e){
+			var u = bus.collect(200).listen(function(e){
 				res = e;
 			});
 			
@@ -794,20 +868,23 @@ describe('Warden DataBus methods', function () {
 		it('-- combine (+)' ,function (done){
 			var sum = 0;
 
-			var bus1 = Warden.Stream().map(10),
-				bus2 = Warden.Stream().map(20),
+			var host1 = Warden.Host(),
+				host2 = Warden.Host();
+
+			var bus1 = host1.newBus().map(10),
+				bus2 = host2.newBus().map(20),
 				combined = bus1.combine(bus2, function(a,b){
 					return a + b;
 				}, 0).listen(function(res){
 					sum = res;
 				});
 
-				bus1.fire(0);
+				host1.eval();
 				expect(sum).toBe(10);
-				bus2.fire(0);
+				host2.eval();
 				expect(sum).toBe(30);
-				bus2.fire(0);
-				bus1.fire(0);
+				host2.eval();
+				host1.eval();
 				expect(sum).toBe(30);
 
 				done();

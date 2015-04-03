@@ -16,6 +16,9 @@
  - Added `clear` method at DataBus
  - Fixed errors in `mute`, `reduce`.
  - Extented `map` method
+ - Renamed `getCollected` to `collect`
+ - Removed `equals` and added this functionality to `filter`
+ - Removed `syncFlat`
 
 ####  Extend module:
 `docs: ./docs/Extend.md`

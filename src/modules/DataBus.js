@@ -14,12 +14,10 @@ var DataBus = (function(){
         newPipe = [],
         nbus;       
 
-    if(!p){
-      return pipe;
-    }
-     /* Copying process */
-     /* TODO: Optimize copying */
-
+    // if(!p){
+    //   return pipe;
+    // }
+    
     each(pipe.pipe(), function(i){
       newPipe.push(i);
     });
@@ -188,9 +186,9 @@ var DataBus = (function(){
       if(typeof x == "object"){
           if(is.array(x)){
             fn = function(e, pipe){
-              var res = [];
+              var res = [], self = this;
               each(x, function(i){
-                res.push(map.call(this, i, e));
+                res.push(map.call(self, i, e));
               });
               return pipe.next(res);
             }
@@ -323,7 +321,7 @@ var DataBus = (function(){
     /*
       Collecting events for [Integer] @t miliseconds and after it transmitting an array of them
     */
-    getCollected : function(t){
+    collect : function(t){
       return process.call(this, function(e, pipe){
         var self = this,
             bus = pipe.bus(),
@@ -504,10 +502,10 @@ var DataBus = (function(){
         }
 
         self.listen(function(data){
-          e(data, bus.data.last || seed);
+          e(data, bus.data.takes.last() || seed);
         });
         bus.listen(function(data){
-          e(self.data.last || seed, data);
+          e(self.data.takes.last() || seed, data);
         });
 
       }, ctx).bus();
@@ -555,18 +553,6 @@ var DataBus = (function(){
         });
       }).bus();
       
-      return inheritFrom(nbus, this);
-    },
-
-    syncFlat : function(){
-      var self = this,
-          argv = Utils.toArray(arguments),
-
-      nbus = Warden.Stream(function(emit){
-        self.sync.apply(self, argv).listen(function(arr){
-          emit.call(this, Utils.flatten(arr));
-        })
-      }).bus();
       return inheritFrom(nbus, this);
     },
 

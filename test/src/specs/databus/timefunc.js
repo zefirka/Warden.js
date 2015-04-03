@@ -19,10 +19,10 @@ describe('Time methods ', function () {
 	    }, 300);		    
     });
 
-    it('-- getCollected (200 ms)', function (done) {
+    it('-- collect (200 ms)', function (done) {
 		var res = "";
 		
-		var u = bus.getCollected(200).listen(function(e){
+		var u = bus.collect(200).listen(function(e){
 			res = e;
 		});
 		

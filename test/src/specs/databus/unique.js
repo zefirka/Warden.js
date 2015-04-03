@@ -29,7 +29,6 @@ describe('.diff()', function () {
 	    sync.transmit("222");
 	    sync.transmit("321");
 	    sync.transmit("524444");
-	    sync.transmit([0,"2",3]);
 	    sync.transmit("011");
 
 	    expect(res).toBe(2);

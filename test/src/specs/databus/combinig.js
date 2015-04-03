@@ -143,20 +143,23 @@ describe('Combining methods ', function () {
 	it('-- combine (+)' ,function (done){
 		var sum = 0;
 
-		var bus1 = Warden.Stream().map(10),
-			bus2 = Warden.Stream().map(20),
+		var host1 = Warden.Host(),
+			host2 = Warden.Host();
+
+		var bus1 = host1.newBus().map(10),
+			bus2 = host2.newBus().map(20),
 			combined = bus1.combine(bus2, function(a,b){
 				return a + b;
 			}, 0).listen(function(res){
 				sum = res;
 			});
 
-			bus1.fire(0);
+			host1.eval();
 			expect(sum).toBe(10);
-			bus2.fire(0);
+			host2.eval();
 			expect(sum).toBe(30);
-			bus2.fire(0);
-			bus1.fire(0);
+			host2.eval();
+			host1.eval();
 			expect(sum).toBe(30);
 
 			done();
