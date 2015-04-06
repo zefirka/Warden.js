@@ -224,6 +224,11 @@ $(function(){
 
   boly();
 
+
+  $("[cut]").click(function(){
+    $(this).next().toggleSlide();
+  })
+
 });
 
 

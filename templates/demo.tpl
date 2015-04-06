@@ -1,8 +1,10 @@
 <div class="container">
   <div class="row">
-    {{aside}}
+    <div swipe>
+    	{{aside}}
+    </div>
     <div class="col-md-9 col-sm-9 col-xs-12 col-lg-10">
-      <p></p>
+      <h1>Tutorials and examples</h1>
     </div>
   </div>
 </div>
