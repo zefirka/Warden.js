@@ -770,12 +770,12 @@ describe('Warden DataBus methods', function () {
 			done();
 		});
 
-		it('-- resolveWith (bigger)', function (done) {
+		it('-- resolve (bigger)', function (done) {
 			var cl;
 
 			var bus1 = bus.filter(function(x){return x.one}).map(10),
 				bus2 = bus.filter(function(x){return x.two}).map(20),
-				produced = bus1.resolveWith(bus2, function(a,b){
+				produced = bus1.resolve(bus2, function(a,b){
 					return a > b ? 'first' : 'second';
 				});
 
@@ -790,12 +790,12 @@ describe('Warden DataBus methods', function () {
 			done();
 		});
 
-		it('-- resolveWith (smaller)', function (done) {
+		it('-- resolve (smaller)', function (done) {
 			var cl;
 
 			var bus1 = bus.filter(function(x){return x.one}).map(30),
 				bus2 = bus.filter(function(x){return x.two}).map(20),
-				produced = bus1.resolveWith(bus2, function(a,b){
+				produced = bus1.resolve(bus2, function(a,b){
 					return a > b ? 'first' : 'second';
 				});
 
@@ -811,7 +811,7 @@ describe('Warden DataBus methods', function () {
 		});
 
 
-		it('-- resolveWith (first is earlier)', function (done) {
+		it('-- resolve (first is earlier)', function (done) {
 			var cl;
 			var time = function(d){
 				d.time = (new Date()).getTime();
@@ -820,7 +820,7 @@ describe('Warden DataBus methods', function () {
 
 			var bus1 = bus.filter(function(x){return x.one}).map(time),
 				bus2 = bus.filter(function(x){return x.two}).map(time),
-				produced = bus1.resolveWith(bus2, function(a,b){
+				produced = bus1.resolve(bus2, function(a,b){
 					return a.time <= b.time ? 'first' : 'second';
 				});
 
@@ -837,7 +837,7 @@ describe('Warden DataBus methods', function () {
 			
 		});
 
-		it('-- resolveWith (second is earlier)', function (done) {
+		it('-- resolve (second is earlier)', function (done) {
 			var cl;
 
 			bus.map(function(d){
@@ -847,7 +847,7 @@ describe('Warden DataBus methods', function () {
 
 			var bus1 = bus.filter(function(x){return x.one}),
 				bus2 = bus.filter(function(x){return x.two}),
-				produced = bus1.resolveWith(bus2, function(a,b){
+				produced = bus1.resolve(bus2, function(a,b){
 					return a.time <= b.time ? 'first' : 'second';
 				});
 
@@ -1110,7 +1110,7 @@ describe('Warden DataBus methods', function () {
           bus.map(sil).listen(sil);
           bus.filter(sil).listen(sil);
           bus.reduce(0, sil).listen(sil);
-          bus.resolveWith(bus, sil).listen(sil);
+          bus.resolve(bus, sil).listen(sil);
           bus.combine(bus, sil).listen(sil);
           
           module.emit('sync');

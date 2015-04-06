@@ -104,5 +104,11 @@ describe('Configure', function(){
 		done();
 	});
 
+	it('Warden.configure.isStream', function(done){
+		expect(Warden.configure.isStream(stream)).toBe(true);
+		expect(Warden.configure.isStream({})).toBe(false);
+		done();
+	});
+
 });
 

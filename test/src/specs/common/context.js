@@ -42,7 +42,7 @@ describe('Context saving', function () {
       bus.map(sil).listen(sil);
       bus.filter(sil).listen(sil);
       bus.reduce(0, sil).listen(sil);
-      bus.resolveWith(bus, sil).listen(sil);
+      bus.resolve(bus, sil).listen(sil);
       bus.combine(bus, sil).listen(sil);
       
       module.emit('sync');

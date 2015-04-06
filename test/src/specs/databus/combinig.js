@@ -45,12 +45,12 @@ describe('Combining methods ', function () {
 		done();
 	});
 
-	it('-- resolveWith (bigger)', function (done) {
+	it('-- resolve (bigger)', function (done) {
 		var cl;
 
 		var bus1 = bus.filter(function(x){return x.one}).map(10),
 			bus2 = bus.filter(function(x){return x.two}).map(20),
-			produced = bus1.resolveWith(bus2, function(a,b){
+			produced = bus1.resolve(bus2, function(a,b){
 				return a > b ? 'first' : 'second';
 			});
 
@@ -65,12 +65,12 @@ describe('Combining methods ', function () {
 		done();
 	});
 
-	it('-- resolveWith (smaller)', function (done) {
+	it('-- resolve (smaller)', function (done) {
 		var cl;
 
 		var bus1 = bus.filter(function(x){return x.one}).map(30),
 			bus2 = bus.filter(function(x){return x.two}).map(20),
-			produced = bus1.resolveWith(bus2, function(a,b){
+			produced = bus1.resolve(bus2, function(a,b){
 				return a > b ? 'first' : 'second';
 			});
 
@@ -86,7 +86,7 @@ describe('Combining methods ', function () {
 	});
 
 
-	it('-- resolveWith (first is earlier)', function (done) {
+	it('-- resolve (first is earlier)', function (done) {
 		var cl;
 		var time = function(d){
 			d.time = (new Date()).getTime();
@@ -95,7 +95,7 @@ describe('Combining methods ', function () {
 
 		var bus1 = bus.filter(function(x){return x.one}).map(time),
 			bus2 = bus.filter(function(x){return x.two}).map(time),
-			produced = bus1.resolveWith(bus2, function(a,b){
+			produced = bus1.resolve(bus2, function(a,b){
 				return a.time <= b.time ? 'first' : 'second';
 			});
 
@@ -112,7 +112,7 @@ describe('Combining methods ', function () {
 		
 	});
 
-	it('-- resolveWith (second is earlier)', function (done) {
+	it('-- resolve (second is earlier)', function (done) {
 		var cl;
 
 		bus.map(function(d){
@@ -122,7 +122,7 @@ describe('Combining methods ', function () {
 
 		var bus1 = bus.filter(function(x){return x.one}),
 			bus2 = bus.filter(function(x){return x.two}),
-			produced = bus1.resolveWith(bus2, function(a,b){
+			produced = bus1.resolve(bus2, function(a,b){
 				return a.time <= b.time ? 'first' : 'second';
 			});
 
