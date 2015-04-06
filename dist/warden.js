@@ -338,6 +338,8 @@
       }.bind(this));
     }
 
+    window.handlers = ghandlers;
+
     return function(obj, conf) {
       function binder (fn, handlers, callback){
         return function(type){
@@ -1306,12 +1308,20 @@
       }
     })
 
-    Warden.configure.addToDatabus = function(name, fn){
+    Warden.configure.addToDatabus = function(name, fn, piped){
       DataBus.prototype[name] = function() {
         var self = this,
             argv = arguments;
-        return process.call(this,fn(arguments))
+        if(!piped){
+          return process.call(this, fn.apply(this, arguments));
+        }else{
+          return fn.apply(this, arguments);
+        }
       };
+    }
+
+    Warden.configure.isStream = function(e){
+      return (e instanceof DataBus);
     }
 
     return DataBus;

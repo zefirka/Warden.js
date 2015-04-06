@@ -39,6 +39,8 @@ Warden.extend = (function(){
     }.bind(this));
   }
 
+  window.handlers = ghandlers;
+
   return function(obj, conf) {
     function binder (fn, handlers, callback){
       return function(type){
