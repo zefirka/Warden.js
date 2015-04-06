@@ -62,11 +62,16 @@
           <li><a href="#ulockt">unockThis</a></li>
           <li><a href="#after">watch</a></li>
 
+          <h5>Arrays</h5>
+          <li><a href="#extarr">Extend Arrays</a></li>
+          <li><a href="#sequentially">sequentially</a></li>
+          <li><a href="#repeatedly">repeatedly</a></li>
+
           <h5>Configure</h5>
           <li><a href="#wait">comparsion</a></li>
           <li><a href="#collectfor">extend DataBus</a></li>
-          <li><a href="#flatMap">context flow</a></li>
-          
+          <li><a href="#datastr">stream memory</a></li>        
+
           <h4>Plugins</h4>
           <li><a href="#sync">Warden.Host</a></li>
           <li><a href="#flatMap">Warden.Worker</a></li>
