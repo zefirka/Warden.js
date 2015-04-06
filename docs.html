@@ -99,7 +99,7 @@
           <li><a href="#filterfor">filterFor</a></li>
           <li><a href="#wait">before</a></li>
           <li><a href="#after">after</a></li>
-          <li><a href="#commuteswitch">alternately</a></li>
+          <li><a href="#alternately">alternately</a></li>
           <li><a href="#sync">sync</a></li>
 
           <h5>Blocking</h5>
@@ -111,11 +111,16 @@
           <li><a href="#ulockt">unockThis</a></li>
           <li><a href="#after">watch</a></li>
 
+          <h5>Arrays</h5>
+          <li><a href="#extarr">Extend Arrays</a></li>
+          <li><a href="#sequentially">sequentially</a></li>
+          <li><a href="#repeatedly">repeatedly</a></li>
+
           <h5>Configure</h5>
           <li><a href="#wait">comparsion</a></li>
           <li><a href="#collectfor">extend DataBus</a></li>
-          <li><a href="#flatMap">context flow</a></li>
-          
+          <li><a href="#datastr">stream memory</a></li>        
+
           <h4>Plugins</h4>
           <li><a href="#sync">Warden.Host</a></li>
           <li><a href="#flatMap">Warden.Worker</a></li>
@@ -291,9 +296,16 @@ pulses.map('PULSE').log();
 pulsar.clear(); // stops pulses
 pulsar.start(100); // runs pulses again with interval 100ms
 </pre></code>
+<p><code>isStrict</code> parameter configures would context creating strong. To avoid context overwriting use <code>true</code> in third parameter.</p>
+<pre><code class='javascript'>var context = { some_value : ''};
+Warden.Stream(function(){
+  this.some_value = 12;
+}, context, true);
+// -> ERROR!
+// Coincidence: property: 'some_value' is already defined in stream context! Object {some_value: ""}
+</code></pre>
 
 <hr>
-
 <h2 id="fire">.fire</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.fire(value, [context])</code>.</p>
 <p class='d-description'>Description: Pushes value to the stream.</p>
@@ -826,12 +838,34 @@ var maxStream =  stream1.combine(stream2, function (first, second){
 <p class='d-synopsis'>Synopsis: <code>stream1.filterFor(fn)</code>.</p>
 <p class='d-description'>Description: Takes function which takes CGE Signature to filtrate values of stream.</p>
 <h3>Usage:</h3>
-<pre><code class='javascript'>function unique(a, b){
-  return a > b ? a : b;
-}
+<pre><code class='javascript'>var uniqueIntegers = stream.filterFor(function(e, p){
+  var taken = p.get();
 
-stream.filter(unique);
+  if(taken && taken.indexOf(e)>=0){
+    p.stop();
+  }else{
+    p.next(e, function(data, val){
+      if(typeof data == 'object') { 
+          data.push(val); 
+          return data; 
+        } else {
+          return [val]
+        } 
+      });
+   }
+});
 </code></pre>
+
+<hr>
+<h2 id="alternately">.alternately</h2>
+<p class='d-synopsis'>Synopsis: <code>stream1.alternately(stream2)</code>.</p>
+<p class='d-description'>Description: Takes two streams and returns stream which evaluates when evaluetes first stream alternately second.</p>
+<h3>Usage:</h3>
+<pre><code class='javascript'>var toggles = ons.alternately(offs);
+// this stream quaranties that evaluation of ons will be strongly after offs and offs after ons
+</code></pre>
+
+
 
     </div>
   </div>
