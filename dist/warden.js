@@ -16,7 +16,7 @@
   }
   var jQueryInited = typeof jQuery != "undefined";
 
-  Warden.version = "0.3.0-alpha";
+  Warden.version = "0.3.0";
   Warden.configure = {
     cmp : function(x,y){ return x === y; }
   };
@@ -1149,7 +1149,7 @@
         return inheritFrom(host.newBus(), this);
       },
 
-      commuteSwitch : function(bus){
+      alternately : function(bus){
         var self = this,
             queue = 0; // 0 - this, 1 - bus
 

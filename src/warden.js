@@ -16,7 +16,7 @@
   }
   var jQueryInited = typeof jQuery != "undefined";
 
-  Warden.version = "0.3.0-alpha";
+  Warden.version = "0.3.0";
   Warden.configure = {
     cmp : function(x,y){ return x === y; }
   };

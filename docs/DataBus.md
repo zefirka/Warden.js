@@ -1,4 +1,4 @@
-DataBus
+Streams as DataBuses
 =========
 
 Source at: `./src/modules/DataBus.js` : DataBUs module
@@ -7,13 +7,14 @@ Source of pipeline `./src/modules/Pipeline.js`
 
 Create :
  - `object.stream(type, [context])` - Creates an event stream and returns associated data bus,
- - `stream.bus()` - Creates data bus associated with `stream`
+ - `Warden.Stream([creator], [context], [strict])` - creates a simple stream,
+ - `Warden.Host([context]).newBus()` - Creates data bus associated with given host.
 
 Usage:
  - `bus[methodName]([params])[methodName]([params])...` - Chain of methods.
 
 ## Concept
-Each stream (as source of data) can host data buses, each one represent a pipeline for data which we take from stream. When stream evaluated (takes data from event/callback/timer/etc) all listened data buses evaluating too. If data bus don't listened one that it's not evaluated. Data buses is the simple roads of your application could take and process data. With composing methods of data buses you can declare behavior of your application. All data buses are immutable. It means that every method (except .listen, .toggle and .log) of data bus returns new data bus inherited from given, so you can implement side-effects and don't worry about state. Like in functional languages real state incapsulated into call stack, there real state incapsulated into data bus processor stack.
+Each source of data can host data buses (e.g. streams), each one of them represent a pipeline for data which we take from source. When stream evaluated (takes data from event/callback/timer/etc) all associated data buses evaluating too. Data buses is the simple roads of your application could take and process data. With composing methods of data buses you can declare behavior of your application. All data buses are immutable. It means that every method (except .listen, .toggle and .log) of data bus returns new data bus inherited from given, so you can implement side-effects and don't worry about state. Like in functional languages real state incapsulated into call stack, there real state incapsulated into data bus processor stack.
 
 
 ## Firing and side-effects
@@ -133,19 +134,23 @@ You can see result just logging these buses with [`.log()`](#log-fn) method.
         ```js
           clicks.map({
             x: '.clientX',
-            y: '.clientY'
+            y: '.clientY',
+            ctx: '@',
+            event: '.'
           })// equals to
 
           clicks.map(function(e){
             return {
               x: e.clientX,
-              y: e.clientY
+              y: e.clientY,
+              ctx: this,
+              event: e
             }
           })
         ```
 
   - #### get
-      `get(line)` transmits event's property in "path/to" notatation
+      `get(route)` transmits event's property in "path/to" notatation
 
       ```js
         clicks.get('path/[0]') // equals to:
@@ -177,11 +182,17 @@ You can see result just logging these buses with [`.log()`](#log-fn) method.
 
 ## Filtering
 
-  - `filter(fn)` - transmits only events which `fn(event) === true`.
+  - `filter(f)` - if `f` is function then transmits only events which `f(event) === true`, else transmits only events equals to `f`:
+  - 
     ```js
+      // will transmit only clicks with clientX more than 512
       clicks.filter(function(event){
         return event.clientX > 512;
       })
+
+      ```js
+      // will transmit only clicks with clientX equals to 512
+      clicks.map('.clientX').filter(512)
     ```
 
   - `skip(number)` - skips 'number' events.
@@ -191,7 +202,7 @@ You can see result just logging these buses with [`.log()`](#log-fn) method.
       clicks.skip(5).take(5) //skips first 5 clicks and takes only 5 clicks
     ```
 
-  - `unique(compractor)` - transmits only different events. Checks with (`===` comparing operation) if `compractor` is not setted.
+  - `diff(compractor)` - transmits only different events. Checks with (`===` comparing operation) if `compractor` is not setted.
 
     ```js
       clicks.unique(function(a, b){
@@ -199,11 +210,6 @@ You can see result just logging these buses with [`.log()`](#log-fn) method.
       })
     ```
 
-  - `equals(value, compractor)` - transmits only events which value equals to `value`. Checks with (`===` comparing operation) if `compractor` is not setted.
-
-    ```js
-      clicks.map('.clientX').equals(100);
-    ```
 
 ## Interpolation
   - `mask(data)` - masking event (which is string like `"Hello {{data}}"`) with given data (like `{data: "World!"}`),
@@ -230,9 +236,9 @@ You can see result just logging these buses with [`.log()`](#log-fn) method.
         // -> logs last key's char
       ```
 
-  - `getCollected(miliseconds)` - collecting all events for given time in ms and then flush them to the next processor.
+  - `collect(miliseconds)` - collecting all events for given time in ms and then flush them to the next processor.
       ```js
-        keydowns.map('.keyCode').map(String.fromCharCode).getCollected(1000).log();
+        keydowns.map('.keyCode').map(String.fromCharCode).collect(1000).log();
         // press a lot of keys
         // -> logs all of their's chars as array
       ```
@@ -265,12 +271,12 @@ You can see result just logging these buses with [`.log()`](#log-fn) method.
       // [MouseClickEvent, KeyDownEvent, MouseMoveEvent] only when they all will be fired
     ```
 
-  - `syncFlat(bus1, [bus2] ... [busN])` - syncing given buses with current to the flat array
-
   - #### after and waitFor
     `after(bus)` - return bus that fires only if `bus` was fired before
 
     `waitFor(bus)` - return bus that fires when `bus` firing and only if current bus was already fired
+
+    `alternately(bus)` - return bus that fires alternately first given stream after `bus`
 
   - #### combine and resolve
     `combine(bus, fn, seed)` - return bust that emits combined with given function events with current last and given bus' last event
@@ -283,9 +289,9 @@ You can see result just logging these buses with [`.log()`](#log-fn) method.
       }, 0).log();
       ```
 
-    `resolveWith(bus, fn)` - resolve one event by function `fn` which gives two arguments: first is data from current bus, second is data from second bus;
+    `resolve(bus, fn)` - resolve one event by function `fn` which gives two arguments: first is data from current bus, second is data from second bus;
       ```js
-      clicks.resolveWith(keydowns, function(e1, e2){
+      clicks.resolve(keydowns, function(e1, e2){
         return e1.timeStamp > e2.timeStamp ? {event: 'keydown'} : {event: 'click'};
       }).interpolate("{{event}} was first").log()
       ```
@@ -295,7 +301,6 @@ You can see result just logging these buses with [`.log()`](#log-fn) method.
  - `data` - collected data. It's object contains properties: `fires`, - array of fired events on bus, `takes` - array of taken events of bus, `last` - last taken value
  - `parent` - parent bus
  - `children` - array of children buses
- - `bindings` - bindings of data ([look at](https://github.com/zefirka/Warden.js/blob/master/docs/Bind.md))
 
 ## Other
   `bus.watch()` - method that makes your bus observable

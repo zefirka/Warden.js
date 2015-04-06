@@ -477,7 +477,7 @@ var DataBus = (function(){
       return inheritFrom(host.newBus(), this);
     },
 
-    commuteSwitch : function(bus){
+    alternately : function(bus){
       var self = this,
           queue = 0; // 0 - this, 1 - bus
 

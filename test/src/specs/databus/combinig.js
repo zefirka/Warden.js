@@ -165,6 +165,31 @@ describe('Combining methods ', function () {
 			done();
 	});
 
+	it('-- alternately', function (done) { 
+		var cl = [];
+
+		var bus1 = bus.filter(1).map(1),
+			bus2 = bus.filter(2).map(2),
+			alternately = bus1.alternately(bus2);
+
+		alternately.listen(function(x){
+			cl.push(x);
+		});
+
+		sync.transmit(1);
+		sync.transmit(1);
+		sync.transmit(1);
+		sync.transmit(2);
+		sync.transmit(2);
+		sync.transmit(1);
+		sync.transmit(2);
+
+		
+		expect(cl).toEqual([1,2,1,2]);
+		done();
+		
+	});
+
 	it('-- sync (with intreval of 300 ms);', function (done) { 
 		var cl;
 
@@ -184,7 +209,7 @@ describe('Combining methods ', function () {
 			done();
 		}, 300)
 		
-	});
+	});	
 
 	it('-- sync 4 streams (with intreval of 300 ms);', function (done) { 
 		var cl;
