@@ -303,6 +303,52 @@ describe('Warden.extend', function(){
 
 		});
 
+		it('- sequentially', function (done) {      
+			var res = [];
+			
+			Warden([0,1,2,3]).sequentially(200).map(function(e){ return e*2}).listen(function(val){
+				res.push(val);
+			});
+
+			
+			expect(res).toEqual([]); 
+
+			setTimeout(function(){
+				expect(res[0]).toBe(0); 
+				expect(res).toEqual([0]);
+
+				setTimeout(function(){
+					expect(res[1]).toBe(2); 
+					expect(res).toEqual([0, 2]);
+
+					setTimeout(function(){
+						expect(res).toEqual([0, 2, 4, 6]);
+						done();
+					}, 1400)
+				}, 210);
+
+			}, 210);
+
+			
+		});
+
+		it('- repeatedly', function (done) {      
+			var res = [];
+			
+			Warden([0,1,2,3]).repeatedly().map(function(e){ return e*2}).listen(function(val){
+				res.push(val);
+			});
+			
+
+			setTimeout(function(){
+				expect(res).toEqual([0, 2, 4, 6]);
+				done();
+			}, 10)
+			
+
+			
+		});
+
 	});
 	describe('Listening and unlistening', function(){
 		var data = null;

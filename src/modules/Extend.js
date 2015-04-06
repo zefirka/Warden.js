@@ -78,22 +78,40 @@ Warden.extend = (function(){
       if(is.array(obj)){
         /* Extending methods of a current array with stream evaluation */
 
-        _Array.prototype = [];
+        _Array.prototype = Object.create(inheritor);
 
         _Array.prototype.sequentially = function(timeout){
-          var stream = Warden.makeStream(),
-              self = this,
-              i = 0,
-              interval = setInterval(function(){
-                if(i==self.length){
-                  i=0;
-                  clearInterval(interval);
-                }else{
-                  stream.eval(self[i++])
-                }
-              }, timeout);
+          var self = this,
+              l = self.length;
 
-          return stream.bus();
+          return Warden.Stream(function(fire){
+            var i = 0,
+            
+            interval = setInterval(function(){
+              if(i<l){
+                fire(self[i]);
+                i++;
+              }else{
+                i = 0;
+                clearInterval(interval);
+              }
+
+            }, timeout);
+          });
+        }
+
+        _Array.prototype.repeatedly = function(){
+          var self = this,
+              l = self.length;
+
+          return Warden.Stream(function(fire){            
+            var i = 0;
+            setTimeout(function(){
+              while(i < l){
+                fire(self[i++])
+              }
+            });            
+          });
         }
 
         each(config.arrays, function(name){
