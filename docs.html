@@ -96,10 +96,10 @@
 
           <h5>Composing</h5>
           <li><a href="#collectfor">collectFor</a></li>
-          <li><a href="#flatMap">filterFor</a></li>
+          <li><a href="#filterfor">filterFor</a></li>
           <li><a href="#wait">before</a></li>
           <li><a href="#after">after</a></li>
-          <li><a href="#commuteswitch">commuteSwitch</a></li>
+          <li><a href="#commuteswitch">alternately</a></li>
           <li><a href="#sync">sync</a></li>
 
           <h5>Blocking</h5>
@@ -780,7 +780,7 @@ var clicksOrKeydowns = clicks.merge(keydowns);
 </code></pre>
 
 <hr>
-<h2 id="merge">.combine</h2>
+<h2 id="combine">.combine</h2>
 <p class='d-synopsis'>Synopsis: <code>stream1.combine(stream2, combinerFn)</code>.</p>
 <p class='d-description'>Description: Combines two streams with givetn function <code>combineFn</code>.</p>
 <h3>Usage:</h3>
@@ -791,6 +791,46 @@ var clicksOrKeydowns = clicks.merge(keydowns);
 var maxStream =  stream1.combine(stream2, function (first, second){
   return first > second ? first : second;
 });
+</code></pre>
+
+<hr>
+<h2 id="resolve">.resolve</h2>
+<p class='d-synopsis'>Synopsis: <code>stream1.combine(stream2, resolver, [seed])</code>.</p>
+<p class='d-description'>Description: Takes two streams and resolver function. Returns stream which gives value as a result of resolver function applyied to values of given streams.</p>
+<h3>Usage:</h3>
+<pre><code class='javascript'>function first(a, b){
+  return a > b ? a : b;
+}
+
+var maxStream =  stream1.combine(stream2, function (first, second){
+  return first > second ? first : second;
+});
+</code></pre>
+
+<hr class='bhr'>
+<h2 id="collectfor">.collectFor</h2>
+<p class='d-synopsis'>Synopsis: <code>stream1.collectFor(stream2)</code>.</p>
+<p class='d-description'>Description: Takes two streams and resolver function. Returns stream which gives value as a result of resolver function applyied to values of given streams.</p>
+<h3>Usage:</h3>
+<pre><code class='javascript'>function first(a, b){
+  return a > b ? a : b;
+}
+
+var maxStream =  stream1.combine(stream2, function (first, second){
+  return first > second ? first : second;
+});
+</code></pre>
+
+<hr>
+<h2 id="filterfor">.filterFor</h2>
+<p class='d-synopsis'>Synopsis: <code>stream1.filterFor(fn)</code>.</p>
+<p class='d-description'>Description: Takes function which takes CGE Signature to filtrate values of stream.</p>
+<h3>Usage:</h3>
+<pre><code class='javascript'>function unique(a, b){
+  return a > b ? a : b;
+}
+
+stream.filter(unique);
 </code></pre>
 
     </div>
