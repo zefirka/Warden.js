@@ -22,7 +22,6 @@ Warden.extend = (function(){
       each(toArray(arguments).slice(1), function(handler){
         ghandlers[id].push(handler);
       });
-      return ghandlers[id];
     },
 
     getHandlers = function(id){

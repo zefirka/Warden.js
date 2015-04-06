@@ -159,7 +159,7 @@ mod.listen('^cl[io]ck(ed)?(\\d+)?$', function(type){
 
 Handlers will be started in same order which they was registered.
 
-__Deprecated__: If you reach maximal number of handlers for current object you'l recieve error : `Maximal handlers count` in console.
+__Note__: You can't use regular expressions notation to subsribe native DOM events (like a `mouse*` to subsrive all `mousemove, mousedown, mouseup, etc`). But you can use comma notation like a `document.listen('keydown, click, mousemove', ...)`.
 
 ### .unlisten
 Usage: `object.unlisten(type, handler)`

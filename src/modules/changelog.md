@@ -17,6 +17,7 @@
  - Fixed errors in `mute`, `reduce`.
  - Extented `map` method
  - Renamed `getCollected` to `collect`
+ - Renamed `resolveWith` to `resolve`
  - Removed `equals` and added this functionality to `filter`
  - Removed `syncFlat`
  - Added `commuteSwitch`

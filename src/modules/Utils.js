@@ -41,16 +41,6 @@ function heach(coll, fn){
   }
 }
 
-function hfilter(coll, fn){
-  var filtered = [];
-  each(coll, function(i, key){
-    if(fn(i, key)===true){
-      filtered.push(i);
-    }
-  });
-  return filtered;
-}
-
 function reduce(arr, fn){
   var res = arr[0];
   for(var i=1,l=arr.length;i<l;i++){

@@ -498,7 +498,7 @@ var DataBus = (function(){
 
     },
 
-    resolveWith : function(bus, fn, ctx) {
+    resolve : function(bus, fn, ctx) {
       var self = this,
           ctx = ctx || this.host.$$context
       return Warden.Stream(function(emit){

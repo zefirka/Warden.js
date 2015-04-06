@@ -65,16 +65,6 @@
     }
   }
 
-  function hfilter(coll, fn){
-    var filtered = [];
-    each(coll, function(i, key){
-      if(fn(i, key)===true){
-        filtered.push(i);
-      }
-    });
-    return filtered;
-  }
-
   function reduce(arr, fn){
     var res = arr[0];
     for(var i=1,l=arr.length;i<l;i++){
@@ -321,7 +311,6 @@
         each(toArray(arguments).slice(1), function(handler){
           ghandlers[id].push(handler);
         });
-        return ghandlers[id];
       },
 
       getHandlers = function(id){
@@ -1181,7 +1170,7 @@
 
       },
 
-      resolveWith : function(bus, fn, ctx) {
+      resolve : function(bus, fn, ctx) {
         var self = this,
             ctx = ctx || this.host.$$context
         return Warden.Stream(function(emit){
