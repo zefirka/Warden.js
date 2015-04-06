@@ -1031,14 +1031,14 @@
       },
 
       filterFor : function(fn) {
-        var data = null;
+        var data;
         return process.call(this, function(e, pipe){
           var pipes = {
             get : function(fn){
               return fn ? fn(data) : data;
             },
-            next: function(e){
-              data = e;
+            next: function(e, fn){
+              data = fn ? fn(data, e) : e;
               pipe.next(e);
             },
 
