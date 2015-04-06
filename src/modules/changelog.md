@@ -1,4 +1,9 @@
 #### Global major changes
+`version v.0.3.2`
+  - Fixed `filterFor`
+  - Added tests
+  
+   
 `version: v.0.3.0`
 
   - Removed datatype analyze
