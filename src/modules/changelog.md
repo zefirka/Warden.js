@@ -20,7 +20,7 @@
  - Renamed `resolveWith` to `resolve`
  - Removed `equals` and added this functionality to `filter`
  - Removed `syncFlat`
- - Added `commuteSwitch`
+ - Added `alternately`
 
 ####  Extend module:
 `docs: ./docs/Extend.md`
