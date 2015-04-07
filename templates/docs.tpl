@@ -48,7 +48,7 @@
           <h5>Composing</h5>
           <li><a href="#collectfor">collectFor</a></li>
           <li><a href="#filterfor">filterFor</a></li>
-          <li><a href="#wait">before</a></li>
+          <li><a href="#wait">waitFor</a></li>
           <li><a href="#after">after</a></li>
           <li><a href="#alternately">alternately</a></li>
           <li><a href="#sync">sync</a></li>
@@ -773,15 +773,12 @@ var maxStream =  stream1.combine(stream2, function (first, second){
 <hr class='bhr'>
 <h2 id="collectfor">.collectFor</h2>
 <p class='d-synopsis'>Synopsis: <code>stream1.collectFor(stream2)</code>.</p>
-<p class='d-description'>Description: Takes two streams and resolver function. Returns stream which gives value as a result of resolver function applyied to values of given streams.</p>
+<p class='d-description'>Description: Returns streams which collects all recieved values and transmit all of them as array when <code>stream2</code> evaluetes. </p>
 <h3>Usage:</h3>
-<pre><code class='javascript'>function first(a, b){
-  return a > b ? a : b;
-}
+<pre><code class='javascript'>var keydowns = $(document).stream('keydown'),
+    clicks = $(document).stream('click');
 
-var maxStream =  stream1.combine(stream2, function (first, second){
-  return first > second ? first : second;
-});
+keydowns.collectFor(clicks).log(); // will log array of keydowns after every click
 </code></pre>
 
 <hr>
@@ -816,7 +813,20 @@ var maxStream =  stream1.combine(stream2, function (first, second){
 // this stream quaranties that evaluation of ons will be strongly after offs and offs after ons
 </code></pre>
 
+<hr>
+<h2 id="wait">.waitFor</h2>
+<p class='d-synopsis'>Synopsis: <code>stream1.waitFor(stream2)</code>.</p>
+<p class='d-description'>Description: Return stream which will evaluate only if <code>stream2</code> has been already evaluated strongly before <code>stream1</code>.</p>
 
+<hr>
+<h2 id="after">.after</h2>
+<p class='d-synopsis'>Synopsis: <code>stream1.after(stream2)</code>.</p>
+<p class='d-description'>Description: Return stream which evaluates only after <code>stream2</code> (if it has been evaluated at least once).</p>
+
+<hr>
+<h2 id="sync">.sync</h2>
+<p class='d-synopsis'>Synopsis: <code>stream1.sync(stream2, [stream3, stream4, ... streamN])</code>.</p>
+<p class='d-description'>Description: synchronizes streams. Returns stream which will be evalueted only if all <code>stream1, strem2, ... stremN</code> have been evaluated.</p>
 
     </div>
   </div>
