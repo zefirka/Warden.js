@@ -204,7 +204,7 @@ $(function(){
 
   if(stickyMenu.height() >= wh){
     methods.css({
-      'height' : wh - 60
+      'height' : wh - 90
     });
   }
 
