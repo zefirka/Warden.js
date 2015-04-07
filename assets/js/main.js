@@ -200,11 +200,11 @@ $(function(){
 
 	stickyMenu.sticky({topSpacing: 20});
 
+  var methods = $(".methods");
 
   if(stickyMenu.height() >= wh){
-    stickyMenu.css({
-      'height' : wh - 10,
-      'overflow-y' : 'scroll'
+    methods.css({
+      'height' : wh - 60
     });
   }
 
