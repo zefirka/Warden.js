@@ -369,9 +369,9 @@
 
           _Array.prototype = Object.create(inheritor);
 
-          _Array.prototype.sequentially = function(timeout){
-            var self = this,
-                l = self.length;
+          extend(_Array.prototype, {
+            sequentially : function(timeout){
+            var self = this, l = self.length;
 
             return Warden.Stream(function(fire){
               var i = 0,
@@ -387,11 +387,10 @@
 
               }, timeout);
             });
-          }
+          },
 
-          _Array.prototype.repeatedly = function(){
-            var self = this,
-                l = self.length;
+          repeatedly : function(){
+            var self = this, l = self.length;
 
             return Warden.Stream(function(fire){            
               var i = 0;
@@ -402,6 +401,7 @@
               });            
             });
           }
+        });
 
           each(config.arrays, function(name){
             _Array.prototype[name] = function(){ 

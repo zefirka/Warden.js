@@ -81,8 +81,7 @@ Warden.extend = (function(){
         _Array.prototype = Object.create(inheritor);
 
         _Array.prototype.sequentially = function(timeout){
-          var self = this,
-              l = self.length;
+          var self = this, l = self.length;
 
           return Warden.Stream(function(fire){
             var i = 0,
@@ -101,8 +100,7 @@ Warden.extend = (function(){
         }
 
         _Array.prototype.repeatedly = function(){
-          var self = this,
-              l = self.length;
+          var self = this, l = self.length;
 
           return Warden.Stream(function(fire){            
             var i = 0;
