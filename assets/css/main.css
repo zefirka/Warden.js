@@ -118,7 +118,7 @@ h3 {
 #docs hr.bhr {
   margin: 40px 0;
 }
-#docs .methods {
+.methods {
   overflow-y: scroll;
   overflow-x: hidden;
   padding-left: 20px;
