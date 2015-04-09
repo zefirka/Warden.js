@@ -3,18 +3,19 @@ Warden.extend
 
 Source at: `./src/module/Extend.js`
 
-Usage : `Warden.extend([inheritor], [config])`
+Usage : `Warden.extend([inheritor], [config])` or `Warden([inheritor], [config])`
 
 Description: Extends `inheritor` with `emit()`, `.listen()`, `unlisten()`and `.stream()` methods. And returns extented object. If inheritor is empty than returns extended empty object. Inheritor can be function, object or array.
 
+You can skip `extend` part and just call `Warden` as function.
 
 ## Usage
 
-Extension method is the base method of Warden, that takes objects/constructors/arrays and returns them extended by methods that implements event triggering/listening for Pub/Sub pattern. You can extend simple JS objects, then that object will be transmitter for Pub/Sub or you can extend constructor of objects and then `emit`, `listen`  and `stream` will be methods of prototype. If you extending array then you will get new array item with own Pub/Sub methods ([look here](#with-arrays)).
+Extension method is the base method of Warden, that takes objects/constructors/arrays and returns them extended by methods that implements event triggering/listening for Pub/Sub pattern. You can extend simple JS objects, then that object will be transmitter for Pub/Sub or you can extend constructor of objects and then `emit`, `listen`, `unlisten`  and `stream` will be methods of prototype. If you extending array then you will get new array item with own Pub/Sub methods ([look here](#with-arrays)).
 
 ##### With constructors
 ```js
-var Box = Warden.extend(function Box(){
+var Box = Warden(function Box(){
 	//constructor of box
 	this.addToBox = function(item){
 		var self = this;
@@ -49,7 +50,7 @@ clicks.log("Hey, user clicked to page")
 #### With simple objects
 Than Pub/Sub methods is own properties of object.
 ```js
-var module = Warden.extend({
+var module = Warden({
 	value : 'some value',
 	asyncLol : function(data){
 		var self = this;
@@ -77,7 +78,7 @@ lols.listen(function(event){
 By default array extension allows to listen next methods calls: 'pop', 'push', 'splice', 'reverse', 'shift', 'unshift', 'sort' (only destructing methods). [You can configure it](#arrconfig).
 
 ```js
-var personas = Warden.extend(['Jack', 'Bob', 'Alice']);
+var personas = Warden(['Jack', 'Bob', 'Alice']);
 
 personas.listen('push', function(changes){
 	console.log('To the array was pushed names: ' + changes.data.join(', '));
@@ -87,6 +88,22 @@ personas.push('Fonzee', 'Jane');
 // -> To the array was pushed names: Fonzee, Jane
 
 ```
+
+#### With simple types
+If you try extend simple type value (i.e. string, boolean, number) you will get stream object with have already taken given value. It uses for reactive calculations.
+```js
+var x = Warden(333);
+x * 2 ;
+// -> 666
+x.fire(111); // now x contains 111 as last taken value
+x * 2; 
+// -> 222
+
+var y = Warden(222);
+x + y;
+// -> 444
+```
+To understan how to use streams look at [Streams](https://github.com/zefirka/Warden.js/blob/master/docs/DataBus.md) and [Reactive calculations docs](https://github.com/zefirka/Warden.js/blob/master/docs/Formulas.md);
 
 ### Configuration
 
@@ -182,8 +199,8 @@ var recievedTweets = socket.stream('tweet'),
 
 recievedTweets
 	.map({
-		user : 'author',
-		time : 'timestamp'
+		user : '.author',
+		time : '.timestamp'
 	})
 	.listen(function(data){
 		console.log("@" + data.user + " has been tweeted at " + new Date(data.time));
@@ -191,7 +208,7 @@ recievedTweets
 
 recievedTweets
 	.merge(recievedPosts)
-	.map(['author','type'])
+	.map(['.author','.type'])
 	.listen(function(data){
 		console.log('@'+data[0]+" have made " + data[2]);
 	});
@@ -207,7 +224,7 @@ var userActions = document.stream('click, mousemove, keypress, user:*');
 __Configuration of context:__
 By default context of evaluation is equal object which takes stream.
 ```js
-var module = Warden.extend({
+var module = Warden({
 	foo: 'bar'
 });
 

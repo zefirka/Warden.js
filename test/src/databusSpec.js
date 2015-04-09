@@ -1,4 +1,4 @@
-describe('Warden DataBus methods', function () {  
+describe('Warden Stream methods', function () {  
 	var sync = {
 			contextItem: 'hello context item',
 			contextMethod: function(){

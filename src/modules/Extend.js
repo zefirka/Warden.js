@@ -61,7 +61,7 @@ Warden.extend = (function(){
 
 
     var config = extend({}, defaultConfig, conf || {}), // default configuration
-        inheritor = obj || {}, // final object to extend
+        inheritor = is.exist(obj) ? obj : {}, // final object to extend
         isConstructor = true, //obj is constructor
         names = config.names;
 
@@ -72,6 +72,11 @@ Warden.extend = (function(){
     */
     if(is.fn(obj)){
       inheritor = obj.prototype;
+    }else
+    if(typeof obj !== "object"){
+      var constStream = Warden.Stream().watch();
+      constStream.fire(obj);
+      return constStream;
     }else{
       isConstructor = false;
 

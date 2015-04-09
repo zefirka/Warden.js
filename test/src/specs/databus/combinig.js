@@ -146,8 +146,8 @@ describe('Combining methods ', function () {
 		var host1 = Warden.Host(),
 			host2 = Warden.Host();
 
-		var bus1 = host1.newBus().map(10),
-			bus2 = host2.newBus().map(20),
+		var bus1 = host1.newStream().map(10),
+			bus2 = host2.newStream().map(20),
 			combined = bus1.combine(bus2, function(a,b){
 				return a + b;
 			}, 0).listen(function(res){

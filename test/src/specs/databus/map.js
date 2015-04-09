@@ -33,7 +33,7 @@ describe('.map()', function () {
 		}
 	});
 
-	var totalBus = totalHost.newBus();
+	var totalBus = totalHost.newStream();
 
 	totalBus.map({
 		string: 'string',

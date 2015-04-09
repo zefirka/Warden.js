@@ -5,7 +5,7 @@ describe('Configure', function(){
 			run = fire;
 		});
 		
-	Warden.configure.addToDatabus('first', function(){
+	Warden.configure.addToStream('first', function(){
 		return function(event, pipe){
 			if(Warden.Utils.is.exist(event[0])){
 				pipe.next(event[0])
@@ -15,7 +15,7 @@ describe('Configure', function(){
 		}
 	});
 
-	Warden.configure.addToDatabus('unlazy', function(){
+	Warden.configure.addToStream('unlazy', function(){
 		return function(event, pipe){
 			if(typeof event == 'object'){
 				pipe.next(event.map(function(fn, i){
@@ -27,13 +27,13 @@ describe('Configure', function(){
 		}
 	});
 
-	Warden.configure.addToDatabus('mul', function(val){
+	Warden.configure.addToStream('mul', function(val){
 		return function(event, pipe){
 			pipe.next(event * val);			
 		}
 	});
 
-	Warden.configure.addToDatabus('myMerge', function(bus){
+	Warden.configure.addToStream('myMerge', function(bus){
 		var self = this;
 		return Warden.Stream(function(fire){
 			self.listen(fire);

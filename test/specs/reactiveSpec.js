@@ -1,0 +1,70 @@
+describe('Reactive Programming', function(){
+	var runa, runb;
+
+	var a = Warden.Stream(function(fire){
+		runa = fire;
+	});
+
+	var b = Warden.Stream(function(fire){
+		runb = fire;
+	});
+		
+	
+	it('-- type operating', function(done){
+		var res = 0;
+
+		var x = a.map(10).watch();
+		var y = b.map(20).watch();
+
+
+		runa(); runb();
+
+		expect(+x).toBe(10);
+		expect(+y).toBe(20);
+		expect(x+y).toBe(30);
+		done();
+	});
+
+	it('-- formula: (+)', function(done){
+		var res = 0;
+
+		var cell = Warden.Formula([a, b], function(a, b){
+			return a + b;
+		});
+
+		runa(12); 
+
+		expect(+cell).toBe(12);
+
+		runb(10);
+
+		expect(+cell).toBe(22);
+
+		done();
+	});
+
+	it('-- formula: (from taken)', function(done){
+		var res = 0;
+
+		runa(0);
+		runb(0);
+
+		var cell = Warden.Formula([a, b], function(a, b){
+			return a + b;
+		});
+
+		runa(12); 
+		expect(+cell).toBe(12);
+
+
+		runb(10);
+		expect(+cell).toBe(22);	
+		done();
+	
+
+		
+	});
+
+
+});
+

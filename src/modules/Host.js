@@ -1,6 +1,6 @@
 Warden.Stream = (function(){
-  /* Stream constructor */
-  function Stream(context){
+  /* Host constructor */
+  function Host(context){
     var drive = [], interval;
 
     return {
@@ -8,15 +8,15 @@ Warden.Stream = (function(){
       /* 
         Evaluating the stream with @data 
       */
-      eval : function(data){
+      eval : function(data, ctx){
         each(drive, function(bus){
-          bus.fire(data, context);
+          bus.fire(data, ctx || context);
         });
       },
 
       /* 
         Push into executable drive @bus.
-        Bus is DataBus object.
+        Bus is Stream object.
       */
       push : function(bus){
         drive.push(bus);
@@ -24,17 +24,17 @@ Warden.Stream = (function(){
       },
 
       /*
-        Creates empty DataBus object and hoist it to the current stream
+        Creates empty Stream object and hoist it to the current stream
       */
-      newBus : function(){
-        var bus = new DataBus();
+      newStream : function(){
+        var bus = new Stream();
         bus.host = this;
         return bus;
       }
     };
   }
 
-  Warden.Host = Stream;
+  Warden.Host = Host;
 
   /* 
     Creates stream of @x on context @context;
@@ -44,7 +44,7 @@ Warden.Stream = (function(){
   return function(x, context, strict){
     var stream, xstr, reserved = [], i, bus;    
     context = context || {};  
-    stream = Stream(context);
+    stream = Host(context);
 
     if(is.fn(x)){
 
@@ -65,12 +65,12 @@ Warden.Stream = (function(){
         });    
       }
 
-      x.call(context, function(expectedData){
-        stream.eval(expectedData);
+      x.call(context, function(expectedData, ctx){
+        stream.eval(expectedData, ctx);
       });  
     }
 
-    bus = new DataBus();
+    bus = new Stream();
     bus.host = stream;
     return bus;
   };

@@ -1,40 +1,39 @@
-Streams as DataBuses
+Stream
 =========
 
-Source at: `./src/modules/DataBus.js` : DataBUs module
+Source at: `./src/modules/Stream.js` : Stream module
 Source of pipeline `./src/modules/Pipeline.js`
 
-
 Create :
- - `object.stream(type, [context])` - Creates an event stream and returns associated data bus,
- - `Warden.Stream([creator], [context], [strict])` - creates a simple stream,
- - `Warden.Host([context]).newBus()` - Creates data bus associated with given host.
+ - `object.stream(type, [context])` - Creates an event stream
+ - `Warden.Stream([creator], [context], [strict])` - creates a custom stream
+ - `Warden.Host([context]).newStream()` - Creates stream associated with given host.
 
 Usage:
- - `bus[methodName]([params])[methodName]([params])...` - Chain of methods.
+ - `stream[methodName]([params])[methodName]([params])...` - Chain of methods
+ - `streamA + streamB` - operations which calls `.valueOf` (returns last taken value of stream)
 
 ## Concept
-Each source of data can host data buses (e.g. streams), each one of them represent a pipeline for data which we take from source. When stream evaluated (takes data from event/callback/timer/etc) all associated data buses evaluating too. Data buses is the simple roads of your application could take and process data. With composing methods of data buses you can declare behavior of your application. All data buses are immutable. It means that every method (except .listen, .toggle and .log) of data bus returns new data bus inherited from given, so you can implement side-effects and don't worry about state. Like in functional languages real state incapsulated into call stack, there real state incapsulated into data bus processor stack.
-
+Each source of data can host stream, each one of them represent a pipeline for data which we take from source. When host evaluates (takes data from event/callback/timer/etc) all associated stream evaluating too. Streams are the simple roads of your application, with them  you could take and process data through time and avoid troubles of asynchronious programming. With composing methods of streams you can declare behavior of data flow. Most of stream methods (except subsribing and handling side-effects) return new stream object inherited from given.Like in functional languages real state incapsulated into call stack, real state in Warden incapsulated into stream processor stack.
 
 ## Firing and side-effects
-Actualy, you can process data in data bus by pure functions because every processing method like `map` or `reduce` returns new data bus object inherited from current. Finally you can process side-effects in methods [`.listen`](#listen-fn) and [`.toggle`](#toggle-fn). Combining, merging and conjuncting data buses you can cover any side-effect you want. Side-effect methods doesn't create new data bus, they return that data bus from which was called.
+You can process data in streams by pure functions because every processing method like `map` or `reduce` returns new stream object inherited from current. At the end you need to make side-effects. Methods [`.listen`](#listen-fn) , [`bindTo`](#bindto) and [`.toggle`](#toggle-fn) are developed for that. By combining, merging and conjuncting streams you can cover any side-effect you want. Side-effect methods doesn't create new stream.
 
 # Methods
 
 Let's prepare something for examples.
 
 ```js
-Warden.extend(document);
+Warden(document);
 
 var clicks = document.stream('click'),
     keydowns = document.stream('keydown'),
     mousemoves = document.stream('mousemove'),
-    ticks = Warden.makeStream(function(emit){
+    ticks = Warden.Stream(function(emit){
       setInterval(function(){
         emit('TICK!');
       }, 1000)
-    }).bus();
+    });
 ```
 
 ## Side-effects
@@ -47,7 +46,7 @@ This functions
       ticks.log('Hello World!'); // -> Hello World! (every second)
     ```
 
-  - <a href="#listen-fn"></a>`listen(callback)` - handled `callback` to the data bus.
+  - <a href="#listen-fn"></a>`listen(callback)` - handled `callback` to stream
 
     ```js
       clicks.listen(function(event){
@@ -55,20 +54,20 @@ This functions
       });
     ```
 
-  - <a href="toggle-fn"></a>`toggle(onFn, offFn)` - puts two functions to the data bus pipe and calls them one after one every time bus is firing.
+  - <a href="toggle-fn"></a>`toggle(onFn, offFn)` - calls given functions alernately one after other when stream is firing.
 
     ```js
       var emitted = 0;
       clicks.toggle(
         function(){
-          console.log('ODD', emitted++);
+          console.log('ODD');
         },
         function(){
-          console.log('EVEN', emitted++);
-        }).log();
+          console.log('EVEN');
+        });
     ```
 
-  - `bindTo` - binds transmitted value of event. Look at [Binding](https://github.com/zefirka/Warden.js/blob/master/docs/Bind.md)
+  - `bindTo` - binds transmitted value. Result depends on arguments signature. Look at [Binding](https://github.com/zefirka/Warden.js/blob/master/docs/Bind.md)
 
 ## Processing
 
@@ -76,7 +75,7 @@ You can see result just logging these buses with [`.log()`](#log-fn) method.
 
 
   - #### map
-      `.map(proc)` - mapping data bus
+      `.map(proc)` - mapping stream
 
       - With functions:
 
@@ -137,6 +136,9 @@ You can see result just logging these buses with [`.log()`](#log-fn) method.
             y: '.clientY',
             ctx: '@',
             event: '.'
+            deep: '.a.b.c'
+            fn: '.fn("arg")',
+            deepInContext: '@a.b.c()'
           })// equals to
 
           clicks.map(function(e){
@@ -144,11 +146,13 @@ You can see result just logging these buses with [`.log()`](#log-fn) method.
               x: e.clientX,
               y: e.clientY,
               ctx: this,
-              event: e
+              event: e,
+              deep: e.a.b.c,
+              fn: e.fn("arg"),
+              deepInContext: this.a.b.c()
             }
           })
         ```
-
   - #### get
       `get(route)` transmits event's property in "path/to" notatation
 
@@ -163,8 +167,9 @@ You can see result just logging these buses with [`.log()`](#log-fn) method.
           return event.path.to.object[3].or[0];
         })
       ```
+      
   - #### reduce
-    `reduce([initial], fn)` -if `initial` skiped, then initial value will be first taken value of data bus
+    `reduce([initial], fn)` -if `initial` skiped, then initial value will be first taken value of stream
     ```js
         clicks.map('.clientX').reduce(function(a, b){
           return a + b;
@@ -229,7 +234,7 @@ You can see result just logging these buses with [`.log()`](#log-fn) method.
       ```
 
 ## Timing
-  - `debounce(miliseconds)` - debouncing transmission of bus for given time in ms. It means that if there was events emitted during given interval then data bus will transmit only last.
+  - `debounce(miliseconds)` - debouncing transmission of stream for given time in ms. It means that if there was events emitted during given interval then stream will transmit only last.
       ```js
         keydowns.map('.keyCode').map(String.fromCharCode).debouce(1000).log();
         // press a lot of keys
@@ -243,7 +248,7 @@ You can see result just logging these buses with [`.log()`](#log-fn) method.
         // -> logs all of their's chars as array
       ```
 
-  - `collectFor(bus)` - collecting all events and flush them when `bus` is fired
+  - `collectFor(stream)` - collecting all events and flush them when `stream` is fired
       ```js
       keydowns.map('.keyCode').map(String.fromCharCode).collectFor(clicks).log();
       // press a lot of keys and after it click on document
@@ -256,14 +261,14 @@ You can see result just logging these buses with [`.log()`](#log-fn) method.
 
 ## Composing
   - #### merge
-    `merge(bus1, [bus2] ... [busN])` - merges buses with current. Returns new bus (inheritance loses).
+    `merge(stream1, [stream2, ... streamN])` - merges stream with current. Returns new stream (inheritance loses).
     ```js
       var userActions = clicks.merge(keydowns, mousemoves);
       userActions.log('User have made something on document');
     ```
 
   - #### sync
-    `sync(bus1, [bus2] ... [busN])` - syncing buses with current (inheritance loses)
+    `sync(stream1, [stream2, ... streamN])` - syncing streams with current (inheritance loses)
     ```js
       var synced = clicks.sync(keydowns, mousemoves);
       synced.log();
@@ -272,14 +277,14 @@ You can see result just logging these buses with [`.log()`](#log-fn) method.
     ```
 
   - #### after and waitFor
-    `after(bus)` - return bus that fires only if `bus` was fired before
+    `after(stream)` - return stream that fires only if `stream` was fired before
 
-    `waitFor(bus)` - return bus that fires when `bus` firing and only if current bus was already fired
+    `waitFor(stream)` - return stream that fires when `stream` firing and only if current stream was already fired
 
-    `alternately(bus)` - return bus that fires alternately first given stream after `bus`
+    `alternately(stream)` - return stream that fires alternately first given stream after `stream`
 
   - #### combine and resolve
-    `combine(bus, fn, seed)` - return bust that emits combined with given function events with current last and given bus' last event
+    `combine(stream, fn, seed)` - return stream that emits combined with given function events with current last and given stream' last event
       ```js
       var xs = clicks.map('.clientX'),
           ys = clicks.map('.clientY');
@@ -289,19 +294,22 @@ You can see result just logging these buses with [`.log()`](#log-fn) method.
       }, 0).log();
       ```
 
-    `resolve(bus, fn)` - resolve one event by function `fn` which gives two arguments: first is data from current bus, second is data from second bus;
+    `resolve(stream, fn)` - resolve one event by function `fn` which gives two arguments: first is data from current stream, second is data from second stream;
       ```js
       clicks.resolve(keydowns, function(e1, e2){
         return e1.timeStamp > e2.timeStamp ? {event: 'keydown'} : {event: 'click'};
       }).interpolate("{{event}} was first").log()
       ```
 
+## Locking/Unlocking
+  -  `swap(state)` - locks or unlocks stream
+
 ## Properties
 
- - `data` - collected data. It's object contains properties: `fires`, - array of fired events on bus, `takes` - array of taken events of bus, `last` - last taken value
- - `parent` - parent bus
- - `children` - array of children buses
+ - `data` - collected data. It's object contains properties: `fires`, - array of fired events on stream, `takes` - array of taken events of stream, `last` - last taken value
+ - `parent` - parent stream
+ - `children` - array of children streams
 
 ## Other
-  `bus.watch()` - method that makes your bus observable
-  `bus.bindTo` - [data binding](https://github.com/zefirka/Warden.js/blob/master/docs/Bind.md)
+  `stream.watch()` - method that makes your stream observable
+  `stream.bindTo` - [data binding](https://github.com/zefirka/Warden.js/blob/master/docs/Bind.md)

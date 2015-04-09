@@ -35,12 +35,6 @@ function filter(arr, fn){
   return filtered;
 }
 
-function heach(coll, fn){
-  for(var i in coll){ 
-    fn(coll[i], i);
-  }
-}
-
 function reduce(arr, fn){
   var res = arr[0];
   for(var i=1,l=arr.length;i<l;i++){
@@ -242,7 +236,7 @@ Utils = {
           oldpush = res.push;
       
       res.last = function(){
-        return res[res.length-1];
+        return res[res.length-1] || null;
       };
       
       res.push = function(x){

@@ -2,6 +2,12 @@
 `version v.0.3.2`
   - Fixed `filterFor`
   - Added tests
+  - Added `valueOf` for DataBus which refers to the last taken data
+  - Added `Warden.Formula`
+  - Added `Warden.From`
+  - Added configureable Data Bus values history (3 by default)
+  - Renamed internal modules `DataBus` to `Stream`
+  - Added `.stream` method to Streams objects, now `Bus` is deprecated
   
    
 `version: v.0.3.0`

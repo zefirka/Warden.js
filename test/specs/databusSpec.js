@@ -1,4 +1,4 @@
-describe('Warden DataBus methods', function () {  
+describe('Warden Stream methods', function () {  
 	var sync = {
 			contextItem: 'hello context item',
 			contextMethod: function(){
@@ -188,7 +188,7 @@ describe('Warden DataBus methods', function () {
 			}
 		});
 
-		var totalBus = totalHost.newBus();
+		var totalBus = totalHost.newStream();
 
 		totalBus.map({
 			string: 'string',
@@ -997,8 +997,8 @@ describe('Warden DataBus methods', function () {
 			var host1 = Warden.Host(),
 				host2 = Warden.Host();
 
-			var bus1 = host1.newBus().map(10),
-				bus2 = host2.newBus().map(20),
+			var bus1 = host1.newStream().map(10),
+				bus2 = host2.newStream().map(20),
 				combined = bus1.combine(bus2, function(a,b){
 					return a + b;
 				}, 0).listen(function(res){
@@ -1226,7 +1226,7 @@ describe('Warden DataBus methods', function () {
           test : 'exists'
         });  
         
-    	it('-- DataBus execution Context', function(done){
+    	it('-- Stream execution Context', function(done){
           var busMod = module.stream('sync');
           var busBinded = module.stream('sync', Context); 
           
@@ -1248,7 +1248,7 @@ describe('Warden DataBus methods', function () {
           done();
         });
       
-      	it('-- DataBus methods context', function(done){
+      	it('-- Stream methods context', function(done){
           var bus = module.stream('sync', Context); 
           
           var executed = {};

@@ -25,7 +25,7 @@ Module at:
 		</ul>
 	</li>
 	<li>
-		<code>Utils.is.not</code> [Object] (similiar to <code>Utils.is</code> but negate all results)
+		<code>.not</code> returns predicate that negates given predicate
 	</li>
 	<li>
 		Array methods which implements ECMAScript5 methods as:
@@ -34,8 +34,9 @@ Module at:
 				<li><code>.map</code></li>
         <li><code>.reduce</code></li>
 				<li><code>.filter</code></li>
+				<li><code>.reduce</code></li>
 				<li><code>.forWhile</code> (similiar to forEach, but takes last argument as value to prevent loop if applied function returns that value </li>
-				<li><code>.any</code></li>
+				<li><code>.every</code></li>
 				<li><code>.some</code></li>
 
 			</ul>

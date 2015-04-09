@@ -1,4 +1,4 @@
-var DataBus = (function(){
+var Stream = (function(){
   var handlers = {},
       pipes = {};
 
@@ -8,7 +8,7 @@ var DataBus = (function(){
     return child;
   }
 
-  /* Clones databus */
+  /* Clones Stream */
   function process(p){
     var pipe = pipes[this.$$id],
         newPipe = [],
@@ -19,12 +19,13 @@ var DataBus = (function(){
     });
     newPipe.push(p);
 
-    nbus = new DataBus(newPipe);
+    nbus = new Stream(newPipe);
     nbus.host = this.host;
     return inheritFrom(nbus, this);
   }
 
-  function DataBus(line){
+  function Stream(line){
+    var max = Warden.configure.history;
     this.$$id = Utils.$hash.set('d')
     this.parent = null;
     this.children = [];
@@ -32,17 +33,20 @@ var DataBus = (function(){
     pipes[this.$$id] = Pipeline(line || [], this);
 
     this.data = {
-      fires : new Utils.Queue(3),
-      takes : new Utils.Queue(3),
+      fires : new Utils.Queue(max),
+      takes : new Utils.Queue(max),
       last : null
     };   
 
+    this.valueOf = function(e){
+      return this.data.takes.last();
+    }
+
   }
 
-  Utils.extend(DataBus.prototype, {
+  Utils.extend(Stream.prototype, {
     bindTo : function() {
       var binding = Warden.Watcher.apply(null, [this].concat(toArray(arguments)));
-      this.bindings.push(binding);
       return binding;
     },
 
@@ -58,7 +62,7 @@ var DataBus = (function(){
       pipes[id].start(data, context, function(result){
         self.data.takes.push(result); // pushing taked data to @takes queue
 
-        /* Executing all handlers of this DataBus */
+        /* Executing all handlers of this Stream */
         each(handlers[id], function(handler){
           handler.call(context, result);
         });
@@ -67,9 +71,9 @@ var DataBus = (function(){
     },
 
     /*
-      Binds a handler @x (if @x is function) or function that logging @x to console (if @x is string) to the current DataBus
+      Binds a handler @x (if @x is function) or function that logging @x to console (if @x is string) to the current Stream
 
-      This function don't create new DataBus object it just puts to the current data bus
+      This function don't create new Stream object it just puts to the current data bus
       object's handlers list new handler and push it's to the executable pipe of hoster stream
     */
     listen : function(x){
@@ -117,7 +121,7 @@ var DataBus = (function(){
     },
 
     /*
-      Filtering recieved data and preventing transmitting through DataBus if @x(event) is false
+      Filtering recieved data and preventing transmitting through Stream if @x(event) is false
     */
     filter : function(x) {
       if(is.fn(x)){
@@ -474,7 +478,7 @@ var DataBus = (function(){
         });
       });      
 
-      return inheritFrom(host.newBus(), this);
+      return inheritFrom(host.newStream(), this);
     },
 
     alternately : function(bus){
@@ -573,9 +577,13 @@ var DataBus = (function(){
     },
 
     bus: function(){
-      var bus = new DataBus();
+      var bus = new Stream();
       bus.host = this.host;
       return bus;
+    },
+
+    stream: function(){
+      return this.bus();
     },
     
     swap : function(state){
@@ -590,7 +598,7 @@ var DataBus = (function(){
     },
     
     toggleOn: function(bus, state){
-      if(bus instanceof DataBus){
+      if(bus instanceof Stream){
         bus.listen(function(){
           bus.swap(state);
         });
@@ -625,8 +633,8 @@ var DataBus = (function(){
     }
   })
 
-  Warden.configure.addToDatabus = function(name, fn, piped){
-    DataBus.prototype[name] = function() {
+  Warden.configure.addToStream = function(name, fn, piped){
+    Stream.prototype[name] = function() {
       var self = this,
           argv = arguments;
       if(!piped){
@@ -638,8 +646,8 @@ var DataBus = (function(){
   }
 
   Warden.configure.isStream = function(e){
-    return (e instanceof DataBus);
+    return (e instanceof Stream);
   }
 
-  return DataBus;
+  return Stream;
 })();

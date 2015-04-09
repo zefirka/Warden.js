@@ -7,7 +7,7 @@ describe('Context saving', function () {
       test : 'exists'
     });  
     
-	it('-- DataBus execution Context', function(done){
+	it('-- Stream execution Context', function(done){
       var busMod = module.stream('sync');
       var busBinded = module.stream('sync', Context); 
       
@@ -29,7 +29,7 @@ describe('Context saving', function () {
       done();
     });
   
-  	it('-- DataBus methods context', function(done){
+  	it('-- Stream methods context', function(done){
       var bus = module.stream('sync', Context); 
       
       var executed = {};

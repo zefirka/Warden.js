@@ -12,48 +12,28 @@
 })(this, function(){
   'use strict';
   var Warden = function(a, b){
-    return Warden.extend(a||{}, b);
+    return Warden.extend(is.exist(a) ? a : {}, b);
   }
   var jQueryInited = typeof jQuery != "undefined";
 
   Warden.version = "0.3.0";
   Warden.configure = {
+    history : 3,
     cmp : function(x,y){ return x === y; }
   };
 
 
   include "Utils.js"
-
-  /*
-    Globals:
-      Warden.extend
-  */
+  
   include "Extend.js"
 
-  /*
-    Globals:
-      Pipeline
-  */
   include "Pipeline.js"
 
-  /*
-    Globals:
-      Warden.makeStream
-  */
-  include "Streams.js"
+  include "Host.js"
 
-  /*
-    Globals:
-      DataBus
-  */
-  include "DataBus.js"
+  include "Stream.js"
 
-  /*
-    Globals:
-      Warden.watcher
-  */
   include "Watcher.js"
-
 
   include "Plugins.js"
   

@@ -6,17 +6,17 @@ Small declarative library for event-driven development in functional reactive st
 
 ## Concept
 
-Warden.js provides instruments to make development of event-driven applications easy. It requires no dependencies. It comes with no outer plugins for jQuery or Node.js.
+Warden.js provides instruments to make development of event-driven applications easy. General idea of Warden.js that to make composing, combining and resolving concurrent events simpler. In mathematical sense, idea that to change your app's events representation from tree of states to the partially ordered set in time (or other) priority relation.
 
-General idea of Warden.js that to make composing, combining and resolving concurrent events simpler. In mathematical sense, idea that to change your app's events representation from tree of states to the partially ordered set in time (or other) priority relation.
-
-Warden.js is not pure functional library. It's trade-off between pure FRP and traditional event-driven development.
+Warden.js is not pure functional library. It's trade-off between pure FRP and traditional event-driven development. It's good solution for ready event-driven applications. If you don't want to think how to construct app with true functional practices from start or/and you already have partially ready app then you can try Warden to make you life easy.
 
 ## Documentation
-  - [Including Pub/Sub](https://github.com/zefirka/Warden.js/blob/master/docs/Extend.md)
+  - [Pub/Sub](https://github.com/zefirka/Warden.js/blob/master/docs/Extend.md)
   - [Creating streams](https://github.com/zefirka/Warden.js/blob/master/docs/Streams.md)
-  - [Using streams](https://github.com/zefirka/Warden.js/blob/master/docs/DataBus.md)
+  - [Using streams](https://github.com/zefirka/Warden.js/blob/master/docs/Stream.md)
+  - [Hosting streams](https://github.com/zefirka/Warden.js/blob/master/docs/Host.md)
   - [Binding data](https://github.com/zefirka/Warden.js/blob/master/docs/Bind.md)
+  - [Reactive calculations](https://github.com/zefirka/Warden.js/blob/master/docs/Formulas.md)
 
 ## Why Warden.js?
 

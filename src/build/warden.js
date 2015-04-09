@@ -12,12 +12,13 @@
 })(this, function(){
   'use strict';
   var Warden = function(a, b){
-    return Warden.extend(a||{}, b);
+    return Warden.extend(is.exist(a) ? a : {}, b);
   }
   var jQueryInited = typeof jQuery != "undefined";
 
   Warden.version = "0.3.0";
   Warden.configure = {
+    history : 3,
     cmp : function(x,y){ return x === y; }
   };
 
@@ -57,12 +58,6 @@
       }
     });
     return filtered;
-  }
-
-  function heach(coll, fn){
-    for(var i in coll){ 
-      fn(coll[i], i);
-    }
   }
 
   function reduce(arr, fn){
@@ -266,7 +261,7 @@
             oldpush = res.push;
         
         res.last = function(){
-          return res[res.length-1];
+          return res[res.length-1] || null;
         };
         
         res.push = function(x){
@@ -282,11 +277,7 @@
     }
 
     Warden.Utils = Utils;
-
-  /*
-    Globals:
-      Warden.extend
-  */
+  
   /* This methods extends @obj which can be function, object or array with Warden.js methods .emit(), .listen(), .unlisten() and .stream() */
   Warden.extend = (function(){
     var nativeListener = "addEventListener",
@@ -350,7 +341,7 @@
 
 
       var config = extend({}, defaultConfig, conf || {}), // default configuration
-          inheritor = obj || {}, // final object to extend
+          inheritor = is.exist(obj) ? obj : {}, // final object to extend
           isConstructor = true, //obj is constructor
           names = config.names;
 
@@ -361,6 +352,11 @@
       */
       if(is.fn(obj)){
         inheritor = obj.prototype;
+      }else
+      if(typeof obj !== "object"){
+        var constStream = Warden.Stream().watch();
+        constStream.fire(obj);
+        return constStream;
       }else{
         isConstructor = false;
 
@@ -369,8 +365,7 @@
 
           _Array.prototype = Object.create(inheritor);
 
-          extend(_Array.prototype, {
-            sequentially : function(timeout){
+          _Array.prototype.sequentially = function(timeout){
             var self = this, l = self.length;
 
             return Warden.Stream(function(fire){
@@ -387,9 +382,9 @@
 
               }, timeout);
             });
-          },
+          }
 
-          repeatedly : function(){
+          _Array.prototype.repeatedly = function(){
             var self = this, l = self.length;
 
             return Warden.Stream(function(fire){            
@@ -401,7 +396,6 @@
               });            
             });
           }
-        });
 
           each(config.arrays, function(name){
             _Array.prototype[name] = function(){ 
@@ -521,10 +515,6 @@
     };
   })();
 
-  /*
-    Globals:
-      Pipeline
-  */
   function Pipeline(proc, host){
     var processes = proc || [], locked = 0, i = 0,
 
@@ -598,13 +588,9 @@
 
   Warden.Pipeline = Pipeline
 
-  /*
-    Globals:
-      Warden.makeStream
-  */
   Warden.Stream = (function(){
-    /* Stream constructor */
-    function Stream(context){
+    /* Host constructor */
+    function Host(context){
       var drive = [], interval;
 
       return {
@@ -612,15 +598,15 @@
         /* 
           Evaluating the stream with @data 
         */
-        eval : function(data){
+        eval : function(data, ctx){
           each(drive, function(bus){
-            bus.fire(data, context);
+            bus.fire(data, ctx || context);
           });
         },
 
         /* 
           Push into executable drive @bus.
-          Bus is DataBus object.
+          Bus is Stream object.
         */
         push : function(bus){
           drive.push(bus);
@@ -628,17 +614,17 @@
         },
 
         /*
-          Creates empty DataBus object and hoist it to the current stream
+          Creates empty Stream object and hoist it to the current stream
         */
-        newBus : function(){
-          var bus = new DataBus();
+        newStream : function(){
+          var bus = new Stream();
           bus.host = this;
           return bus;
         }
       };
     }
 
-    Warden.Host = Stream;
+    Warden.Host = Host;
 
     /* 
       Creates stream of @x on context @context;
@@ -648,7 +634,7 @@
     return function(x, context, strict){
       var stream, xstr, reserved = [], i, bus;    
       context = context || {};  
-      stream = Stream(context);
+      stream = Host(context);
 
       if(is.fn(x)){
 
@@ -669,12 +655,12 @@
           });    
         }
 
-        x.call(context, function(expectedData){
-          stream.eval(expectedData);
+        x.call(context, function(expectedData, ctx){
+          stream.eval(expectedData, ctx);
         });  
       }
 
-      bus = new DataBus();
+      bus = new Stream();
       bus.host = stream;
       return bus;
     };
@@ -682,11 +668,7 @@
 
   Warden.makeStream = Warden.Stream
 
-  /*
-    Globals:
-      DataBus
-  */
-  var DataBus = (function(){
+  var Stream = (function(){
     var handlers = {},
         pipes = {};
 
@@ -696,7 +678,7 @@
       return child;
     }
 
-    /* Clones databus */
+    /* Clones Stream */
     function process(p){
       var pipe = pipes[this.$$id],
           newPipe = [],
@@ -707,12 +689,13 @@
       });
       newPipe.push(p);
 
-      nbus = new DataBus(newPipe);
+      nbus = new Stream(newPipe);
       nbus.host = this.host;
       return inheritFrom(nbus, this);
     }
 
-    function DataBus(line){
+    function Stream(line){
+      var max = Warden.configure.history;
       this.$$id = Utils.$hash.set('d')
       this.parent = null;
       this.children = [];
@@ -720,17 +703,20 @@
       pipes[this.$$id] = Pipeline(line || [], this);
 
       this.data = {
-        fires : new Utils.Queue(3),
-        takes : new Utils.Queue(3),
+        fires : new Utils.Queue(max),
+        takes : new Utils.Queue(max),
         last : null
       };   
 
+      this.valueOf = function(e){
+        return this.data.takes.last();
+      }
+
     }
 
-    Utils.extend(DataBus.prototype, {
+    Utils.extend(Stream.prototype, {
       bindTo : function() {
         var binding = Warden.Watcher.apply(null, [this].concat(toArray(arguments)));
-        this.bindings.push(binding);
         return binding;
       },
 
@@ -746,7 +732,7 @@
         pipes[id].start(data, context, function(result){
           self.data.takes.push(result); // pushing taked data to @takes queue
 
-          /* Executing all handlers of this DataBus */
+          /* Executing all handlers of this Stream */
           each(handlers[id], function(handler){
             handler.call(context, result);
           });
@@ -755,9 +741,9 @@
       },
 
       /*
-        Binds a handler @x (if @x is function) or function that logging @x to console (if @x is string) to the current DataBus
+        Binds a handler @x (if @x is function) or function that logging @x to console (if @x is string) to the current Stream
 
-        This function don't create new DataBus object it just puts to the current data bus
+        This function don't create new Stream object it just puts to the current data bus
         object's handlers list new handler and push it's to the executable pipe of hoster stream
       */
       listen : function(x){
@@ -805,7 +791,7 @@
       },
 
       /*
-        Filtering recieved data and preventing transmitting through DataBus if @x(event) is false
+        Filtering recieved data and preventing transmitting through Stream if @x(event) is false
       */
       filter : function(x) {
         if(is.fn(x)){
@@ -1162,7 +1148,7 @@
           });
         });      
 
-        return inheritFrom(host.newBus(), this);
+        return inheritFrom(host.newStream(), this);
       },
 
       alternately : function(bus){
@@ -1261,9 +1247,13 @@
       },
 
       bus: function(){
-        var bus = new DataBus();
+        var bus = new Stream();
         bus.host = this.host;
         return bus;
+      },
+
+      stream: function(){
+        return this.bus();
       },
       
       swap : function(state){
@@ -1278,7 +1268,7 @@
       },
       
       toggleOn: function(bus, state){
-        if(bus instanceof DataBus){
+        if(bus instanceof Stream){
           bus.listen(function(){
             bus.swap(state);
           });
@@ -1313,8 +1303,8 @@
       }
     })
 
-    Warden.configure.addToDatabus = function(name, fn, piped){
-      DataBus.prototype[name] = function() {
+    Warden.configure.addToStream = function(name, fn, piped){
+      Stream.prototype[name] = function() {
         var self = this,
             argv = arguments;
         if(!piped){
@@ -1326,16 +1316,12 @@
     }
 
     Warden.configure.isStream = function(e){
-      return (e instanceof DataBus);
+      return (e instanceof Stream);
     }
 
-    return DataBus;
+    return Stream;
   })();
 
-  /*
-    Globals:
-      Warden.watcher
-  */
   Warden.Watcher = function(){
   	var argv = Utils.toArray(arguments).slice(1,arguments.length),
   		argc = argv.length,
@@ -1388,7 +1374,6 @@
   	}
   };
 
-
   Warden.Worker = function(adr){
     adr = adr.slice(-3) == '.js' ? adr : adr + '.js';
     var worker = new Worker(adr); 
@@ -1398,7 +1383,7 @@
     }
     stream.post = worker.postMessage;
     stream.onmessage = worker.onmessage
-    return stream.newBust();
+    return stream.newStreamt();
   }
 
   Warden.Observe = function(obj){
@@ -1407,10 +1392,86 @@
       Object.observe(obj, function(){
         stream.eval.apply(obj, arguments);
       })
-      return stream.newBus();
+      return stream.newStream();
     }else{
       throw "This browser doesn't implement Object.observe"
     }
+  }
+
+  Warden.Formula = function(deps, formula, context){
+    var toCheck = false;
+    var res = Warden.Stream(function(update){
+      var self = this;
+      each(deps, function(stream){
+        stream.listen(function(value){
+          update(formula.apply(self, deps));
+        });
+
+        if(toCheck || stream.valueOf()){
+          toCheck = true;
+        }
+
+      });
+    }, context).watch();
+
+    if(toCheck){
+      setTimeout(function(){
+        res.fire(formula.apply(context, deps));
+      });
+    }
+
+    return res;
+  }
+
+  Warden.From = function(source){
+    var checkObject;
+
+    var run;
+
+    var str = Warden.Stream(function(fire){
+      run = fire;
+    }).map('@value').watch();
+
+    function sp(i){
+      if("INPUT TEXTAREA".indexOf(i.tagName) >=0){
+        i.addEventListener("keyup", function(data){
+          run(data, this);
+        });
+      }
+      if("SELECT".indexOf(i.tagName) >=0){
+        i.addEventListener("change", function(data){
+          run(data, this);
+        }); 
+      }
+      run(i.value, i);
+    }
+
+    if(typeof source == 'string'){
+      if(jQueryInited){
+        source = $(source);
+      }else{
+        source = document.querySelectorAll(source);
+      }
+    }
+
+    if(source.length){
+        each(source, sp);
+    }else{
+      if(jQueryInited && source instanceof jQuery){
+        sp(source[0])
+      }else{
+        sp(source);
+      }
+    }
+    
+
+    var argv = toArray(arguments).slice(1);
+
+    each(argv, function(fun){
+      str = str.map(fun);
+    });
+
+    return str;
   }
   
 
