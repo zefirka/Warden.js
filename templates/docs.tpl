@@ -53,7 +53,7 @@
           <li><a href="#alternately">alternately</a></li>
           <li><a href="#sync">sync</a></li>
 
-          <h5>Blocking</h5>
+          <h4>States</h4>
           <li><a href="#swap">swap</a></li>
           <li><a href="#toggleon">toggleOn</a></li>
           <li><a href="#lock">lock</a></li>
@@ -62,21 +62,19 @@
           <li><a href="#ulockt">unockThis</a></li>
           <li><a href="#after">watch</a></li>
 
-          <h5>Arrays</h5>
+          <h4>Arrays</h4>
           <li><a href="#extarr">Extend Arrays</a></li>
           <li><a href="#sequentially">sequentially</a></li>
           <li><a href="#repeatedly">repeatedly</a></li>
 
-          <h5>Configure</h5>
-          <li><a href="#wait">comparsion</a></li>
-          <li><a href="#collectfor">extend DataBus</a></li>
-          <li><a href="#datastr">stream memory</a></li>        
-
-          <h4>Plugins</h4>
-          <li><a href="#sync">Warden.Host</a></li>
-          <li><a href="#flatMap">Warden.Worker</a></li>
-          <li><a href="#after">Warden.Observe</a></li>
-          <li><a href="#sync">Warden.Pipeline</a></li>
+          <h4>Plugins and Config</h4>
+          <li><a href="#config">Warden.configure</a></li>
+          <li><a href="#host">Warden.Host</a></li>
+          <li><a href="#worker">Warden.Worker</a></li>
+          <li><a href="#observe">Warden.Observe</a></li>
+          <li><a href="#pipeline">Warden.Pipeline</a></li>
+          <li><a href="#formula">Warden.Formula</a></li>
+          <li><a href="#from">Warden.From</a></li>
         </ul>
       </div>
     </div>
@@ -827,6 +825,18 @@ keydowns.collectFor(clicks).log(); // will log array of keydowns after every cli
 <h2 id="sync">.sync</h2>
 <p class='d-synopsis'>Synopsis: <code>stream1.sync(stream2, [stream3, stream4, ... streamN])</code>.</p>
 <p class='d-description'>Description: synchronizes streams. Returns stream which will be evalueted only if all <code>stream1, strem2, ... stremN</code> have been evaluated.</p>
+
+
+<hr class='bhr'>
+<h2 id="swap">.swap</h2>
+<p class='d-synopsis'>Synopsis: <code>stream.swap(state)</code>.</p>
+<p class='d-description'>Description: Swaps stream's state.</p>
+
+<h2 id="toggleon">.toggleOn</h2>
+<p class='d-synopsis'>Synopsis: <code>stream.toggleOn(stream2)</code>.</p>
+<p class='d-description'>Description: Swaps stream's state.</p>
+
+
 
     </div>
   </div>
