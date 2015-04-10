@@ -10,11 +10,13 @@
 		</div>
 
 		<h2>Functional Reactive Programming</h2>
-		<p>Functional reacitve programming brings declarative style into EDD applications by represeting events as sources of data. You implement events processing as processing streams of data, combining and composing them.</p> 
+		<p>ФРП предлагает решение проблемы через функциональный подход. Ключевой составляющей является события - как источники данных, чистые функции - как обработчики, распространение изменений - как механизм обновления состояния.</p>
 		<div class='g-img-container'>
 			<img src="assets/images/frpstreams.png">
 		</div>
 		<h2>Trade-off</h2>
+		<p>К сожалению, у нас не всегда есть возможность использовать FRP.</p>
+		
 	</div>
 </div>
 <div class='row'>
@@ -24,5 +26,12 @@
 	</div>
 	<div class='g-img-container col-md-6 col-lg-6 col-xs-12 col-sm-12'>
 		<p>В Warden.js предоставлена возможность создавать модули, которые инкапсулируют внутри себя изменяемое состояние. Единственным условием, что внутренние функции компонента не должны изменять состояния других систем или внешнего состояния.</p>
+	</div>
+</div>
+<div class='row'>
+	<div class='com-md-12 col-lg-12 col-sm-12 col-xs-12'>
+		<div class='g-img-container'>
+			<img src="assets/images/dom.png">
+		</div>
 	</div>
 </div>
