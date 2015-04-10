@@ -12,7 +12,7 @@
 		<h2>Functional Reactive Programming</h2>
 		<p>Functional reacitve programming brings declarative style into EDD applications by represeting events as sources of data. You implement events processing as processing streams of data, combining and composing them.</p> 
 		<div class='g-img-container'>
-			<img src="assets/images/frpstream.png">
+			<img src="assets/images/frpstreams.png">
 		</div>
 		<h2>Trade-off</h2>
 	</div>
