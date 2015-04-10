@@ -109,7 +109,7 @@
           <li><a href="#lockt">lockThis</a></li>
           <li><a href="#ulock">unlock</a></li>
           <li><a href="#ulockt">unockThis</a></li>
-          <li><a href="#after">watch</a></li>
+          <li><a href="#watch">watch</a></li>
 
           <h4>Arrays</h4>
           <li><a href="#extarr">Extend Arrays</a></li>
@@ -881,11 +881,45 @@ keydowns.collectFor(clicks).log(); // will log array of keydowns after every cli
 <p class='d-synopsis'>Synopsis: <code>stream.swap(state)</code>.</p>
 <p class='d-description'>Description: Swaps stream's state.</p>
 
+<hr>
 <h2 id="toggleon">.toggleOn</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.toggleOn(stream2)</code>.</p>
 <p class='d-description'>Description: Toggles streams state when <code>stream2</code> is firing.</p>
 
+<h2 id="lock">.lock</h2>
+<p class='d-synopsis'>Synopsis: <code>stream.lock()</code>.</p>
+<p class='d-description'>Description: Locks stream and all stream's children (inherited streams).</p>
 
+<h2 id="lockt">.lockThis</h2>
+<p class='d-synopsis'>Synopsis: <code>stream.lockThis()</code>.</p>
+<p class='d-description'>Description: Locks only given stream.</p>
+
+<hr>
+<h2 id="ulock">.unlock</h2>
+<p class='d-synopsis'>Synopsis: <code>stream.unlock()</code>.</p>
+<p class='d-description'>Description: Unlocks stream and all stream's children (inherited streams).</p>
+
+<h2 id="ulockt">.unlockThis</h2>
+<p class='d-synopsis'>Synopsis: <code>stream.unlockThis()</code>.</p>
+<p class='d-description'>Description: Locks only given stream.</p>
+
+<hr>
+<h2 id="watch">.watch</h2>
+<p class='d-synopsis'>Synopsis: <code>stream.watch()</code>.</p>
+<p class='d-description'>Description: Pushes stream to the host's active streams. It means that stream can be evaluated by host's <code>eval</code> method.</p>
+
+<hr class='bhr'>
+<h2 id="extarr">Extending arrays</h2>
+<p class='d-synopsis'>Synopsis: <code>Warden(array);</code>.</p>
+
+<h2 id="sequentially">.sequentially</h2>
+<p class='d-synopsis'>Synopsis: <code>Warden(array);</code>.</p>
+<p class='d-description'>Description: Pushes stream to the host's active streams. It means that stream can be evaluated by host's <code>eval</code> method.</p>
+
+<h2 id="repeatedly">.repeatedly</h2>
+<p class='d-synopsis'>Synopsis: <code>Warden(array);</code>.</p>
+<p class='d-description'>Description: Pushes stream to the host's active streams. It means that stream can be evaluated by host's <code>eval</code> method.</p>        
+          
 
     </div>
   </div>
