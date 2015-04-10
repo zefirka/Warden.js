@@ -24,6 +24,7 @@ module.exports = {
 		},
 		'about' : {
 			title: common.title,
+			dependencies: ['concept']
 		},
 		'docs' : {
 			title: title("Documentation"),
