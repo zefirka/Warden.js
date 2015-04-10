@@ -44,6 +44,16 @@ var Stream = (function(){
 
   }
 
+  Object.defineProperty(Stream.prototype, 'value', {
+    configurable: true,
+    get : function(){
+      return this.data.takes.last()
+    },
+    set : function(v){
+      this.fire(v);
+    }
+  });
+
   Utils.extend(Stream.prototype, {
     bindTo : function() {
       var binding = Warden.Watcher.apply(null, [this].concat(toArray(arguments)));
