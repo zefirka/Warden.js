@@ -834,7 +834,7 @@ keydowns.collectFor(clicks).log(); // will log array of keydowns after every cli
 
 <h2 id="toggleon">.toggleOn</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.toggleOn(stream2)</code>.</p>
-<p class='d-description'>Description: Swaps stream's state.</p>
+<p class='d-description'>Description: Toggles streams state when <code>stream2</code> is firing.</p>
 
 
 
