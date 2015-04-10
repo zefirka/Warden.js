@@ -71,6 +71,12 @@ module.exports = {
 			styles : ['sync'],
 			dependencies: ['aside'],
 		},
+		'formula' : {
+			title : title("Formula"),
+			scripts : ['formula'],
+			styles : ['formula'],
+			dependencies: ['formula'],
+		},
 		'http' : {
 			title : title('HTTP example'),
 			scripts : ['http'],
