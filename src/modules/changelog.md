@@ -8,7 +8,7 @@
   - Added configureable Data Bus values history (3 by default)
   - Renamed internal modules `DataBus` to `Stream`
   - Added `.stream` method to Streams objects, now `Bus` is deprecated
-  
+  - Fixed reduce method
    
 `version: v.0.3.0`
 

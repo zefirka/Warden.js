@@ -152,6 +152,7 @@ var Stream = (function(){
       function parseEval(string){
         var res = "";
 
+
         if(string.indexOf('@')>=0){
           if(string=='@'){
             res += 'this'
@@ -168,6 +169,11 @@ var Stream = (function(){
         }else{
           res += "'" + string + "'";
         }
+        
+        if(string.indexOf('$')>=0){
+          res = string.replace(/\$/g, 'event');
+        }
+
         if(res.match(/\(.+\)/)){
           res = res.replace(/\(.+\)/, function(args){
             return "(" + eval(args.slice(1,-1)) + ")"
@@ -249,9 +255,18 @@ var Stream = (function(){
       If previous value is empty, then it is init or first value (or when init == 'first' or '-f')
     */
     reduce : function(init, fn){
+      var reduced = new Utils.Queue(1);
       return process.call(this, function(event, pipe){
-        var bus = pipe.bus();
-        return (bus.data.takes.length == 0 && !is.exist(init)) ?  pipe.next(event) : pipe.next((fn || init).call(this, bus.data.takes.last() || (fn ? init : null), event)) ;
+        
+        var bus = pipe.bus(),
+            res;
+        if(reduced.length == 0){
+          res = fn ? fn.call(this, init, event) : event;
+        }else{
+          res = (fn || init).call(this, reduced[reduced.length-1], event);
+        }
+        reduced.push(res);
+        return pipe.next(res);
       });
     },
 
@@ -479,7 +494,7 @@ var Stream = (function(){
     */
     merge : function(){
       var host = Warden.Host(this.host.$$context),
-          argv = Utils.toArray(arguments);
+          argv = toArray(arguments);
           argv.push(this);
 
       each(argv, function(bus){
@@ -544,7 +559,7 @@ var Stream = (function(){
     /* Synchronizes  buses */
     sync : function(){
       var self = this,
-          argv = Utils.toArray(arguments),
+          argv = toArray(arguments),
           values = [],
           executions = [],
           nbus;

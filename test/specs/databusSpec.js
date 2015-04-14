@@ -652,6 +652,35 @@ describe('Warden Stream methods', function () {
 		    	done();
 		    });
 
+
+		    it('--map after reduce', function (done){
+		    	var res = 0;
+		    	var run;
+		    	var bus = Warden.Stream(function(e){
+		    		run = e;
+		    	});
+
+		    	bus.reduce(function(a,b){
+		    		return a + b;
+		    	}).map(Math.round).listen(function(x){
+		    		res = x;
+		    	})
+
+		    	run(0.1)
+		    	run(0.1)
+		    	run(0.1)
+		    	run(0.1)
+
+		    	expect(res).toBe(0);
+
+		    	run(0.1)
+		    	run(0.1)
+
+		    	expect(res).toBe(1);
+		    	
+		    	done();
+		    });
+
 		})();
 	});
 	describe('.take()', function () {  
