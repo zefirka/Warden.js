@@ -49,27 +49,36 @@
         <input type="hidden" id='active_tab' value="{{active_tab}}">
         <div class="container">
   <div class="row">
-    {{aside}}
+    <div class="col-md-3 col-sm-3 col-xs-12 col-lg-2">
+  <h2>Demos</h2>
+  <ul id='submenu'>
+    <li><a href="pubsub.html">Pub/Sub</a></li>
+    <li class="mg-bottom"><a href="streams.html">Streams</a></li>
+    <li><a href="counter.html">Counter</a></li>
+    <li><a href="dragndrop.html">Drag'n'Drop</a></li>
+    <li><a href="away.html">Away module</a></li>
+    <li><a href="sync.html">Synchronization</a></li>
+    <li><a href="http.html">HTTP Ajax module</a></li>
+    <li><a href="formula.html">Formula</a></li>
+  </ul>
+</div>
     <div class="col-md-9 col-sm-9 col-xs-12 col-lg-10">
       <section class='b-doc-section'>
-      	<script type="text/javascript">
-    $(function function_name (argument) {
-    	  		var a = Warden.From("#a", parseInt),
-		b = Warden.From("#b", parseInt),
-		c = Warden.From("#c", parseInt),
-		d = Warden.From("#d", parseInt);
-		
-	var res = Warden.Formula([a,b,c,d], function(a,b,c,d){
-		return (a + b + c) * d;
-	});
-
-	res.bindTo($("#result"), 'val');
-    })
-	</script>
       <h2>Formula</h2>
       <div class='box'>
        	 ( <input class='gr' type='text' id='a' value="0"> + <input  class='gr' type='text' id='b' value="0"> + <input class='gr' type='text' id='c' value="0"> ) * <input class='gr' type='text' id='d' value="0"> = <input type='text' class='gr' id='result'>
       </div>
+      <pre><code class='javascript'>var a = Warden.From("#a", parseInt),
+    b = Warden.From("#b", parseInt),
+    c = Warden.From("#c", parseInt),
+    d = Warden.From("#d", parseInt);
+    
+  var res = Warden.Formula([a,b,c,d], function(a,b,c,d){
+    return (a + b + c) * d;
+  });
+
+  res.bindTo($("#result"), 'val');
+      </code></pre>
       </section>
       </div>
     </div>

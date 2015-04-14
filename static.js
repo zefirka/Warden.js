@@ -75,7 +75,7 @@ module.exports = {
 			title : title("Formula"),
 			scripts : ['formula'],
 			styles : ['formula'],
-			dependencies: ['formula'],
+			dependencies: ['aside'],
 		},
 		'http' : {
 			title : title('HTTP example'),
