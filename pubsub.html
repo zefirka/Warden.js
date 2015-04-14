@@ -77,15 +77,20 @@ empty.emit({type: 'foo', message: 'Hello World!'});
 // -> Hellow World!
 </code></pre>
         <p>When object is already exists.</p>
-        <pre><code  class="javascript">Warden(module); 
+        <pre><code  class="javascript">var module = {prop: 'val'}
+
+Warden(module); 
 // now module has Warden methods
+
 module.listen('foo', function(event){
   console.log(event.message);
+  console.log(this.prop);
 });
 
 module.emit({type: 'foo', message: 'Hello World!'});
 
 // -> Hellow World!
+// -> val
 </code></pre>
         <p>With modules which already have Pub/Sub methods with <code>addEventListener</code> or <code>on</code> methods</p>
         <pre><code  class="javascript">Warden(document);
@@ -99,7 +104,8 @@ document.listen('click', function(){
         <p>If your module implemented as class constructor:</p>
         <pre><code  class="javascript">var Mammal = Warden(function Mammal(name){
   this.name = name;
-        });
+});
+
 Mammal.prototype.say = function(){
   this.emit('say', {
     name: this.name
