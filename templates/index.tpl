@@ -8,7 +8,11 @@
     <div class="col-md-12">
       <h2>Rationale</h2>
       <h3>Event driven applications</h3>
-      <p>Событийно-ориентированные приложения слишком сложны</p>
+      <p>Событийно-ориентированные приложения слишком сложны.</p>
+      <h3>Functioanl Reactive Programming</h3>
+      <p>Мы не всегда можем использовать FRP</p>
+      <h3>Trade-off</h3>
+      <p>Компромисс</p>
     </div>
   </div>
 </div>
