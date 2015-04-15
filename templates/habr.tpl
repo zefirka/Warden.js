@@ -1,3 +1,3 @@
 <div class="container">
-  {{concept}}
+  {{article}}
 </div>
