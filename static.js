@@ -26,6 +26,10 @@ module.exports = {
 			title: common.title,
 			dependencies: ['concept']
 		},
+		'habr' : {
+			title: common.title,
+			dependencies: ['article']
+		},
 		'docs' : {
 			title: title("Documentation"),
 			dependencies: ['aside']
