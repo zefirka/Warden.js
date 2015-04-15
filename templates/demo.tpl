@@ -11,6 +11,7 @@
      			</tr>
      		</thead>
      		<tbody>
+     			<tr>
      			<td width="50%">
 <pre><code class='javascript'>var a = 10;
 var b = 20;
@@ -39,6 +40,8 @@ a.value = 20;
 console.log(c.value); 
 // -> 40  wow! It's updates
 </code></pre>
+				</tr>
+				<tr>
      			</td>
      			<td width="50%">
 <pre><code class='javascript'>var timer;
@@ -58,7 +61,7 @@ button.addEventListener('click', function(){
 	.map('@value')
 	.listen(send);
 </code></pre>
-     			</td>
+     			</td></tr>
      		</tbody>
      	</table>
       	
