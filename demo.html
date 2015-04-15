@@ -73,6 +73,35 @@
      		</thead>
      		<tbody>
      			<td width="50%">
+<pre><code class='javascript'>var a = 10;
+var b = 20;
+var c = a + b;
+console.log(c); 
+
+// -> 30;
+
+a = 20;
+console.log(c);
+
+// -> 30; 
+</code></pre>
+     			</td>
+     			<td width="50%">
+<pre><code class='javascript'>var a = Warden(10);
+var b = Warden(20);
+var c = Warden.Formula([a,b], function(x,y){
+	return x + y;
+});
+
+console.log(c.value); 
+// -> 30
+
+a.value = 20;
+console.log(c.value); 
+// -> 40  wow! It's updates
+</code></pre>
+     			</td>
+     			<td width="50%">
 <pre><code class='javascript'>var timer;
 button.addEventListener('click', function(){
 	var self = this;
