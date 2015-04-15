@@ -130,6 +130,48 @@ console.log(c.value);
 // It updates itself
 </code></pre>
 				</tr>
+
+				<tr><td colspan='2'>
+					<h2>Values in time</h2>
+				</td></tr>	
+     			<tr>
+     			<td width="50%">
+<pre><code class='javascript'>var a = 0;
+var b = 0;
+function bigger(x, y){
+	return x > y ? x : y;
+}
+
+var c = bigger(a, b);
+
+a = 20;
+b = 10;
+// c = 0;
+c = bigger(a, b);
+// c = 20
+b = 30;
+c = bigger(a, b)
+// c = 30
+// need to update c every time
+</code></pre>
+     			</td>
+     			<td width="50%">
+<pre><code class='javascript'>var a = Warden(0);
+var b = Warden(0);
+var c = a.combine(b, bigger).watch();
+
+a.value = 20;
+// c.value  = 20
+
+b.value = 30;
+// c.value = 30;
+
+a.value = 40;
+// c.value = 40;
+</code></pre>
+				</tr>
+
+
 				<tr><td colspan='2'>
 					<h2>Event composing</h2>
 				</td></tr>	
