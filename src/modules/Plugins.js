@@ -22,78 +22,15 @@ Warden.Observe = function(obj){
   }
 }
 
-Warden.Formula = function(deps, formula, context){
-  var toCheck = false;
-  var res = Warden.Stream(function(update){
-    var self = this;
+Warden.Formula = function(deps, formula, ctx){
+  return Warden.Stream(function(fire){
     each(deps, function(stream){
-      stream.listen(function(value){
-        update(formula.apply(self, deps));
+      stream.listen(function(data){
+        fire.call(this, formula.apply(this, deps), this);
       });
-
-      if(toCheck || stream.valueOf()){
-        toCheck = true;
-      }
-
     });
-  }, context).watch();
-
-  if(toCheck){
     setTimeout(function(){
-      res.fire(formula.apply(context, deps));
+      fire(formula.apply(ctx || null, deps));
     });
-  }
-
-  return res;
-}
-
-Warden.From = function(source){
-  var checkObject;
-
-  var run;
-
-  var str = Warden.Stream(function(fire){
-    run = fire;
-  }).map('@value').watch();
-
-  function sp(i){
-    if("INPUT TEXTAREA".indexOf(i.tagName) >=0){
-      i.addEventListener("keyup", function(data){
-        run(data, this);
-      });
-    }
-    if("SELECT".indexOf(i.tagName) >=0){
-      i.addEventListener("change", function(data){
-        run(data, this);
-      }); 
-    }
-    run(i.value, i);
-  }
-
-  if(typeof source == 'string'){
-    if(jQueryInited){
-      source = $(source);
-    }else{
-      source = document.querySelectorAll(source);
-    }
-  }
-
-  if(source.length){
-      each(source, sp);
-  }else{
-    if(jQueryInited && source instanceof jQuery){
-      sp(source[0])
-    }else{
-      sp(source);
-    }
-  }
-  
-
-  var argv = toArray(arguments).slice(1);
-
-  each(argv, function(fun){
-    str = str.map(fun);
-  });
-
-  return str;
+  }).watch();
 }

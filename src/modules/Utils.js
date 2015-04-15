@@ -236,7 +236,7 @@ Utils = {
           oldpush = res.push;
       
       res.last = function(){
-        return res[res.length-1] || null;
+        return res[res.length-1];
       };
       
       res.push = function(x){

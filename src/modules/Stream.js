@@ -39,7 +39,7 @@ var Stream = (function(){
     };   
 
     this.valueOf = function(e){
-      return this.data.takes.last();
+      return this.value;
     }
 
   }
@@ -47,7 +47,8 @@ var Stream = (function(){
   Object.defineProperty(Stream.prototype, 'value', {
     configurable: true,
     get : function(){
-      return this.data.takes.last()
+      var cval = this.data.takes.last();
+      return is.exist(cval) ? cval : null; 
     },
     set : function(v){
       this.fire(v);
