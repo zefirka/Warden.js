@@ -21,7 +21,7 @@ module.exports = {
     			run2 = e;
     		});
 
-    		stream1.resolveWith(stream2, function(a,b){
+    		stream1.resolve(stream2, function(a,b){
     			return a > b ? a : b
     		}).listen(function(e){
     			done++

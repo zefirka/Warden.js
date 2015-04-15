@@ -1,7 +1,7 @@
 /* Globals */
-var Utils;
+var Utils,
 
-var _FUN = 'function',
+    _FUN = 'function',
     _NUM = 'number',
     _STR = 'string',
     _OBJ = 'object',
@@ -81,7 +81,7 @@ function not(predicate){
 
 var is = {
   exist : function(x){
-    return typeof x != 'undefined' && x !== null;
+    return typeof x != _UND && x !== null;
   },
   array : function(x){
     return Array.isArray(x)
@@ -111,7 +111,7 @@ function toArray(a){
 /* Extending objects (not deep extend) */
 function extend() {
   function _extend(origin, add) {
-    if (!add || typeof add !== 'object') return origin;
+    if (!add || typeof add !== _OBJ) return origin;
     var keys = Object.keys(add), i = keys.length;
 
     while (i--) {

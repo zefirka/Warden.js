@@ -73,7 +73,7 @@ Warden.extend = (function(){
     if(is.fn(obj)){
       inheritor = obj.prototype;
     }else
-    if(typeof obj !== "object"){
+    if(typeof obj !== _OBJ){
       var constStream = Warden.Stream().watch();
       constStream.fire(obj);
       return constStream;

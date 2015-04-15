@@ -38,24 +38,15 @@ var Stream = (function(){
       last : null
     };   
 
-    this.valueOf = function(e){
-      return this.value;
-    }
+    
 
   }
 
-  Object.defineProperty(Stream.prototype, 'value', {
-    configurable: true,
-    get : function(){
-      var cval = this.data.takes.last();
-      return is.exist(cval) ? cval : null; 
+  Stream.prototype = {
+    valueOf : function(e){
+      return this.data.last;
     },
-    set : function(v){
-      this.fire(v);
-    }
-  });
 
-  Utils.extend(Stream.prototype, {
     bindTo : function() {
       var binding = Warden.Watcher.apply(null, [this].concat(toArray(arguments)));
       return binding;
@@ -72,7 +63,7 @@ var Stream = (function(){
 
       pipes[id].start(data, context, function(result){
         self.data.takes.push(result); // pushing taked data to @takes queue
-
+        self.data.last = result;
         /* Executing all handlers of this Stream */
         each(handlers[id], function(handler){
           handler.call(context, result);
@@ -548,10 +539,10 @@ var Stream = (function(){
         }
 
         self.listen(function(data){
-          e(data, bus.data.takes.last() || seed);
+          e(data, bus.data.last || seed);
         });
         bus.listen(function(data){
-          e(self.data.takes.last() || seed, data);
+          e(self.data.last || seed, data);
         });
 
       }, ctx).bus();
@@ -657,7 +648,17 @@ var Stream = (function(){
       }
       return this;
     }
-  })
+  }
+
+  Object.defineProperty(Stream.prototype, 'value', {
+    configurable: true,
+    get : function(){
+      return this.data.last;
+    },
+    set : function(v){
+      this.fire(v);
+    }
+  });
 
   Warden.configure.addToStream = function(name, fn, piped){
     Stream.prototype[name] = function() {

@@ -24,9 +24,9 @@
 
 
   /* Globals */
-  var Utils;
+  var Utils,
 
-  var _FUN = 'function',
+      _FUN = 'function',
       _NUM = 'number',
       _STR = 'string',
       _OBJ = 'object',
@@ -106,7 +106,7 @@
 
   var is = {
     exist : function(x){
-      return typeof x != 'undefined' && x !== null;
+      return typeof x != _UND && x !== null;
     },
     array : function(x){
       return Array.isArray(x)
@@ -136,7 +136,7 @@
   /* Extending objects (not deep extend) */
   function extend() {
     function _extend(origin, add) {
-      if (!add || typeof add !== 'object') return origin;
+      if (!add || typeof add !== _OBJ) return origin;
       var keys = Object.keys(add), i = keys.length;
 
       while (i--) {
@@ -353,7 +353,7 @@
       if(is.fn(obj)){
         inheritor = obj.prototype;
       }else
-      if(typeof obj !== "object"){
+      if(typeof obj !== _OBJ){
         var constStream = Warden.Stream().watch();
         constStream.fire(obj);
         return constStream;
@@ -708,24 +708,15 @@
         last : null
       };   
 
-      this.valueOf = function(e){
-        return this.value;
-      }
+      
 
     }
 
-    Object.defineProperty(Stream.prototype, 'value', {
-      configurable: true,
-      get : function(){
-        var cval = this.data.takes.last();
-        return is.exist(cval) ? cval : null; 
+    Stream.prototype = {
+      valueOf : function(e){
+        return this.data.last;
       },
-      set : function(v){
-        this.fire(v);
-      }
-    });
 
-    Utils.extend(Stream.prototype, {
       bindTo : function() {
         var binding = Warden.Watcher.apply(null, [this].concat(toArray(arguments)));
         return binding;
@@ -742,7 +733,7 @@
 
         pipes[id].start(data, context, function(result){
           self.data.takes.push(result); // pushing taked data to @takes queue
-
+          self.data.last = result;
           /* Executing all handlers of this Stream */
           each(handlers[id], function(handler){
             handler.call(context, result);
@@ -1218,10 +1209,10 @@
           }
 
           self.listen(function(data){
-            e(data, bus.data.takes.last() || seed);
+            e(data, bus.data.last || seed);
           });
           bus.listen(function(data){
-            e(self.data.takes.last() || seed, data);
+            e(self.data.last || seed, data);
           });
 
         }, ctx).bus();
@@ -1327,7 +1318,17 @@
         }
         return this;
       }
-    })
+    }
+
+    Object.defineProperty(Stream.prototype, 'value', {
+      configurable: true,
+      get : function(){
+        return this.data.last;
+      },
+      set : function(v){
+        this.fire(v);
+      }
+    });
 
     Warden.configure.addToStream = function(name, fn, piped){
       Stream.prototype[name] = function() {
@@ -1347,6 +1348,7 @@
 
     return Stream;
   })();
+
 
   Warden.Watcher = function(){
   	var argv = Utils.toArray(arguments).slice(1,arguments.length),
