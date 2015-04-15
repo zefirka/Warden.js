@@ -36,7 +36,14 @@
 <div class='row'>
 	<div class='com-md-12 col-lg-12 col-sm-12 col-xs-12'>
 		<div class='g-img-container'>
-			<img src="assets/images/dom.png">
+			<img src="assets/images/component_streams.png">
 		</div>
 	</div>
 </div>
+<div class='row'>
+	<div class='com-md-12 col-lg-12 col-sm-12 col-xs-12'>
+		<div class='g-img-container'>
+			<img src="assets/images/dom.png">
+		</div>
+	</div>
+</div>component_streams
