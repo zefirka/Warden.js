@@ -6,12 +6,12 @@
      	<table id='demo-tab'>
      		<thead>
      			<tr>
-     				<th>Vanilla</th>
-     				<th>Warden</th>
+     				<th width="50%">Vanilla</th>
+     				<th width="50%">Warden</th>
      			</tr>
      		</thead>
      		<tbody>
-     			<td>
+     			<td width="50%">
 <pre><code class='javascript'>var timer;
 button.addEventListener('click', function(){
 	var self = this;
@@ -22,7 +22,7 @@ button.addEventListener('click', function(){
 });
 </code></pre>
      			</td>
-     			<td>
+     			<td width="50%">
 <pre><code class='javascript'>Warden(button)
 	.stream('click')
 	.debounce(500)
