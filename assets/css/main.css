@@ -131,3 +131,12 @@ h3 {
 .g-hidden {
   display: none !important;
 }
+#demo-tab {
+  width: 100%;
+}
+#demo-tab tbody {
+  vertical-align: top;
+}
+#demo-tab tbody td {
+  padding: 15px;
+}
