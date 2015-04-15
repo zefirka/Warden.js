@@ -1,54 +1,4 @@
-<!DOCTYPE html>
-<html>
-    <head>
-    <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="description" content="Warden.js : Declarative Event-drive development">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <script type="text/javascript" src="assets/js/jquery.min.js"></script>
-    <script type="text/javascript" src="assets/js/warden.min.js"></script>
-    <script type="text/javascript" src="assets/js/highlight.pack.js"></script>
-    <script type="text/javascript" src="assets/js/main.js"></script>
-     
-
-    <link rel="stylesheet" type="text/css" media="screen" href="assets/css/bootstrap.css">
-    <link rel="stylesheet" type="text/css" media="screen" href="assets/css/main.css">
-    <link rel="stylesheet" href="assets/css/github.css">    
-     
-
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-    <link rel="icon" type="image/png" href="favicon.png">
-
-    <title>Warden.js : Declarative Event-drive development</title>
-</head>
-    <body>
-        <header>
-            <section id='logo' class='hidden-xs hidden-sm'>
-              <div class="container">
-                <div class='img-container'>
-                  <img src="assets/images/logo.png">
-                </div>
-              </div>
-            </section>
-            <section id='main' class='hidden-md hidden-lg'>
-              <div class="container center">
-                <a href="index.html"><h1>Warden.js</h1></a>
-              </div>
-            </section>
-            <nav>
-              <ul class='container no-padding'>
-                <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 "><a href="about.html">About</a></li>
-                <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 "><a href="docs.html">API</a></li>
-                <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 "><a href="demo.html">Tutorials</a></li>
-                <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 "><a href="download.html">Download</a></li>
-                <a href="https://github.com/zefirka/Warden.js" class='fork'></a>
-              </ul>
-            </nav>
-          </header>
-        <input type="hidden" id='active_tab' value="{{active_tab}}">
-        <div class="container">
-  <div class='row'>
+<div class='row'>
 	<div class="col-md-12 col-sm-12 col-xs-12 col-lg-12">
 		<h2>Встпуление</h2>
 		<p>Мы уже так много слышали обсуждений об узких местах JavaScript и тех сред, где он чаще всего запускается, что я даже и не знаю чего такого написать в этом вступлении. Только ленивый не писал/читал про трудности, которые в разработке более или менее крупных приложений на JavaScript. Не то, чтобы решений не было, или они все какие-то плохие, напротив, их масса, одно лучше другого. Но ведь и проекты не по одной кальке сделаны, и есть колоссальная разница между одностраничным веб-сервисом с fullstack JS, который предстоит писать с нуля и гигантским интернет магазином на PHP + Smarty, внезапно решившим, что тормозной фронтенд - зло и решившим пройти цикл "тотально рефакторинга". </p>
@@ -72,7 +22,3 @@ pubsub.emit('hello', 'Hello world!');
 // -> Hello world!</code></pre>
 	</div>
 </div>
-
-</div>
-    </body>
-</html>
