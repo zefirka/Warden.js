@@ -11,6 +11,29 @@
      			</tr>
      		</thead>
      		<tbody>
+     			<tr><td colspan='2'>
+     				<h2>Streaming events</h2>
+     			</td></tr>
+     			<tr>
+     			<td width="50%">
+<pre><code class='javascript'>eventSource.on('eventType', function(eventData){
+	if(valied(eventData)){
+		rootObject.result = processData(eventData);		
+	}
+});
+</code></pre>
+     			</td>
+     			<td width="50%">
+<pre><code class='javascript'>eventSource
+	.stream('eventType')
+	.filter(valid)
+	.map(processData)
+	.bindTo(rootObject, 'result');
+</code></pre>
+				</tr>
+				<tr><td colspan='2'>
+					<h2>Reactive Calculations</h2>
+				</td></tr>	
      			<tr>
      			<td width="50%">
 <pre><code class='javascript'>var a = 10;
@@ -23,7 +46,11 @@ console.log(c);
 a = 20;
 console.log(c);
 
-// -> 30; 
+// -> 30
+// To update you need:
+c = a + b;
+console.log(c)
+// -> 40
 </code></pre>
      			</td>
      			<td width="50%">
@@ -38,9 +65,13 @@ console.log(c.value);
 
 a.value = 20;
 console.log(c.value); 
-// -> 40  wow! It's updates
+// -> 40  
+// It updates itself
 </code></pre>
 				</tr>
+				<tr><td colspan='2'>
+					<h2>Event composing</h2>
+				</td></tr>	
 				<tr>
      			</td>
      			<td width="50%">
