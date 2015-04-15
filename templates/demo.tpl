@@ -17,18 +17,18 @@
      			<tr>
      			<td width="50%">
 <pre><code class='javascript'>eventSource.on('eventType', function(eventData){
-	if(valied(eventData)){
-		rootObject.result = processData(eventData);		
-	}
+  if(valied(eventData)){
+    rootObject.result = processData(eventData);		
+  }
 });
 </code></pre>
      			</td>
      			<td width="50%">
 <pre><code class='javascript'>eventSource
-	.stream('eventType')
-	.filter(valid)
-	.map(processData)
-	.bindTo(rootObject, 'result');
+  .stream('eventType')
+  .filter(valid)
+  .map(processData)
+  .bindTo(rootObject, 'result');
 </code></pre>
 				</tr>
 				<tr><td colspan='2'>
@@ -57,7 +57,7 @@ console.log(c)
 <pre><code class='javascript'>var a = Warden(10);
 var b = Warden(20);
 var c = Warden.Formula([a,b], function(x,y){
-	return x + y;
+  return x + y;
 });
 
 console.log(c.value); 
@@ -77,20 +77,20 @@ console.log(c.value);
      			<td width="50%">
 <pre><code class='javascript'>var timer;
 button.addEventListener('click', function(){
-	var self = this;
-	clearTimeout(timer);
-	timer = setTimeout(function(){
-		send(self.value);
-	}, 500)
+  var self = this;
+  clearTimeout(timer);
+  timer = setTimeout(function(){
+    send(self.value);
+  }, 500)
 });
 </code></pre>
      			</td>
      			<td width="50%">
 <pre><code class='javascript'>Warden(button)
-	.stream('click')
-	.debounce(500)
-	.map('@value')
-	.listen(send);
+  .stream('click')
+  .debounce(500)
+  .map('@value')
+  .listen(send);
 </code></pre>
      			</td></tr>
      		</tbody>
