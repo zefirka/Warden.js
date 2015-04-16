@@ -666,6 +666,7 @@
     };
   })();
 
+  /* Deprecated */
   Warden.makeStream = Warden.Stream
 
   var Stream = (function(){

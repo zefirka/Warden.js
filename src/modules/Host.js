@@ -76,4 +76,5 @@ Warden.Stream = (function(){
   };
 })();
 
+/* Deprecated */
 Warden.makeStream = Warden.Stream
