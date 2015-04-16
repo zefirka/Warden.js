@@ -1,4 +1,4 @@
-# Warden.js
+# Warden.js [![Build Status](https://travis-ci.org/zefirka/Warden.js.svg?branch=master)](https://travis-ci.org/zefirka/Warden.js)
 
 <img src="./src/warden.png" align="center" width="728" style='display: block; z-index: 32323; position: relative;'/>
 
