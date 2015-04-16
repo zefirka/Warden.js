@@ -1,8 +1,8 @@
 $(function function_name (argument) {
-   	var from = function(src, type, f){
+   	function from(src, type, f){
    		return src.stream(type);
    	}
-   	var value = function(id, type, typeMap,){
+   	function value(id, type, typeMap){
    		var str, src = $("#" + id);
    		if(typeMap){
    			str = from(src, type).map("@val()").map(typeMap);
