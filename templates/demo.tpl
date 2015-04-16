@@ -72,8 +72,6 @@ function log(data){
   console.log(message);
 }
 
-/* Actually i dunno does this implements neccesary logic or not. It's too hard */
-
 function callback(e){
   if(!cachedFrom){
     cachedFrom = e.socket_name;
