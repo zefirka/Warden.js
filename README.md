@@ -1,4 +1,4 @@
-# Warden.js [![Build Status](https://travis-ci.org/zefirka/Warden.js.svg?branch=master)](https://travis-ci.org/zefirka/Warden.js)
+# Warden.js [![Build Status](https://travis-ci.org/zefirka/Warden.js.svg?branch=master)](https://travis-ci.org/zefirka/Warden.js) 
 
 <img src="./src/warden.png" align="center" width="728" style='display: block; z-index: 32323; position: relative;'/>
 
@@ -37,7 +37,7 @@ Warden.js is not pure functional library. It's trade-off between pure FRP and tr
 
 ## Installation and usage
 
-### Node
+### Node [![npm version](https://badge.fury.io/js/warden.js.png)](http://badge.fury.io/js/warden.js)
     npm install warden.js
 
 and
