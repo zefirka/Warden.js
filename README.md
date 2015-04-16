@@ -24,7 +24,7 @@ Warden.js is not pure functional library. It's trade-off between pure FRP and tr
  - Simple declarative methods to combine, conjuncte and resolve concpetually connected events. Like `sync` or `resolve`. If your application turns to tangled web of simple events and you spoiling time to resolve synchronization, combining events in time and resolving problems - then Warden.js is for you.
  - Pretty flexible API. There are no much of ready solutions, but there is way to add your own data stream processing method, combine methods and construct application in your way.
  - It's not pure functional, but stay simple. In Warden you can create modules with dirty state, but if you're sure that these modules are simple and state is predictable. So after you can combine and reuse modules in more declarative way. It's not required to use pure functional programming technics from start to end while develop with Warden.
- - It's lighweight. Current version (0.3.0): 13.9 KB (5.2 KB gzipped). And it comes with crossbrowser utilities package.
+ - It's lighweight. Current version (0.3.2): 14.6 KB (5.7 KB gzipped). And it comes with crossbrowser utilities package.
  - It's configurable. You can extend stream processing methods, create your own methods, configure data types and comparsion checking.
  - Low-level functional abstraction. You can write a bunch of cool things. An events sampler (for example).
 

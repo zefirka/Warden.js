@@ -16,7 +16,7 @@
   }
   var jQueryInited = typeof jQuery != "undefined";
 
-  Warden.version = "0.3.0";
+  Warden.version = "0.3.2";
   Warden.configure = {
     history : 3,
     cmp : function(x,y){ return x === y; }
@@ -1405,13 +1405,14 @@
   Warden.Worker = function(adr){
     adr = adr.slice(-3) == '.js' ? adr : adr + '.js';
     var worker = new Worker(adr); 
-    var stream = Warden.Host();
+    var host = Warden.Host();
     worker.onmessage = function(){
       stream.eval(arguments)
     }
+    var stream = host.newStream();
     stream.post = worker.postMessage;
     stream.onmessage = worker.onmessage
-    return stream.newStreamt();
+    return stream;
   }
 
   Warden.Observe = function(obj){
@@ -1427,16 +1428,15 @@
   }
 
   Warden.Formula = function(deps, formula, ctx){
-    return Warden.Stream(function(fire){
+    var stream =  Warden.Stream(function(fire){
       each(deps, function(stream){
         stream.listen(function(data){
-          fire.call(this, formula.apply(this, deps), this);
+          fire.call(this, formula.apply(this, map(deps, function(s){ return s.value; }), this));
         });
       });
-      setTimeout(function(){
-        fire(formula.apply(ctx || null, deps));
-      });
-    }).watch();
+    });
+    stream.value = formula.apply(this, map(deps, function(s){ return s.value; }), this);
+    return stream.watch();
   }
   
 

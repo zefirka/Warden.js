@@ -1,15 +1,16 @@
 {
   "name": "Warden.js",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "homepage": "https://github.com/zefirka/Warden.js",
   "authors": [
-    "Eik Zeffirsky <wombtromb@gmail.com>"
+    "Trdat Mkrtchyan <wombtromb@gmail.com>"
   ],
-  "description": "Functional Reactive Programming library for event-driven development",
+  "description": "Library for event-driven development in functional reactive style",
   "main": "warden.js",
   "keywords": [
     "FRP",
     "EDD",
+    "event-driven"
     "functional",
     "javascript",
     "warden.js"

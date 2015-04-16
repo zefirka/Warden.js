@@ -503,6 +503,7 @@ describe('Warden Stream methods', function () {
 			run = fire
 		});
 		var res;
+		var max;
 
 
 		bus.filterFor(function(e, p){
@@ -547,6 +548,33 @@ describe('Warden Stream methods', function () {
 			run(2);
 			run(3);
 			expect(res).toEqual(12);
+			done();
+		});
+
+		it('-- maximal ', function (done){
+			var bm;
+			bus.filterFor(function(e, p){
+				var max = p.get();
+
+				if(max && max >= e){
+					p.stop();
+				}else{
+					p.next(e);
+				}
+			}).listen(function(e){
+				bm = e;
+			});
+
+			run(1);
+			expect(bm).toBe(1);
+			run(100)
+			expect(bm).toBe(100);
+			run(10)
+			expect(bm).toBe(100);
+			run(40)
+			expect(bm).toBe(100);
+			run(430)
+			expect(bm).toBe(430);
 			done();
 		});
 	});

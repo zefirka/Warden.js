@@ -65,6 +65,26 @@ describe('Reactive Programming', function(){
 		
 	});
 
+	it('-- formula: (bigger)', function(done){
+		var a = Warden(0),
+			b = Warden(1);
+
+		var bigger = Warden.Formula([a, b], function(x, y){
+			return x > y ? x : y;
+		});
+
+		
+		expect(bigger.value).toBe(1);
+		a.value = 10;
+		expect(bigger.value).toBe(10);
+		b.value = 9;
+		expect(bigger.value).toBe(10);
+		b.value = 91;
+		expect(bigger.value).toBe(91);
+
+		done();
+
+	});
 
 });
 
