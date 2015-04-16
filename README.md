@@ -10,7 +10,7 @@ Warden.js provides instruments to make development of event-driven applications 
 
 Warden.js is not pure functional library. It's trade-off between pure FRP and traditional event-driven development. It's good solution for ready event-driven applications. If you don't want to think how to construct app with true functional practices from start or/and you already have partially ready app then you can try Warden to make you life easy.
 
-## Documentation
+## Documentation [![GitHub version](https://badge.fury.io/gh/zefirka%2Fwarden.js.svg)](http://badge.fury.io/gh/zefirka%2Fwarden.js)
   - [Pub/Sub](https://github.com/zefirka/Warden.js/blob/master/docs/Extend.md)
   - [Creating streams](https://github.com/zefirka/Warden.js/blob/master/docs/Streams.md)
   - [Using streams](https://github.com/zefirka/Warden.js/blob/master/docs/Stream.md)
