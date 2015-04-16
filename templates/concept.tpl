@@ -36,7 +36,7 @@
 </div>
 <div class='row'>
 	<div class='com-md-12 col-lg-12 col-sm-12 col-xs-12'>
-		<p></p>
+		<p>Представляя компоненты как потоки данных, можно компоновать их в более сложные компоненты, притом сохранив явное глобально состояние.</p>
 		<div class='g-img-container'>
 			<img src="assets/images/component_streams.png">
 		</div>
