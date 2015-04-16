@@ -65,7 +65,11 @@ button.addEventListener('click', function(e){
           <td width="50%">
 <pre><code class='javascript'>var cachedTime, cachedFrom;
 function log(data){
-  console.log('Data from socket ' + data.socket_name + ' was recived first');
+  var messate = 'Data from socket ' + 
+    data.socket_name + 
+    ' was recived first';
+
+  console.log(message);
 }
 
 /* Actually i dunno does this implements neccesary logic or not. It's too hard */
@@ -92,11 +96,11 @@ socket.on('b', callback);
 </code></pre>
           </td>
           <td width="50%">
-<pre><code class='javascript'>socket.stream('a').resolve(socket.stream('b'), function(a, b){
+<pre><code class='javascript'>var sStream = socket.stream('a'),
+  bStream = socket.stream('b');
+aStream.resolve(bStream, function(a, b){
   return a.timeStamp > b.timeStamp ? a : b;
-}).listen(function(data){
-  console.log('Data from socket ' + data.socket_name + ' was recived first');
-})
+}).listen(log);
 </code></pre>
           </td></tr>
 
