@@ -28,7 +28,7 @@ $(function function_name (argument) {
     	size = value("size");
 
 	var figure = Warden.Formula([color,size,shape], function(color,size,shape){
-		return "Figure now is " + size + (shape.length ? " " : " and ") + color  + " " + shape;
+		return "Figure now is " + size + (shape ? " " : " and ") + color  + " " + shape;
 	});
 
 	figure.bindTo($("#res"), 'html');
