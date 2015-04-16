@@ -7,16 +7,23 @@
       <div class='box'>
        	 ( <input class='gr' type='text' id='a' value="0"> + <input  class='gr' type='text' id='b' value="0"> + <input class='gr' type='text' id='c' value="0"> ) * <input class='gr' type='text' id='d' value="0"> = <input type='text' class='gr' id='result'>
       </div>
-      <pre><code class='javascript'>var a = Warden.From("#a", parseInt),
-    b = Warden.From("#b", parseInt),
-    c = Warden.From("#c", parseInt),
-    d = Warden.From("#d", parseInt);
-    
-  var res = Warden.Formula([a,b,c,d], function(a,b,c,d){
-    return (a + b + c) * d;
-  });
+      <pre><code class='javascript'>function from(id, type, f){
+  return $("#" + a).stream(type);
+}
+function value(src){
+  return from(src, 'keyup').map('@val()').map(parseInt);
+}
 
-  res.bindTo($("#result"), 'val');
+var a = value('a'),
+    b = value('b'),
+    c = value('c'),
+    d = value('d');
+
+var res = Warden.Formula([a,b,c,d], function(a,b,c,d){
+  return (a + b + c) * d;
+});
+
+res.bindTo($("#result"), 'val');
       </code></pre>
 
       <div class='box'>
@@ -38,9 +45,9 @@
           <label class="control-label" for="selectbasic-0">Shape</label>
           <div class="controls">
             <select id="shape" class="input-xlarge">
-              <option value='1'>Square</option>
-              <option value='2'>Circle</option>
-              <option value='3'>Triangle</option>
+              <option value='square'>Square</option>
+              <option value='circle'>Circle</option>
+              <option value='triangle'>Triangle</option>
             </select>
           </div>
         </div>
@@ -49,8 +56,8 @@
           <label class="control-label" for="selectbasic-0">Size</label>
           <div class="controls">
             <select id="size" class="input-xlarge" points='3'>
-              <option>Small</option>
-              <option>Large</option>
+              <option value='small'>Small</option>
+              <option value='large'>Large</option>
             </select>
           </div>
         </div>
@@ -59,16 +66,12 @@
       </form>
       <div id='res'></div>
       </div>
-      <pre><code class='javascript'>var color = Warden.From("#color"),
-    shape = Warden.From("#shape"),
-    size = Warden.From("#size");
+      <pre><code class='javascript'>var color = value("color"),
+    shape = value("shape"),
+    size = value("size");
 
 var figure = Warden.Formula([color,size,shape], function(color,size,shape){
-  return {
-    color: color.value,
-    size: size.value,
-    shape: shape.value
-  }
+  return "Figure now is " + size + (shape.length ? " " : " and ") + color  + " " + shape;
 });
 
 figure.bindTo($("#res"), 'html');
