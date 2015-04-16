@@ -1,13 +1,16 @@
 $(function function_name (argument) {
+   	
    	function from(src, type, f){
    		return src.stream(type);
    	}
+
    	function value(id, type, typeMap){
    		var str, src = $("#" + id);
+   		
    		if(typeMap){
    			str = from(src, type).map("@val()").map(typeMap);
    		}else{
-   			str = from(src, type.map("@val()");
+   			str = from(src, type).map("@val()");
    		}
    		str.fire((typeMap ? typeMap(src.val()) : src.val()), src);
    		return str;
