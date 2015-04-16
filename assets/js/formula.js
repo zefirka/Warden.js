@@ -9,7 +9,7 @@ $(function function_name (argument) {
    		}else{
    			str = from(src, 'keyup').map('@val()');
    		}
-   		str.value = src.val();
+   		str.value = typeMap ? typeMap(src.val()) : src.val();
    		return str;
    	}
 
