@@ -140,3 +140,7 @@ h3 {
 #demo-tab tbody td {
   padding: 15px;
 }
+#hpos h1 {
+  color: black;
+  font-weight: bold;
+}

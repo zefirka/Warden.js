@@ -6,11 +6,13 @@
             <section id='logo' class='hidden-xs hidden-sm'>
               <div class="container">
                 <div class='img-container'>
-                  <img src="assets/images/logo.png">
+                  <a href="index.html">
+                    <img src="assets/images/logo.png">
+                  </a>
                 </div>
               </div>
             </section>
-            <section id='main' class='hidden-md hidden-lg'>
+            <section id='hpos' class='hidden-md hidden-lg'>
               <div class="container center">
                 <a href="index.html"><h1>Warden.js</h1></a>
               </div>

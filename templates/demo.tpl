@@ -31,6 +31,75 @@
   .bindTo(rootObject, 'result');
 </code></pre>
 				</tr>
+
+        <tr><td colspan='2'>
+          <h2>Event processing</h2>
+        </td></tr>  
+        <tr>
+          </td>
+          <td width="50%">
+<pre><code class='javascript'>var cachedTime;
+button.addEventListener('click', function(e){
+  var self = this;
+  clearTimeout(timer);
+  timer = setTimeout(function(){
+    send(self.value);
+  }, 500)
+});
+</code></pre>
+          </td>
+          <td width="50%">
+<pre><code class='javascript'>Warden(button)
+  .stream('click')
+  .debounce(500)
+  .map('@value')
+  .listen(send);
+</code></pre>
+          </td></tr>
+
+          <tr><td colspan='2'>
+          <h2>Event composing</h2>
+        </td></tr>  
+        <tr>
+          </td>
+          <td width="50%">
+<pre><code class='javascript'>var cachedTime, cachedFrom;
+function log(data){
+  console.log('Data from socket ' + data.socket_name + ' was recived first');
+}
+
+/* Actually i dunno does this implements neccesary logic or not. It's too hard */
+
+function callback(e){
+  if(!cachedFrom){
+    cachedFrom = e.socket_name;
+    cachedTime = e.timeStamp;
+  }else{
+    if(cachedFrom != e.socket_name){
+      if(cachedTime > e.timeStamp){
+          log(e)
+      }else{
+        cachedTime = e.timeStamp
+      }
+    }else{
+      cached_time = e.timeStamp;
+    }
+  }
+}
+
+socket.on('a', callback);
+socket.on('b', callback);
+</code></pre>
+          </td>
+          <td width="50%">
+<pre><code class='javascript'>socket.stream('a').resolve(socket.stream('b'), function(a, b){
+  return a.timeStamp > b.timeStamp ? a : b;
+}).listen(function(data){
+  console.log('Data from socket ' + data.socket_name + ' was recived first');
+})
+</code></pre>
+          </td></tr>
+
 				<tr><td colspan='2'>
 					<h2>Reactive Calculations</h2>
 				</td></tr>	
@@ -109,32 +178,6 @@ a.value = 40;
 // c.value = 40;
 </code></pre>
 				</tr>
-
-
-				<tr><td colspan='2'>
-					<h2>Event composing</h2>
-				</td></tr>	
-				<tr>
-     			</td>
-     			<td width="50%">
-<pre><code class='javascript'>var timer;
-button.addEventListener('click', function(){
-  var self = this;
-  clearTimeout(timer);
-  timer = setTimeout(function(){
-    send(self.value);
-  }, 500)
-});
-</code></pre>
-     			</td>
-     			<td width="50%">
-<pre><code class='javascript'>Warden(button)
-  .stream('click')
-  .debounce(500)
-  .map('@value')
-  .listen(send);
-</code></pre>
-     			</td></tr>
      		</tbody>
      	</table>
       	

@@ -27,11 +27,13 @@
             <section id='logo' class='hidden-xs hidden-sm'>
               <div class="container">
                 <div class='img-container'>
-                  <img src="assets/images/logo.png">
+                  <a href="index.html">
+                    <img src="assets/images/logo.png">
+                  </a>
                 </div>
               </div>
             </section>
-            <section id='main' class='hidden-md hidden-lg'>
+            <section id='hpos' class='hidden-md hidden-lg'>
               <div class="container center">
                 <a href="index.html"><h1>Warden.js</h1></a>
               </div>
@@ -52,14 +54,20 @@
     <div class="col-md-3 col-sm-3 col-xs-12 col-lg-2">
   <h2>Demos</h2>
   <ul id='submenu'>
+    <li>Simple</li>
     <li><a href="pubsub.html">Pub/Sub</a></li>
-    <li class="mg-bottom"><a href="streams.html">Streams</a></li>
+    <li><a href="streams.html">Streams</a></li>
+    <li>Event streams</li>
     <li><a href="counter.html">Counter</a></li>
     <li><a href="dragndrop.html">Drag'n'Drop</a></li>
     <li><a href="away.html">Away module</a></li>
-    <li><a href="sync.html">Synchronization</a></li>
     <li><a href="http.html">HTTP Ajax module</a></li>
-    <li><a href="formula.html">Formula</a></li>
+    <li>Composing</li>
+    <li><a href="sync.html">Synchronization</a></li>
+    <li><a href="combining.html">Combining</a></li>
+    <li>Formulas</li>
+    <li><a href="formula.html">Formulas</a></li>
+    <li><a href="counting.html">Resolving</a></li>
   </ul>
 </div>
     <div class="col-md-9 col-sm-9 col-xs-12 col-lg-10">
@@ -92,6 +100,75 @@
   .bindTo(rootObject, 'result');
 </code></pre>
 				</tr>
+
+        <tr><td colspan='2'>
+          <h2>Event processing</h2>
+        </td></tr>  
+        <tr>
+          </td>
+          <td width="50%">
+<pre><code class='javascript'>var cachedTime;
+button.addEventListener('click', function(e){
+  var self = this;
+  clearTimeout(timer);
+  timer = setTimeout(function(){
+    send(self.value);
+  }, 500)
+});
+</code></pre>
+          </td>
+          <td width="50%">
+<pre><code class='javascript'>Warden(button)
+  .stream('click')
+  .debounce(500)
+  .map('@value')
+  .listen(send);
+</code></pre>
+          </td></tr>
+
+          <tr><td colspan='2'>
+          <h2>Event composing</h2>
+        </td></tr>  
+        <tr>
+          </td>
+          <td width="50%">
+<pre><code class='javascript'>var cachedTime, cachedFrom;
+function log(data){
+  console.log('Data from socket ' + data.socket_name + ' was recived first');
+}
+
+/* Actually i dunno does this implements neccesary logic or not. It's too hard */
+
+function callback(e){
+  if(!cachedFrom){
+    cachedFrom = e.socket_name;
+    cachedTime = e.timeStamp;
+  }else{
+    if(cachedFrom != e.socket_name){
+      if(cachedTime > e.timeStamp){
+          log(e)
+      }else{
+        cachedTime = e.timeStamp
+      }
+    }else{
+      cached_time = e.timeStamp;
+    }
+  }
+}
+
+socket.on('a', callback);
+socket.on('b', callback);
+</code></pre>
+          </td>
+          <td width="50%">
+<pre><code class='javascript'>socket.stream('a').resolve(socket.stream('b'), function(a, b){
+  return a.timeStamp > b.timeStamp ? a : b;
+}).listen(function(data){
+  console.log('Data from socket ' + data.socket_name + ' was recived first');
+})
+</code></pre>
+          </td></tr>
+
 				<tr><td colspan='2'>
 					<h2>Reactive Calculations</h2>
 				</td></tr>	
@@ -170,32 +247,6 @@ a.value = 40;
 // c.value = 40;
 </code></pre>
 				</tr>
-
-
-				<tr><td colspan='2'>
-					<h2>Event composing</h2>
-				</td></tr>	
-				<tr>
-     			</td>
-     			<td width="50%">
-<pre><code class='javascript'>var timer;
-button.addEventListener('click', function(){
-  var self = this;
-  clearTimeout(timer);
-  timer = setTimeout(function(){
-    send(self.value);
-  }, 500)
-});
-</code></pre>
-     			</td>
-     			<td width="50%">
-<pre><code class='javascript'>Warden(button)
-  .stream('click')
-  .debounce(500)
-  .map('@value')
-  .listen(send);
-</code></pre>
-     			</td></tr>
      		</tbody>
      	</table>
       	
