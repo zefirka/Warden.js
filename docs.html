@@ -126,7 +126,6 @@
           <li><a href="#observe">Warden.Observe</a></li>
           <li><a href="#pipeline">Warden.Pipeline</a></li>
           <li><a href="#formula">Warden.Formula</a></li>
-          <li><a href="#from">Warden.From</a></li>
         </ul>
       </div>
     </div>
@@ -975,6 +974,36 @@ Warden.configure.addToStream('first', function(/* no arguments */){
 
 //now we can use it like a:
 stream.myMerge(stream2)
+</code></pre>
+
+<hr class='bhr'>       
+<h2 id="host">Warden.Host</h2>
+<p class='d-description'>Description: module which hosts streams</p> 
+<h4>Usage:</h4>
+<pre><code class='javascript'>var stream = Warden.Stream();
+
+stream.log();
+stream.map('Hey!').log();
+
+stream.fire('Value');
+
+// fires only stream, so 'Hey!' will not log
+
+// And now hosts:
+
+var host = Warden.Host();
+
+var stream = host.newStream();
+
+stream.log();
+stream.map('Hey!').log();
+
+host.eval('Value');
+
+// Value
+// Hey!
+
+// Host evaluation causes evaluation of every associated stream
 </code></pre>
 
     </div>

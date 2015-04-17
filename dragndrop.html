@@ -97,7 +97,8 @@ var drags = moves
   /* Math logic to find absolute position of object */
   })</code></pre>
         <p>Logic</p>
-        <pre><code class="javascript">drags.lock(ups).unlock(downs);
+        <pre><code class="javascript">drags.toggleOn(ups, false);
+drags.toggleOn(downs, true);
         </code></pre>
         <p>Side effects</p>
         <pre><code class="javascript">drags.interpolate("Current position: (X:{{x}}, Y:{{y}})").bindTo(DOMelement, 'innerHTML');
