@@ -32,7 +32,7 @@ function DragnDrop(o){
     return pos;
   });
  
-  this.moves.interpolate($(".data-info").html()).bindTo($(".data-info"), 'html');
+  var coors = this.moves.interpolate($(".data-info").html()).bindTo($(".data-info"), 'html');
   this.moves.listen(function(pos){
     o.css({
       top: pos.y,
@@ -45,9 +45,11 @@ function DragnDrop(o){
 
   ups.listen(function(){
     self.moves.lockThis();
+    coors.lockThis();
   })
 
   downs.listen(function(){
+    coors.unlockThis();
     self.moves.unlockThis();
   })
 }
