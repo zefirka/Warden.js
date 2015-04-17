@@ -40,18 +40,8 @@ function DragnDrop(o){
     })
   })
 
-  // this.moves.toggleOn(ups, true)
-  // this.moves.toggleOn(downs, false);
-
-  ups.listen(function(){
-    self.moves.lockThis();
-    coors.lockThis();
-  })
-
-  downs.listen(function(){
-    coors.unlockThis();
-    self.moves.unlockThis();
-  })
+  this.moves.toggleOn(ups, false);
+  this.moves.toggleOn(downs, true);
 }
 
 $(function(){
