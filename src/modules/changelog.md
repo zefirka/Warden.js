@@ -1,4 +1,7 @@
 #### Global major changes
+`version v.0.3.4`
+  - Pretty stable version
+
 `version v.0.3.3`
   - Fixed `toggleOn` and `swap` methods
 

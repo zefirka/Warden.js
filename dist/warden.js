@@ -16,7 +16,7 @@
   }
   var jQueryInited = typeof jQuery != "undefined";
 
-  Warden.version = "0.3.2";
+  Warden.version = "0.3.3";
   Warden.configure = {
     history : 3,
     cmp : function(x,y){ return x === y; }
@@ -1279,16 +1279,19 @@
 
         function swap(e, val){
           e.locked = !val;
-          each(e.children, swap);
+          each(e.children, function(child){
+            child.swap(val);
+          });
         }
 
         swap(this, state);      
       },
       
       toggleOn: function(bus, state){
+        var self = this;
         if(bus instanceof Stream){
           bus.listen(function(){
-            bus.swap(state);
+            self.swap(state);
           });
         }
       },
