@@ -40,7 +40,17 @@ function DragnDrop(o){
     })
   })
 
-  this.moves.lock(ups).unlock(downs);
+  // this.moves
+  //   .toggleOn(ups, true)
+  //   .toggleOn(downs, false);
+
+  ups.listen(function(){
+    self.moves.lock();
+  })
+
+  downs.listen(function(){
+    self.moves.unlock();
+  })
 }
 
 $(function(){
