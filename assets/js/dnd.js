@@ -40,17 +40,16 @@ function DragnDrop(o){
     })
   })
 
-  // this.moves
-  //   .toggleOn(ups, true)
-  //   .toggleOn(downs, false);
+  this.moves.toggleOn(ups, true)
+  this.moves.toggleOn(downs, false);
 
-  ups.listen(function(){
-    self.moves.lock();
-  })
+  // ups.listen(function(){
+  //   self.moves.lock();
+  // })
 
-  downs.listen(function(){
-    self.moves.unlock();
-  })
+  // downs.listen(function(){
+  //   self.moves.unlock();
+  // })
 }
 
 $(function(){
