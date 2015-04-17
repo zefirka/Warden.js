@@ -69,6 +69,7 @@
 
           <h4>Plugins and Config</h4>
           <li><a href="#config">Warden.configure</a></li>
+          <li><a href="#addtostream">.addToStream</a></li>
           <li><a href="#host">Warden.Host</a></li>
           <li><a href="#worker">Warden.Worker</a></li>
           <li><a href="#observe">Warden.Observe</a></li>
@@ -254,10 +255,12 @@ Warden.Stream(function(){
 // Coincidence: property: 'some_value' is already defined in stream context! Object {some_value: ""}
 </code></pre>
 
+<!-- ================================================================== -->
+
 <hr>
 <h2 id="fire">.fire</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.fire(value, [context])</code>.</p>
-<p class='d-description'>Description: Pushes value to the stream.</p>
+<p class='d-description'>Description: Pushes value to the stream. It doesn't fire all conjuncted and children streams, just given. The fastest method.</p>
 
 <hr>
 <h2 id="listen_s">.listen</h2>
@@ -862,30 +865,66 @@ keydowns.collectFor(clicks).log(); // will log array of keydowns after every cli
 <hr class='bhr'>
 <h2 id="extarr">Extending arrays</h2>
 <p class='d-synopsis'>Synopsis: <code>Warden(array);</code>.</p>
+<p>Extends array with Pub/Sub methods, so you can subsribe to destructing changes of array such a <code>push</code> or <code>splice</code>.</p>
+<p><strong>Note: if you change array by array literal notation <code>arr[arr.length] = val</code> instead of <code>arr.push(val)</code> it's not work azazaza</strong></p>
 
 <h2 id="sequentially">.sequentially</h2>
-<p class='d-synopsis'>Synopsis: <code>Warden(array);</code>.</p>
-<p class='d-description'>Description: Pushes stream to the host's active streams. It means that stream can be evaluated by host's <code>eval</code> method.</p>
+<p class='d-synopsis'>Synopsis: <code>arr.sequentially([interval]);</code>.</p>
+<p class='d-description'>Description: Return stream which will be sequentially fired with all <code>arr</code> values with given interval.</p>
 
 <h2 id="repeatedly">.repeatedly</h2>
-<p class='d-synopsis'>Synopsis: <code>Warden(array);</code>.</p>
-<p class='d-description'>Description: Pushes stream to the host's active streams. It means that stream can be evaluated by host's <code>eval</code> method.</p>        
+<p class='d-synopsis'>Synopsis: <code>arr.repeatedly()</code>.</p>
+<p class='d-description'>Description: Returns stream which will be repeatedbly fired with all values of <code>arr</code>. Difference between <code>.sequentially</code> that all fires will be synchronious.</p>
    
 <hr class='bhr'>       
 <h2 id="config">Warden.configure</h2>
-<p class='d-description'>Description: Pushes stream to the host's active streams. It means that stream can be evaluated by host's <code>eval</code> method.</p>       
+<p class='d-description'>Description: in this object stores methods and values to configure Warden's behavior. And some helper functions</p>       
 
 <h2 id="repeatedly">Warden.configure.history</h2>
-<p class='d-synopsis'>Synopsis: <code>Warden(array);</code>.</p>
-<p class='d-description'>Description: Pushes stream to the host's active streams. It means that stream can be evaluated by host's <code>eval</code> method.</p>        
+<p class='d-synopsis'>By default: <code>3</code></p>
+<p class='d-description'>Description: Integer. Configures length of Streams memoty array. 3 by default.</p>
 
-<h2 id="repeatedly">Warden.configure.addToStream</h2>
-<p class='d-synopsis'>Synopsis: <code>Warden(array);</code>.</p>
-<p class='d-description'>Description: Pushes stream to the host's active streams. It means that stream can be evaluated by host's <code>eval</code> method.</p>
+<h2 id="compractor">Warden.configure.cmp</h2>
+<p class='d-synopsis'>By default: <code>function (a, b) { return a === b; }</code>.</p>
+<p class='d-description'>Description: Default Warden's comprator that calls every times when Warden compares two given vallue (e.g. <code>.diff</code> method).</p>
 
-<h2 id="repeatedly">Warden.configure.cmp</h2>
-<p class='d-synopsis'>Synopsis: <code>Warden(array);</code>.</p>
-<p class='d-description'>Description: Pushes stream to the host's active streams. It means that stream can be evaluated by host's <code>eval</code> method.</p>        
+<h2 id="isstream">Warden.configure.isStream</h2>
+<p class='d-synopsis'>Synopsis: <code>Warden.configure.isStream([object]);</code>.</p>
+<p class='d-description'>Description: Returns true if <code>object</code> is instance of Stream.</p>
+
+<h2 id="addtostream">Warden.configure.addToStream</h2>
+<p class='d-synopsis'>Synopsis: <code>Warden.configure.addToStream(name, fn, piped);</code>.</p>
+<p class='d-description'>Description: Adds to the Stream's prototype <code>fn</code> processor.</p>
+<h4>Usage:</h4>
+<p>To understand pipes notation look at <a href='#pipline'><code>Warden.Pipeline</code></a> API.</p>
+<pre><code class='javascript'>// Extends streams by method .first()
+Warden.configure.addToStream('first', function(/* no arguments */){
+  /* Here we can set up all constant data */
+  return function(data, pipe){
+    /* 
+     * data is a value which transmits through stream 
+     * pipe is a Warnde's pipeline, with pipe you should describe stream's behavior
+    */
+    if(data[0] !== undefined){
+      pipe.next(data[0]) // accepts value through pipe
+    }else{ 
+      pipe.stop(); // declines value and break stream evaluation
+    }
+  }
+});
+</code></pre>
+<p>Sometimes we don't need pipeline, so we can create stream processor by ready solutions. Let's write our <code>.merge</code> method </p>
+<pre><code class='javascript'>Warden.configure.addToStream('myMerge', function(stream){
+  var self = this; // context variable is stream entity
+  return Warden.Stream(function(fire){
+    self.listen(fire);
+    stream.listen(fire);
+  });
+}, true); // last argument - true means that we don't use pipline
+
+//now we can use it like a:
+stream.myMerge(stream2)
+</code></pre>
 
     </div>
   </div>

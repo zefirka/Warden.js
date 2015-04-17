@@ -40,13 +40,7 @@ function DragnDrop(o){
     })
   })
 
-  ups.listen(function(){
-    self.moves.lock();
-  })
-
-  downs.listen(function(){
-    self.moves.unlockChildren();
-  })
+  this.moves.lock(ups).unlock(downs);
 }
 
 $(function(){
