@@ -608,16 +608,19 @@ var Stream = (function(){
 
       function swap(e, val){
         e.locked = !val;
-        each(e.children, swap);
+        each(e.children, function(child){
+          child.swap(val);
+        });
       }
 
       swap(this, state);      
     },
     
     toggleOn: function(bus, state){
+      var self = this;
       if(bus instanceof Stream){
         bus.listen(function(){
-          bus.swap(state);
+          self.swap(state);
         });
       }
     },
