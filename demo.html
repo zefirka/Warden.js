@@ -164,7 +164,8 @@ socket.on('b', callback);
           </td>
           <td width="50%">
 <pre><code class='javascript'>var sStream = socket.stream('a'),
-  bStream = socket.stream('b');
+    bStream = socket.stream('b');
+    
 aStream.resolve(bStream, function(a, b){
   return a.timeStamp > b.timeStamp ? a : b;
 }).listen(log);

@@ -10,7 +10,7 @@
       </div>
       <h3>Usage:</h3>
       <p>We have an markup:</p>
-      <pre><code class='html'><input type='text' id='a' value="0"> + <input  type='text' id='b' value="0"> + <input type='text' id='c' value="0"> ) * <input type='text' id='d' value="0"> = <input type='text' id='result'>
+      <pre><code class='html'>&lt;input type='text' id='a' value="0"&gt; + &lt;input  type='text' id='b' value="0"&gt; + &lt;input type='text' id='c' value="0"&gt; ) * &lt;input type='text' id='d' value="0"&gt; = &lt;input type='text' id='result'&gt;
       </code></pre>
       <p>This markup represents simple algebraic expression <code>(a + b + c ) * d = X</code>, but all values changes over the time. We don't want to append to each input handler and observe changes of value and count final result. So we use <code>Warden.Formula</code></p>
       <pre><code class='javascript'>// returns stream of given type from element #id
