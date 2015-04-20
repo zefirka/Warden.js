@@ -53,8 +53,8 @@
   <div class="row">
     <div class="col-md-12">
       <h2>Concept</h2>
-      <p>Warden.js is a library to make event-driven programming clean, declarative and easy.</p>
-      <p>General idea of Warden.js that to make composing, combining and resolving concurrent events simpler. In mathematical sense, idea that to change your app's representation from tree of states to the partially ordered set of events in time (or other) priority relation. It means that in Warden.js events are data which change in time, not an actions which publish data to subsribers.</p>
+      <p>Warden.js is a library to make event-driven programming clear, declarative and easy.</p>
+      <p>General idea of Warden.js to make composing, combining and resolving concurrent events simpler. In mathematical sense, idea that to change your app's representation from tree of states to the partially ordered set of events in time (or other) priority relation. It means that in Warden.js events are data which changes in time, not an actions which publish data to handlers.</p>
     </div>
     <div class="col-md-12">
       <h2>Rationale</h2>
@@ -62,6 +62,7 @@
         <li>
           <h3>Event-driven applications</h3>
           <p>Event-driven applications are hard. Hard to understand, hard to debug, hard to maintain. It's hard to combine values which can change over the time. State is unpredictable.</p>
+          <p>But EDD is good for scalable asynchronious applications, today event-driven patterns are foundation of browser programming and Node.js both. So we need more declarative way to manage out events.</p>
         </li>
         <li>
           <h3>Functioanl Reactive Programming</h3>
@@ -69,7 +70,7 @@
         </li>
         <li>
           <h3>Trade-off</h3>
-          <p>Warden.js - is a trade-off between true FRP and traditional EDP.</p>
+          <p>Warden.js - is a trade-off between true FRP and traditional EDP. You can choose which way to use. True functional immutable state, or you just need streams for syntax sugar, or something between. It remains ability to create dirty-state components which represents itselfs as a stream so you can easy manage your app's state.</p>
         </li>
       </ul>
     </div>

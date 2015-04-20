@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="Warden.js : Combine streams">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script type="text/javascript" src="assets/js/jquery.min.js"></script>
+    <script type="text/javascript" src="assets/js/warden.min.js"></script>
+    <script type="text/javascript" src="assets/js/highlight.pack.js"></script>
+    <script type="text/javascript" src="assets/js/main.js"></script>
+    <script type='text/javascript' src='assets/js/combine.js'></script>
+
+    <link rel="stylesheet" type="text/css" media="screen" href="assets/css/bootstrap.css">
+    <link rel="stylesheet" type="text/css" media="screen" href="assets/css/main.css">
+    <link rel="stylesheet" href="assets/css/github.css">    
+    <link href='assets/css/combine.css' rel='stylesheet' type='text/css'>
+
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" href="favicon.png">
+
+    <title>Warden.js : Combine streams</title>
+</head>
+    <body>
+        <header>
+            <section id='logo' class='hidden-xs hidden-sm'>
+              <div class="container">
+                <div class='img-container'>
+                  <a href="index.html">
+                    <img src="assets/images/logo.png">
+                  </a>
+                </div>
+              </div>
+            </section>
+            <section id='hpos' class='hidden-md hidden-lg'>
+              <div class="container center">
+                <a href="index.html"><h1>Warden.js</h1></a>
+              </div>
+            </section>
+            <nav>
+              <ul class='container no-padding'>
+                <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 "><a href="about.html">About</a></li>
+                <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 "><a href="docs.html">API</a></li>
+                <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 "><a href="demo.html">Tutorials</a></li>
+                <li class="col-md-3 col-sm-3 col-xs-6 col-lg-3 "><a href="download.html">Download</a></li>
+                <a href="https://github.com/zefirka/Warden.js" class='fork'></a>
+              </ul>
+            </nav>
+          </header>
+        <input type="hidden" id='active_tab' value="demo">
+        <div class="container">
+  <div class="row">
+    <div class="col-md-3 col-sm-3 col-xs-12 col-lg-2">
+  <h2>Demos</h2>
+  <ul id='submenu'>
+    <li><strong>Simple</strong></li>
+    <li><a href="pubsub.html">Pub/Sub</a></li>
+    <li><a href="streams.html">Streams</a></li>
+    <li><strong>Event streams</strong></li>
+    <li><a href="counter.html">Counter</a></li>
+    <li><a href="dragndrop.html">Drag'n'Drop</a></li>
+    <li><a href="away.html">Away module</a></li>
+    <li><a href="http.html">HTTP Ajax module</a></li>
+    <li><strong>Composing</strong></li>
+    <li><a href="sync.html">Synchronization</a></li>
+    <li><a href="combining.html">Combining</a></li>
+    <li><strong>Formulas</strong></li>
+    <li><a href="formula.html">Formulas</a></li>
+    <li><a href="counting.html">Resolving</a></li>
+  </ul>
+</div>
+    <div class="col-md-9 col-sm-9 col-xs-12 col-lg-10">
+      <section class='b-doc-section'>
+      <h2>Combintaions of streams</h2>
+      
+      <div class='box'>
+        <div class='f2' id='letters'>
+          <span class='btn btn-primary'>Alpha</span>
+          <span class='btn btn-primary'>Betta</span>
+          <span class='btn btn-primary'>Gamma</span>
+          <span class='btn btn-primary'>Delta</span>
+        </div>
+
+        <div class='f2' id='codes'>
+          <span class='btn btn-primary'>-331</span>
+          <span class='btn btn-primary'>-64d</span>
+          <span class='btn btn-primary'>-7-17</span>
+          <span class='btn btn-primary'>-a-93</span>
+        </div>
+
+        <div>
+          Result: <span id='res'></span>
+        </div>
+      </div>
+      <h3>Usage:</h3>
+      <pre><code class='javascript'>var Letters = Warden.Stream(function(fire){
+  $('#letters').find('.btn').click(function(event){
+    var cnt = $(this);
+    fire(cnt.text(), cnt);
+  });
+});
+
+var Codes = Warden.Stream(function(fire){
+  $('#codes').find('.btn').click(function(event){
+    var cnt = $(this);
+    fire(cnt.text(), cnt);
+  });
+});
+
+  Letters.combine(Codes, function(letter, code){
+    return letter+code;
+  });
+
+</code></pre>
+
+      </section>
+      </div>
+    </div>
+  </div>
+</div>
+    </body>
+</html>

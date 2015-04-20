@@ -957,20 +957,17 @@ host.eval('Value');
 <h2>Host methods</h2>
 
 <h3>.eval</h3>
-<p class='d-description'>Description: module which hosts streams</p> 
-<h4>Usage:</h4>
+<p class='d-description'>Description: evaluates host's active streams</p> 
 
 <h3>.push</h3>
-<p class='d-description'>Description: module which hosts streams</p> 
-<h4>Usage:</h4>
+<p class='d-description'>Description: push stream to the host's active streams query</p> 
 
 <h3>.pop</h3>
-<p class='d-description'>Description: module which hosts streams</p> 
-<h4>Usage:</h4>
+<p class='d-description'>Description: removes stream from hosts's active streams query</p> 
 
 <h3>.newStream</h3>
-<p class='d-description'>Description: module which hosts streams</p> 
-<h4>Usage:</h4>
+<p class='d-description'>Description: return new stream assigned with given host</p> 
+
 
 
 

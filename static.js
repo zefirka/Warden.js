@@ -89,6 +89,13 @@ module.exports = {
 			dependencies: ['aside'],
 			active : 'demo'
 		},
+		'combining' : {
+			title : title('Combine streams'),
+			scripts : ['combine'],
+			styles : ['combine'],
+			dependencies: ['aside'],
+			active : 'demo'
+		},
 		'download' : {
 			title: title("Download"),
 			dependencies: ['links'],
