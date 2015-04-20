@@ -7,7 +7,7 @@
       <div class='msgs'>
         <div class='msg'>Pure events: <span id='clear'></span></div>
         <div class='msg'>Chars (mapped): <span id='mapped'></span></div>
-        <div class='msg'>Letters (filtered): <span id='filtered'></span></div>
+        <div class='msg'>Digits (filtered): <span id='filtered'></span></div>
         <div class='msg'>Inputs (reduced): <span id='reduced'></span></div>
       </div>
       <h3>Streams</h3>
@@ -32,9 +32,9 @@ var clicks = $(document).stream('click');
   .map(String.fromCharCode)
       </code></pre>
       <p><strong>Filter</strong></p>
-      <pre><code  class="javascript">var letters = chars
+      <pre><code  class="javascript">var digits = chars
   .filter(function(ch){
-    return "0123456789".indexOf(ch) == -1;
+    return "0123456789".indexOf(ch) != -1;
   });</code></pre>
       <p><strong>Reduce</strong></p>
           <pre><code  class="javascript">var inputs = chars
@@ -46,7 +46,7 @@ var clicks = $(document).stream('click');
       <pre><code  class="javascript">document.onreadystatechange = function(){
   kd.bindTo(pureDOMElement, 'innerHTML');
   chars.bindTo(mappedDOMElement, 'innerHTML');
-  letters.bindTo(filteredDOMElement, 'innerHTML');
+  digits.bindTo(filteredDOMElement, 'innerHTML');
   inputs.bindTo(reducedDOMElement, 'innerHTML');
 };
 
