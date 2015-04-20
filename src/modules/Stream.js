@@ -47,6 +47,10 @@ var Stream = (function(){
       return this.data.last;
     },
 
+    toString : function(e){
+      return this.data.last.toString();
+    },
+
     bindTo : function() {
       var binding = Warden.Watcher.apply(null, [this].concat(toArray(arguments)));
       return binding;

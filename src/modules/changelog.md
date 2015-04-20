@@ -1,4 +1,10 @@
 #### Global major changes
+`version v.0.3.5`
+  - Fixed array extension
+  - Added `pop` method to Host module
+  - Added stream's `toString` method
+  - Added source maps
+
 `version v.0.3.4`
   - Pretty stable version
 

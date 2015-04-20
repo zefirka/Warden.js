@@ -38,6 +38,15 @@ Warden.extend = (function(){
     }.bind(this));
   }
 
+  function define(obj, name, val){
+    Object.defineProperty(obj, name, {
+      configurable: false,
+      enumerable: false,
+      writable: false,
+      value: val 
+    })
+  }
+
   return function(obj, conf) {
     function binder (fn, handlers, callback){
       return function(type){
@@ -59,6 +68,9 @@ Warden.extend = (function(){
       }
     }
 
+    function setval(a, b, c){
+     a[b] = c;
+    }
 
     var config = extend({}, defaultConfig, conf || {}), // default configuration
         inheritor = is.exist(obj) ? obj : {}, // final object to extend
@@ -85,7 +97,20 @@ Warden.extend = (function(){
 
         _Array.prototype = Object.create(inheritor);
 
-        _Array.prototype.sequentially = function(timeout){
+        define(_Array.prototype, 'repeatedly', function(){
+          var self = this, l = self.length;
+
+          return Warden.Stream(function(fire){            
+            var i = 0;
+            setTimeout(function(){
+              while(i < l){
+                fire(self[i++])
+              }
+            });            
+          });
+        });
+
+        define(_Array.prototype, 'sequentially', function(timeout){
           var self = this, l = self.length;
 
           return Warden.Stream(function(fire){
@@ -102,23 +127,10 @@ Warden.extend = (function(){
 
             }, timeout);
           });
-        }
-
-        _Array.prototype.repeatedly = function(){
-          var self = this, l = self.length;
-
-          return Warden.Stream(function(fire){            
-            var i = 0;
-            setTimeout(function(){
-              while(i < l){
-                fire(self[i++])
-              }
-            });            
-          });
-        }
+        });
 
         each(config.arrays, function(name){
-          _Array.prototype[name] = function(){ 
+          define(_Array.prototype, name, function(){ 
             var prev = this;
             Array.prototype[name].apply(this, arguments);
             this.emit({
@@ -127,11 +139,15 @@ Warden.extend = (function(){
               current: this,
               data: toArray(arguments)
             });
-          };
+          });
         });
 
         obj = new _Array(obj);
-        inheritor = obj;
+        inheritor = _Array.prototype;
+
+        setval = function(a,b,c){
+          return define(a,b,c);
+        }
       }
 
     }
@@ -158,7 +174,7 @@ Warden.extend = (function(){
     }
 
     /* Emitter method */
-    inheritor[names.emit] = function(ev, data){
+    setval(inheritor, names.emit, function(ev, data){
       var self = this,
           type = is.str(ev) ? ev : ev.type,
           data = is.obj(ev) ? ev : data || ev,
@@ -171,10 +187,10 @@ Warden.extend = (function(){
       });
 
       return this;
-    };
+    });
 
     /* Listen events of @type */
-    inheritor[names.listen] = function(types, callback){
+    setval(inheritor, names.listen, function(types, callback){
       var self = this,
         reactor = binder(function(event){
           this.emit(event);
@@ -186,10 +202,10 @@ Warden.extend = (function(){
       });
 
       return this;
-    };
+    });
 
     /* Unsubscribe from events of @type */
-    inheritor[names.unlisten] = function(type, name){
+    setval(inheritor, names.unlisten, function(type, name){
       var self = this, 
           indexes = [], //to remove
           type = trim(type),
@@ -212,10 +228,10 @@ Warden.extend = (function(){
         });
       }
       return this;
-    };
+    });
 
     /* Creates stream of @type type events*/
-    inheritor[names.stream] = function(types, cnt){
+    setval(inheritor, names.stream, function(types, cnt){
       var self = this,
           stream = Warden.makeStream(types, cnt || this),
           seval = function(event){
@@ -229,7 +245,7 @@ Warden.extend = (function(){
       });
 
       return stream;
-    };
+    });
 
     return obj;
   };

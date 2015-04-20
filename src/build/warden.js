@@ -16,7 +16,7 @@
   }
   var jQueryInited = typeof jQuery != "undefined";
 
-  Warden.version = "0.3.4";
+  Warden.version = "0.3.5";
   Warden.configure = {
     history : 3,
     cmp : function(x,y){ return x === y; }
@@ -318,6 +318,15 @@
       }.bind(this));
     }
 
+    function define(obj, name, val){
+      Object.defineProperty(obj, name, {
+        configurable: false,
+        enumerable: false,
+        writable: false,
+        value: val 
+      })
+    }
+
     return function(obj, conf) {
       function binder (fn, handlers, callback){
         return function(type){
@@ -339,6 +348,9 @@
         }
       }
 
+      function setval(a, b, c){
+       a[b] = c;
+      }
 
       var config = extend({}, defaultConfig, conf || {}), // default configuration
           inheritor = is.exist(obj) ? obj : {}, // final object to extend
@@ -365,7 +377,20 @@
 
           _Array.prototype = Object.create(inheritor);
 
-          _Array.prototype.sequentially = function(timeout){
+          define(_Array.prototype, 'repeatedly', function(){
+            var self = this, l = self.length;
+
+            return Warden.Stream(function(fire){            
+              var i = 0;
+              setTimeout(function(){
+                while(i < l){
+                  fire(self[i++])
+                }
+              });            
+            });
+          });
+
+          define(_Array.prototype, 'sequentially', function(timeout){
             var self = this, l = self.length;
 
             return Warden.Stream(function(fire){
@@ -382,23 +407,10 @@
 
               }, timeout);
             });
-          }
-
-          _Array.prototype.repeatedly = function(){
-            var self = this, l = self.length;
-
-            return Warden.Stream(function(fire){            
-              var i = 0;
-              setTimeout(function(){
-                while(i < l){
-                  fire(self[i++])
-                }
-              });            
-            });
-          }
+          });
 
           each(config.arrays, function(name){
-            _Array.prototype[name] = function(){ 
+            define(_Array.prototype, name, function(){ 
               var prev = this;
               Array.prototype[name].apply(this, arguments);
               this.emit({
@@ -407,11 +419,15 @@
                 current: this,
                 data: toArray(arguments)
               });
-            };
+            });
           });
 
           obj = new _Array(obj);
-          inheritor = obj;
+          inheritor = _Array.prototype;
+
+          setval = function(a,b,c){
+            return define(a,b,c);
+          }
         }
 
       }
@@ -438,7 +454,7 @@
       }
 
       /* Emitter method */
-      inheritor[names.emit] = function(ev, data){
+      setval(inheritor, names.emit, function(ev, data){
         var self = this,
             type = is.str(ev) ? ev : ev.type,
             data = is.obj(ev) ? ev : data || ev,
@@ -451,10 +467,10 @@
         });
 
         return this;
-      };
+      });
 
       /* Listen events of @type */
-      inheritor[names.listen] = function(types, callback){
+      setval(inheritor, names.listen, function(types, callback){
         var self = this,
           reactor = binder(function(event){
             this.emit(event);
@@ -466,10 +482,10 @@
         });
 
         return this;
-      };
+      });
 
       /* Unsubscribe from events of @type */
-      inheritor[names.unlisten] = function(type, name){
+      setval(inheritor, names.unlisten, function(type, name){
         var self = this, 
             indexes = [], //to remove
             type = trim(type),
@@ -492,10 +508,10 @@
           });
         }
         return this;
-      };
+      });
 
       /* Creates stream of @type type events*/
-      inheritor[names.stream] = function(types, cnt){
+      setval(inheritor, names.stream, function(types, cnt){
         var self = this,
             stream = Warden.makeStream(types, cnt || this),
             seval = function(event){
@@ -509,7 +525,7 @@
         });
 
         return stream;
-      };
+      });
 
       return obj;
     };
@@ -608,9 +624,18 @@
           Push into executable drive @bus.
           Bus is Stream object.
         */
-        push : function(bus){
-          drive.push(bus);
-          return bus;
+        push : function(stream){
+          drive.push(stream);
+          return stream;
+        },
+
+        pop : function(stream){
+          return Utils.forWhile(drive, function(s, i){
+            if(s.$$id = stream.$$id){
+              drive.splice(i,1);
+              return false
+            }
+          }, false, stream);
         },
 
         /*
@@ -716,6 +741,10 @@
     Stream.prototype = {
       valueOf : function(e){
         return this.data.last;
+      },
+
+      toString : function(e){
+        return this.data.last.toString();
       },
 
       bindTo : function() {

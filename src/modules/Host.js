@@ -18,9 +18,18 @@ Warden.Stream = (function(){
         Push into executable drive @bus.
         Bus is Stream object.
       */
-      push : function(bus){
-        drive.push(bus);
-        return bus;
+      push : function(stream){
+        drive.push(stream);
+        return stream;
+      },
+
+      pop : function(stream){
+        return Utils.forWhile(drive, function(s, i){
+          if(s.$$id = stream.$$id){
+            drive.splice(i,1);
+            return false
+          }
+        }, false, stream);
       },
 
       /*

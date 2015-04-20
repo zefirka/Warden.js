@@ -349,6 +349,27 @@ describe('Warden.extend', function(){
 			
 		});
 
+		it('- own properties', function (done) {      
+			var owns = [];
+			for(var prop in Warden([1,2,3])){
+				owns.push(prop);
+			}
+			expect(owns.indexOf('stream')).toBe(-1)
+			expect(owns.indexOf('emit')).toBe(-1)
+			expect(owns.indexOf('listen')).toBe(-1)
+			expect(owns.indexOf('unlisten')).toBe(-1)
+			expect(owns.indexOf('push')).toBe(-1)
+			expect(owns.indexOf('pop')).toBe(-1)
+			expect(owns.indexOf('sort')).toBe(-1)
+			expect(owns.indexOf('slice')).toBe(-1)
+			expect(owns.indexOf('splice')).toBe(-1)
+			expect(owns.indexOf('reverse')).toBe(-1)
+			expect(owns.indexOf('shift')).toBe(-1)
+			expect(owns.indexOf('unshift')).toBe(-1)
+
+			done();
+		});
+
 	});
 	describe('Listening and unlistening', function(){
 		var data = null;

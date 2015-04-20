@@ -12,9 +12,12 @@ module.exports = function(grunt){
     },
 
     uglify: {
-      my_target: {
+      warden: {
         files: {
           'dist/warden.min.js': ['dist/warden.js'],
+        },
+        options : {
+          sourceMap : true
         }
       }
     },
