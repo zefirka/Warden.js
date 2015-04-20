@@ -80,6 +80,7 @@ module.exports = {
 			scripts : ['formula'],
 			styles : ['formula'],
 			dependencies: ['aside'],
+			active: 'demo'
 		},
 		'http' : {
 			title : title('HTTP example'),
