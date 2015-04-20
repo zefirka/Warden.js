@@ -17,17 +17,17 @@ var common_data = {
 	date : new Date(),
 }
  
-var stats = fs.statSync("assets/download/warden.min.js");
-var fileSizeInBytes = stats["size"]
-var fileSizeInKB = fileSizeInBytes / 1024;
+(function(){
+	var stats = fs.statSync("assets/download/warden.min.js"),
+		fileSizeInBytes = stats["size"],
+		fileSizeInKB = fileSizeInBytes / 1024,
+		statsGz = fs.statSync("assets/download/warden.gz"),
+		fileSizeInBytesGz = statsGz["size"],
+		fileSizeInKBGz = fileSizeInBytesGz / 1024;
 
-var statsGz = fs.statSync("assets/download/warden.gz");
-var fileSizeInBytesGz = statsGz["size"]
-var fileSizeInKBGz = fileSizeInBytesGz / 1024;
-
-common_data.size_min = fileSizeInKB.toFixed(2);
-common_data.size_gz = fileSizeInKBGz.toFixed(2);
-
+	common_data.size_min = fileSizeInKB.toFixed(2);
+	common_data.size_gz = fileSizeInKBGz.toFixed(2);
+})();
 
 
 for(var pagename in map.pages){
