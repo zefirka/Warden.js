@@ -15,7 +15,7 @@ var g_html = file('common/html'),
 var common_data = {
 	version : Warden.version,
 	date : new Date(),
-}
+};
  
 (function(){
 	var stats = fs.statSync("assets/download/warden.min.js"),
