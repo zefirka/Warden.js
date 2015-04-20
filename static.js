@@ -15,7 +15,7 @@ module.exports = {
 	pages: {
 		'index' : {
 			title: common.title,
-			scripts: ['main']
+			scripts: ['main'],
 		},
 		'demo' : {
 			title: title("Demos"),

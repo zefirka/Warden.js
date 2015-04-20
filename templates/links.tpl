@@ -1,9 +1,9 @@
 <h4>Development</h4>
-<p><a href="assets/downloads/0.3.4/warden.js">warden.js 0.3.4</a></p>
+<p><a href="assets/download/{{version}}/warden.js">warden.js {{version}}</a></p>
 <h4>Production</h4>
-<p><a href="assets/downloads/0.3.4/warden.min.js">warden.min.js 0.3.4</a></p>
-<p><a href="assets/downloads/0.3.4/warden.mian.js.map">warden.min.js.map 0.3.4</a></p>
-<p><a href="assets/downloads/0.3.4/warden.gz">warden.gz 0.3.4</a></p>
+<p><a href="assets/download/{{version}}/warden.min.js">warden.min.js {{version}}</a></p>
+<p><a href="assets/download/{{version}}/warden.mian.js.map">warden.min.js.map {{version}}</a></p>
+<p><a href="assets/download/{{version}}/warden.gz">warden.gz {{version}}</a></p>
 
 <h3>Github</h3>
 <p><a href="https://github.com/zefirka/Warden.js">Fork</a></p>

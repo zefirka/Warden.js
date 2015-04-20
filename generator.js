@@ -11,6 +11,25 @@ function file(str){
 var g_html = file('common/html'),
 	g_head = file('common/head');
 
+
+var common_data = {
+	version : Warden.version,
+	date : new Date(),
+}
+ 
+var stats = fs.statSync("assets/download/warden.min.js");
+var fileSizeInBytes = stats["size"]
+var fileSizeInKB = fileSizeInBytes / 1024;
+
+var statsGz = fs.statSync("assets/download/warden.gz");
+var fileSizeInBytesGz = statsGz["size"]
+var fileSizeInKBGz = fileSizeInBytesGz / 1024;
+
+common_data.size_min = fileSizeInKB.toFixed(2);
+common_data.size_gz = fileSizeInKBGz.toFixed(2);
+
+
+
 for(var pagename in map.pages){
 	var html = g_html,
 		head = g_head;
@@ -81,6 +100,8 @@ for(var pagename in map.pages){
 		head: currentHead,
 		content: str
 	});
+
+	result = _.interpolate(result, common_data)
 
 	fs.writeFileSync(pagename + '.html', result)
 }

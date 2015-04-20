@@ -35,7 +35,7 @@
         <li>Simple declarative methods to combine, conjuncte and resolve concpetually connected events. Like sync or resolve. If your application turns to tangled web of simple events and you spoiling time to resolve synchronization, combining events in time and resolving problems - then Warden.js is for you.</li>
         <li>Pretty flexible API. There are no much of ready solutions, but there is way to add your own data stream processing method, combine methods and construct application in your way.</li>
         <li>It's not pure functional, but stay simple. In Warden you can create modules with dirty state, but if you're sure that these modules are simple and state is predictable. So after you can combine and reuse modules in more declarative way. It's not required to use pure functional programming technics from start to end while develop with Warden.</li>
-        <li>It's lighweight. Current version (0.3.2): 15 KB (5.9 KB gzipped). And it comes with crossbrowser utilities package, modular package to create pipelines, dependency formulas from streams ...</li>
+        <li>It's lighweight. Current version ({{version}}): {{size_min}} KB ({{size_gz}} KB gzipped). And it comes with crossbrowser utilities package, modular package to create pipelines, dependency formulas from streams ...</li>
         <li>Low-level functional abstraction. You can write a bunch of cool things. An events sampler (for example).</li>
       </ul>
     </div>
