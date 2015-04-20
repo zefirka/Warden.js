@@ -14,7 +14,7 @@ var Codes = Warden.Stream(function(fire){
 });
 
   var current = Letters.combine(Codes, function(letter, code){
-    return (letter || "") + (code || "");
+    return letter ? letter + (code || "") : "Select letter at first";
   });
 
   current.bindTo($('#res'), 'html');
