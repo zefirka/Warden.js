@@ -39,9 +39,11 @@ var Codes = Warden.Stream(function(fire){
   });
 });
 
-  Letters.combine(Codes, function(letter, code){
-    return letter+code;
+  var current = Letters.combine(Codes, function(letter, code){
+    return (letter || "") + (code || "");
   });
+
+  current.bindTo($('#res'), 'html');
 
 </code></pre>
 
