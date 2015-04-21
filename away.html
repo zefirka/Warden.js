@@ -52,13 +52,14 @@
         <div class="container">
   <div class="row">
     <div class="col-md-3 col-sm-3 col-xs-12 col-lg-2">
-  <h2>Demos</h2>
+  <h2>Examples</h2>
   <ul id='submenu'>
     <li><strong>Simple</strong></li>
     <li><a href="pubsub.html">Pub/Sub</a></li>
     <li><a href="streams.html">Streams</a></li>
     <li><strong>Event streams</strong></li>
     <li><a href="counter.html">Counter</a></li>
+    <li><a href="visual.html">Visual Streams</a></li>
     <li><a href="dragndrop.html">Drag'n'Drop</a></li>
     <li><a href="away.html">Away module</a></li>
     <li><a href="http.html">HTTP Ajax module</a></li>
@@ -84,10 +85,10 @@
           <pre><code class="javascript">var awayModule = {
   box: $('.box .overlay'),
   show: function(){
-    this.box.fadeIn();
+    awayModule.box.fadeIn();
   },
   hide: function(){
-    this.box.fadeOut();
+    awayModule.box.fadeOut();
   }
 };</code></pre>
         <h3>Streams and state incapsulation</h3>
@@ -111,18 +112,18 @@ awayModule.aways = Warden.Stream(function(trigger) {
 }, awayModule);</code></pre>
         <h3>Side effects</h3>
         <pre><code class="javascript">awayModule.aways
-  .listen(awayModule.show.bind(awayModule));
+  .listen(awayModule.show);
 
 // Naive implementation
 userActions
-  .listen(awayModule.restart.bind(awayModule))
-  .listen(awayModule.hide.bind(awayModule));
+  .listen(awayModule.restart)
+  .listen(awayModule.hide);
 
 // You can see that awayModule.hide will invoke every time when we will make user action
 // Optimal way to prevent unneccesary invokations is use .after method
 
 userActions.after(awayModule.aways)
-  .listen(awayModule.hide.bind(awayModule));
+  .listen(awayModule.hide);
 
 //this stream will invoke awayModule.hide only when it neccessary
 </code></pre>

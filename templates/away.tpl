@@ -15,10 +15,10 @@
           <pre><code class="javascript">var awayModule = {
   box: $('.box .overlay'),
   show: function(){
-    this.box.fadeIn();
+    awayModule.box.fadeIn();
   },
   hide: function(){
-    this.box.fadeOut();
+    awayModule.box.fadeOut();
   }
 };</code></pre>
         <h3>Streams and state incapsulation</h3>
@@ -42,18 +42,18 @@ awayModule.aways = Warden.Stream(function(trigger) {
 }, awayModule);</code></pre>
         <h3>Side effects</h3>
         <pre><code class="javascript">awayModule.aways
-  .listen(awayModule.show.bind(awayModule));
+  .listen(awayModule.show);
 
 // Naive implementation
 userActions
-  .listen(awayModule.restart.bind(awayModule))
-  .listen(awayModule.hide.bind(awayModule));
+  .listen(awayModule.restart)
+  .listen(awayModule.hide);
 
 // You can see that awayModule.hide will invoke every time when we will make user action
 // Optimal way to prevent unneccesary invokations is use .after method
 
 userActions.after(awayModule.aways)
-  .listen(awayModule.hide.bind(awayModule));
+  .listen(awayModule.hide);
 
 //this stream will invoke awayModule.hide only when it neccessary
 </code></pre>

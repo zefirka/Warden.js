@@ -3,24 +3,24 @@
     <head>
     <meta charset='utf-8'>
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="description" content="Warden.js : Counter example">
+    <meta name="description" content="Warden.js : Streams Visualization">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <script type="text/javascript" src="assets/js/jquery.min.js"></script>
     <script type="text/javascript" src="assets/js/warden.min.js"></script>
     <script type="text/javascript" src="assets/js/highlight.pack.js"></script>
     <script type="text/javascript" src="assets/js/main.js"></script>
-    <script type='text/javascript' src='assets/js/counter.js'></script>
+    <script type='text/javascript' src='assets/js/buses.js'></script>
 
     <link rel="stylesheet" type="text/css" media="screen" href="assets/css/bootstrap.css">
     <link rel="stylesheet" type="text/css" media="screen" href="assets/css/main.css">
     <link rel="stylesheet" href="assets/css/github.css">    
-    <link href='assets/css/counter.css' rel='stylesheet' type='text/css'>
+    <link href='assets/css/buses.css' rel='stylesheet' type='text/css'>
 
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="icon" type="image/png" href="favicon.png">
 
-    <title>Warden.js : Counter example</title>
+    <title>Warden.js : Streams Visualization</title>
 </head>
     <body>
         <header>
@@ -71,28 +71,81 @@
     <li><a href="counting.html">Resolving</a></li>
   </ul>
 </div>
-    <div eqz class="col-md-9 col-sm-9 col-xs-12 col-lg-10">
-      <section class='b-doc-section'>
-        <h2>Counter</h2>
-        <p>Counter which merges two streams</p>
-        <div class='box counter' >
-          <a class="btn btn-primary plus">+ 1</a>
-          <a class="btn btn-primary minus">- 1</a>
-          <span class="result">0</a>
-        </div>
-        <h3>Implementation</h3>
-        <p>Streams</p>
-        <pre><code class="javascript">var add = plus.stream('click').map(1),
-    sub = minus.stream('click').map(-1),
-    results = add.merge(sub).reduce(0, function(a, b){
-      return a+b;
-    });</code></pre>
-        <p>Side effects</p>
-        <pre><code class="javascript">results.bindTo(result, 'innerHTML');</code></pre>
-      </section>
+    <div class="col-md-9 col-sm-9 col-xs-12 col-lg-10">
+      <h2>Streams visual</h2>
+      <p>Desc</p>
+      <div id='box'>
+      	<div class='left-col col'>
+	      	<div class='field l'>$blue</div>
+
+		    <div id='originall' class='line'>
+		      <div class='title'>blue = $blue.stream('click')</div>
+		      <div class='box'></div>
+		    </div>
+
+		    <div id='mapx' class='line'>
+		      <div class='title'>blue.map('clientX')</div>
+		      <div class='box'></div>
+		    </div>
+		 
+		     <div id='mapxfilter' class='line'>
+		      <div class='title'>blue.map('clientX').filter(x > 50%).map('blue')</div>
+		      <div class='box'></div>
+		    </div>
+
+		    <div id='skiptake' class='line'>
+		      <div class='title'>b.skip(3).take(3).map('blue')</div>
+		      <div class='box'></div>
+		    </div>
+
+		    <div id='reducesum' class='line'>
+		      <div class='title'>blue.map('.clientX').reduce(prevX + curX)</div>
+		      <div class='box'></div>
+		    </div>
+
+		    <div id='repeat' class='line'>
+		      <div class='title'>blue.map('Hey!').repeat(5, 200)</div>
+		      <div class='box'></div>
+		    </div>
+
+		</div>
+
+		<div class='right-col col'>
+		    <div class='field r'>$red</div>
+	    
+		    <div id='originalr' class='line'>
+		      <div class='title'>red = $red.stream('click')</div>
+		      <div class='box'></div>
+		    </div>
+
+		    <div id='getcollected' class='line'>
+		      <div class='title'>red.map('clientY').getCollected(2000)</div>
+		      <div class='box'></div>
+		    </div> 
+
+		    <div id='unique' class='line'>
+		      <div class='title'>red.map('clientX').unique()</div>
+		      <div class='box'></div>
+		    </div>
+
+		    <div id='debounce' class='line'>
+		      <div class='title'>red.map('red').debounce(1000)</div>
+		      <div class='box'></div>
+		    </div>
+
+		    <div id='delay' class='line'>
+		      <div class='title'>red.map('red').delay(750)</div>
+		      <div class='box'></div>
+		    </div>
+
+		    <div id='interpolate' class='line'>
+		      <div class='title'>red.interpolate("X:{{clientX}}, Y:{{clientY}}")</div>
+		      <div class='box'></div>
+		    </div>  
+		</div>
+      </div>
     </div>
   </div>
 </div>
-
     </body>
 </html>

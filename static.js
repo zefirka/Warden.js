@@ -66,8 +66,12 @@ module.exports = {
 			scripts : ['away'],
 			styles : ['away'],
 		},
-		'buses' : {
+		'visual' : {
+			title : title('Streams Visualization'),
 			dependencies: ['aside'],
+			scripts : ['buses'],
+			styles : ['buses'],
+			active: 'demo'
 		},
 		'sync' : {
 			title : title("Synchronization"),
