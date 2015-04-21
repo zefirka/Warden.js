@@ -1,8 +1,6 @@
 $(function () {
 	function Line(obj){
 		this.box = $('.box', obj);
-		// this.box.append("<a href='#' class='mute'>Mute</a>");
-		this.muteBtn = $("a", this.box);
 		this.title = $(".title", obj).html();
 		this.id = obj.attr('id');		
 	}
@@ -36,8 +34,8 @@ $(function () {
 			originalr : rc,
 			mapx : lc.map('.clientX'),
 			mapxfilter : lc.map('.clientX').filter(function(x){
-				return x > this.width()/2				
-			;}).map('blue'),
+				return x > this.width()/2
+			;}),
 			mapy : rc.map('.y'),
 			mapvalue : lc.map('Value'),
 			skiptake : lc.skip(3).take(3).map('blue'),
@@ -52,10 +50,10 @@ $(function () {
 			sync : lc.map(0).sync(rc.map(1)),
 			wait : rc.map(0).waitFor(lc),
 			after : rc.map(0).after(lc),
-			produce : rc.map(['timeStamp', 'red']).resolve(lc.map(['timeStamp', 'blue']), function(a,b){
+			produce : rc.map(['.timeStamp', 'red']).resolve(lc.map(['.timeStamp', 'blue']), function(a,b){
 				return a[0] < b[0] ? b[1] : a[1];
 			}),
-			combine : lc.map('timeStamp').map(function(e){return (e+"").slice(-6);}).combine(rc.map('timeStamp').map(function(e){return (e+"").slice(-6);}), function(blue, red){
+			combine : lc.map('.timeStamp').map(function(e){return (e+"").slice(-6);}).combine(rc.map('.timeStamp').map(function(e){return (e+"").slice(-6);}), function(blue, red){
 				return "B:" + blue + "\nR:" + red;
 			})
 		};
@@ -67,12 +65,6 @@ $(function () {
 			line.create(event);
 		});
 		bus.locked = false;
-		linet.muteBtn.click(function(e){
-			e.preventDefault();
-			linet.muteBtn.text(bus.locked ? 'Mute' : 'Unmute');
-			bus[bus.locked ? 'unlock' : 'lock']();
-			bus.locked = !bus.locked;
-		});
 	});
 
 	$("#sticky").sticky({
