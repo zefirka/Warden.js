@@ -1,7 +1,7 @@
 $(function () {
 	function Line(obj){
 		this.box = $('.box', obj);
-		this.box.append("<a href='#' class='mute'>Mute</a>");
+		// this.box.append("<a href='#' class='mute'>Mute</a>");
 		this.muteBtn = $("a", this.box);
 		this.title = $(".title", obj).html();
 		this.id = obj.attr('id');		
