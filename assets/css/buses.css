@@ -16,9 +16,7 @@
 
 
 .field{
-  width: 40%;
-  margin-bottom: 20px;
-  margin-right: 10px;
+  margin-bottom: 20px;  
   height: 75px;
   padding: 10px 0px 0px 10px;
   font-size: 18px;
@@ -94,4 +92,9 @@
   font-family: monospace;
   text-align: right;
   font-weight: bold;
+}
+
+#sticky{
+  background: white;
+  z-index: 12;
 }
