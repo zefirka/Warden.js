@@ -6,7 +6,11 @@
       <p>Desc</p>
       <div id='box'>
       	<div class='left-col col'>
-	      	<div class='field l'>$blue</div>
+	      	
+	      	<div class='row' id="sticky">
+	      		<div class='col-md-6 col-lg-6 col-sm-6 col-xs-6 field l'>$blue</div>
+	      		<div class='col-md-6 col-lg-6 col-sm-6 col-xs-6 field r'>$red</div>
+	      	</div>
 
 		    <div id='originall' class='line'>
 		      <div class='title'>blue = $blue.stream('click')</div>
@@ -40,9 +44,7 @@
 
 		</div>
 
-		<div class='right-col col'>
-		    <div class='field r'>$red</div>
-	    
+		<div class='right-col col'>	    
 		    <div id='originalr' class='line'>
 		      <div class='title'>red = $red.stream('click')</div>
 		      <div class='box'></div>
@@ -73,6 +75,32 @@
 		      <div class='box'></div>
 		    </div>  
 		</div>
+		<div class="full-col">
+		    <div id='merge' class='line'>
+		      <div class='title'>red.merge(blue)</div>
+		      <div class='box'></div>
+		    </div>
+		    <div id='sync' class='line'>
+		      <div class='title'>red.map(0).sync(blue.map(1))</div>
+		      <div class='box'></div>
+		    </div>
+		    <div id='wait' class='line'>
+		      <div class='title'>red.map(0).waitFor(blue)</div>
+		      <div class='box'></div>
+		    </div>
+		    <div id='after' class='line'>
+		      <div class='title'>red.map(0).after(blue)</div>
+		      <div class='box'></div>
+		    </div>
+		    <div id='produce' class='line'>
+		      <div class='title'>blue.map(random).resolveWith(blue.map(random), bigger)</div>
+		      <div class='box'></div>
+		    </div>
+		    <div id='combine' class='line'>
+		      <div class='title'>blue.map('timeStamp').combine(blue.map('timeStamp'), resolver</div>
+		      <div class='box'></div>
+		    </div>
+		  </div>
       </div>
     </div>
   </div>

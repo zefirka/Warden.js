@@ -75,4 +75,7 @@ $(function () {
 		});
 	});
 
+	$("#sticky").sticky({
+		topSpacing: 10
+	});
 });
