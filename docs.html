@@ -978,8 +978,10 @@ stream.myMerge(stream2)
 
 <hr class='bhr'>       
 <h2 id="host">Warden.Host</h2>
-<p class='d-description'>Description: module which hosts streams</p> 
+<p class='d-synopsis'>Synopsis: <code>Warden.Host([context]);</code>.</p>
+<p class='d-description'>Description: module which hosts streams on given context</p> 
 <h4>Usage:</h4>
+<p>Hosts makes streams faster and also they bind streams to the context by default. Sometimes we generate a lot of streams from one initial source (e.g. clicks on elements, scrolls of window etc). To not overload elements by bunch of listeners Warden provides hosts. Hosts are simple storage of active streams, and when events happens host's listener runs all active streams associated to the given host.</p>
 <pre><code class='javascript'>var stream = Warden.Stream();
 
 stream.log();
@@ -1007,20 +1009,26 @@ host.eval('Value');
 </code></pre>
 <h2>Host methods</h2>
 
-<h3>.eval</h3>
-<p class='d-description'>Description: evaluates host's active streams</p> 
+<h2>.eval</h2>
+<p class='d-synopsis'>Synopsis: <code>host.eval(data, [context])</code>.</p>
+<p class='d-description'>Description: evaluates host's active streams with given data. If context is not setted uses host's context</p> 
 
-<h3>.push</h3>
-<p class='d-description'>Description: push stream to the host's active streams query</p> 
+<h2>.push</h2>
+<p class='d-synopsis'>Synopsis: <code>host.push(stream);</code>.</p>
+<p class='d-description'>Description: push stream to the host's active streams query.</p> 
 
-<h3>.pop</h3>
-<p class='d-description'>Description: removes stream from hosts's active streams query</p> 
+<h2>.pop</h2>
+<p class='d-synopsis'>Synopsis: <code>host.pop(stream)</code>.</p>
+<p class='d-description'>Description: removes stream from hosts's active streams query.</p> 
 
-<h3>.newStream</h3>
-<p class='d-description'>Description: return new stream assigned with given host</p> 
+<h2>.newStream</h2>
+<p class='d-synopsis'>Synopsis: <code>host.newStream()</code>.</p>
+<p class='d-description'>Description: return new stream assigned with given host. </p> 
 
-
-
+<hr class='bhr'>
+<h2 id='formula'>Warden.Formula</h2>
+<p class='d-synopsis'>Synopsis: <code>Warden.Formula(dependencies, formula)</code>.</p>
+<p class='d-description'>Description: Creates a stream which depends on streams in <code>dependencies</code> array of streams with given function (<code>formula</code>). </p> 
 
 
     </div>

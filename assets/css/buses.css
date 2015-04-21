@@ -1,4 +1,4 @@
-.left-col .line
+
 .line.blue{
   background-color: rgba(150, 182, 204, 0.83);
 }
@@ -7,7 +7,7 @@
   background-color: rgb(0, 121, 202);
 }
 
-.right-col .line,
+
 .line.red{
   background-color: rgba(225, 161, 161, 0.73);
 }
@@ -78,7 +78,6 @@
   display: inline-block;
   height: 60px;
   position: relative;
-  margin-bottom: 10px;
 }
 .line:before{
   content: "";

@@ -94,7 +94,8 @@
           Result: <span id='res'></span>
         </div>
       </div>
-      <h3>Usage:</h3>
+      <h3>Implementation:</h3>
+      <p>We create two streams from events. Sometimes we need to produce value from given by some function, but we don't want to cache previous state. To avoid state use combine method.</p>
       <pre><code class='javascript'>var Letters = Warden.Stream(function(fire){
   $('#letters').find('.btn').click(function(event){
     var cnt = $(this);
@@ -113,7 +114,9 @@ var current = Letters.combine(Codes, function(letter, code){
   return letter ? letter + (code || "") : "Select letter at first";
 });
 
-  current.bindTo($('#res'), 'html');
+//given function will be called with the last values of every stream
+
+current.bindTo($('#res'), 'html');
 
 </code></pre>
 

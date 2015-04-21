@@ -115,22 +115,31 @@ clientXes.reduce(sum)</code></pre>
 		    <pre><code class='javascript'>red.map(0).sync(blue.map(1))</code></pre>
 
 		    <div id='wait' class='line green'>
-		      <div class='title'>red.map(0).waitFor(blue)</div>
-		      <div class='box'></div>
-		    </div>
-		    <div id='after' class='line green'>
-		      <div class='title'>red.map(0).after(blue)</div>
-		      <div class='box'></div>
-		    </div>
-		    <div id='produce' class='line green'>
-		      <div class='title'>blue.map(random).resolve(blue.map(random), bigger)</div>
-		      <div class='box'></div>
-		    </div>
-		    <div id='combine' class='line green'>
-		      <div class='title'>blue.map('.timeStamp').combine(blue.map('.timeStamp'), resolver</div>
+		      <div class='title'>Composes two streams</div>
 		      <div class='box'></div>
 		    </div>
 
+		    red.map(0).waitFor(blue)
+
+		    <div id='after' class='line green'>
+		    	<div class='title'>Composes two streams</div>v>
+		     	<div class='box'></div>
+		    </div>
+
+		    red.map(0).after(blue)
+
+		    <div id='produce' class='line green'>
+		      <div class='title'></div>
+		      <div class='box'></div>
+		    </div>
+
+		    blue.map(random).resolve(blue.map(random), bigger)
+		    <div id='combine' class='line green'>
+		      <div class='title'></div>
+		      <div class='box'></div>
+		    </div>
+
+		    blue.map('.timeStamp').combine(blue.map('.timeStamp'), resolver
       </div>
     </div>
   </div>
