@@ -1029,6 +1029,30 @@ host.eval('Value');
 <h2 id='formula'>Warden.Formula</h2>
 <p class='d-synopsis'>Synopsis: <code>Warden.Formula(dependencies, formula)</code>.</p>
 <p class='d-description'>Description: Creates a stream which depends on streams in <code>dependencies</code> array of streams with given function (<code>formula</code>). </p> 
+<h3>Usage:</h3>
+<p>Formulas implement reactive calculations in Warden. In pure JS when we assign value to the variable we just say that variable literaly refers to the given value. When we change value, we don't change the references of value, it's obvious:</p>
+<pre><code class='javascript'>var a = 10;
+var b = 20;
+var c = a + b;
+c;
+// 30
+a = 20;
+c;
+// 30 :) 
+</code></pre>
+<p>Warden.Formula - is a way to say that values of given variable not just refers to other value but depends on values of other variables. It implemented with streams, so <code>Warden.Formula</code> takes and returns streams object.</p>
+<pre><code class='javascript'>var a = Warden(10); //stream 
+var b = Warden(20);
+var c = Warden.Formula([a,b], function(x, y){
+  //x and y are values of streams a and b
+  return x + y;
+});
+console.log(c.value);
+// -> 30;
+a.value = 20;
+console.log(c.value);
+// -> 40
+</code></pre>
 
 
     </div>

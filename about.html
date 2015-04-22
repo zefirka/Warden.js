@@ -53,12 +53,14 @@
   <h1>Concept</h1>
   <div class='row'>
 	<div class="col-md-12 col-sm-12 col-xs-12 col-lg-12">
+		<h2>Introduction</h2>
+		<p>Today we see how web applications grow up from traditional multi-page sites (where all business logic was implemented on the server side) to single-page or ajax-driven apps. If you have ever read <a href="www.reactivemanifesto.org">Reactive Manifesto</a> you should understand the reasons why nowadays web-development goes asynchronious and event-driven way. We spen a lot of time to provide responsive, fast and usable design. But as developers we want resilient, scalable, declarative software.</p>
+
 		<h2>Event-driven programming</h2>
-		<p>С каждым днем веб-приложения требуют от разработчков все больше усилий, чтобы удовлетворить требования современного рынка. Большая часть усилий сконцентророванна на том, чтобы дать пользователю отзывчивый дизайн, под которым мы понимаем немедленную реакцию приложения, удобный UI. Не менее важной частью является отказоустойчивость, - в идеале возможность работы в оффлайне, или хотя-бы гарантия безопасности на случай сбоев, как сетевых, так и технологических. Автономная работа. Коллаборативная работа. А ведь есть еще требования, которые необходимо удовлетворять, чтобы приложение вообще могло эволюционировать. Масштабируемость, модульность (слабая связность компонентов), декларативность и прочее... </p>
-		<p>Реализовать это кажется сложной затеей, особенно учитывая те инструменты, что мы имеем.</p>
-		<p>С самого начала, и до сих пор, единственный способ огранизовать взаимодействие пользователя с DOM были события. И это проблема. Большинство современных фремворков и библиотек имеют свое решение. Причем, каждая технология решает лишь часть проблемы. В лучшем случае, она не порождает новые проблемы (как например jQuery).</p>
+		<p>Event-driven architecture allows us to reach scalability, resiliency and responsivness. But events are not declarative. They're not clean, unpredictive, action's result depends on app's state...</p>
+		<p>It's hard to combine and compose events, cause of these asynchronious nature. But it's all we have. From the start of all, the only way to act with DOM was events, and that's the problem we presume. Most of nowadays frameworks provide solutions for every level of deep troubles of events. jQuery made them crossbrowser, some frameworks tried kick them out by two-side data-binging, some frameworks tried to wrap events into declarative components. </p>
 		
-		<h3>Сложность EDD</h3>
+		<h3>State and events</h3>
 		<p>ИЗ event-driven программирования с необходимостью следует асинхронность. Одной из главных проблем асинхронного программирования является сложность координации действий, которые меняют состояние. Кроме событийной модели в понятие асинхронности может входить много, так как термин сильно перегружен. Работа в оффлайне, неблокирующая многопоточность - все это частные случаи асинхронности. Сложность композиции событий возрастает с количеством источников данных. Учитывая, что обработчики событий - функции изменяющее текущее состояние программы, то каждое новое состояние сегментирует дерево возможных состояний на новое подмножество, в зависимости от промежутка времени, когда то или иное событие возникнет (или не возникнет).</p>
 		<p></p>
 		<div class='g-img-container'>
@@ -94,6 +96,7 @@
 			<img src="assets/images/component_streams.png">
 		</div>
 		<p>Таким образом сохраняется глобальное явное состояние. Но мы не обязанны с самого начала проектировать наше приложение так, будто-бы у нас имеется некий контейнер состояния, связанный с источниками новых данных какими-то цепочками зависимостей. Сделать это конечно возможно в контексте любой FRP библиотеки, но это не всегда простая задача.</p>
+		<p></p>
 	</div>
 </div>
 <div class='row'>
