@@ -254,7 +254,7 @@ var Stream = (function(){
       var reduced = new Utils.Queue(1);
       return process.call(this, function(event, pipe){
         
-        var bus = pipe.bus(),
+        var bus = pipe.host(),
             res;
         if(reduced.length == 0){
           res = fn ? fn.call(this, init, event) : event;
@@ -271,7 +271,7 @@ var Stream = (function(){
     */
     take : function(x){
       return process.call(this, function(e, pipe){
-        var bus = pipe.bus();
+        var bus = pipe.host();
         bus.data.limit = bus.data.limit || x;
         bus.data.taken = (bus.data.taken + 1) || 0;
         return bus.data.taken >= bus.data.limit ? pipe.stop() : pipe.next(e);
@@ -283,8 +283,16 @@ var Stream = (function(){
       Skips data [Integer] @c times
     */
     skip : function(c) {
+      var self = this;
       return process.call(this, function(e, pipe){
-        return pipe.bus().data.fires.length > c ? pipe.next(e) : pipe.stop();
+        self.skips = self.skips || 0;
+        if(self.skips == c){
+          delete self.skips;
+          pipe.next(e)
+        }else{
+          self.skips += 1;
+          pipe.stop();
+        }
       });
     },
 
@@ -317,7 +325,7 @@ var Stream = (function(){
       compractor = compractor || Warden.configure.cmp;
 
       return process.call(this, function(event, pipe){
-        var data = pipe.bus().data, fires = data.fires, takes = data.takes,
+        var data = pipe.host().data, fires = data.fires, takes = data.takes,
             cons = (fires.length > 1 || takes.length > 0) && (compractor(event, fires[fires.length-2]) || compractor(event, takes.last()));
           return cons ? pipe.stop() : pipe.next(event);
       });
@@ -328,7 +336,7 @@ var Stream = (function(){
     */
     debounce : function(t) {
       return process.call(this, function(e, pipe){
-        var self = this, bus = pipe.bus();
+        var self = this, bus = pipe.host();
         clearTimeout(bus.data.dbtimer);
         bus.data.dbtimer = setTimeout(function(){
           delete bus.data.dbtimer;
@@ -345,7 +353,7 @@ var Stream = (function(){
     collect : function(t){
       return process.call(this, function(e, pipe){
         var self = this,
-            bus = pipe.bus(),
+            bus = pipe.host(),
             fired = bus.data.fires.length-1;
         bus.data.tmpCollection = bus.data.tmpCollection || [];
         bus.data.tmpCollection.push(e);
@@ -481,7 +489,7 @@ var Stream = (function(){
           exec = true;
         });
 
-      }).bus();
+      }).host();
     },
 
     /*
@@ -549,7 +557,7 @@ var Stream = (function(){
           e(self.data.last || seed, data);
         });
 
-      }, ctx).bus();
+      }, ctx);
     },
 
     /* Synchronizes  buses */
@@ -604,7 +612,7 @@ var Stream = (function(){
     },
 
     stream: function(){
-      return this.bus();
+      return this.host();
     },
     
     swap : function(state){

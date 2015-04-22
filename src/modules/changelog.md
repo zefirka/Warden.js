@@ -4,6 +4,7 @@
   - Added `pop` method to Host module
   - Added stream's `toString` method
   - Added source maps
+  - Fixed `skip` method
 
 `version v.0.3.4`
   - Pretty stable version

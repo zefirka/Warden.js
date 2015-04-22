@@ -20,7 +20,7 @@ function Pipeline(proc, host){
           return locked = 0;
         },
         /* Returns current DataBus */
-        bus: function(){
+        host: function(){
           return host;
         }
       };
