@@ -733,9 +733,6 @@
         takes : new Utils.Queue(max),
         last : null
       };   
-
-      
-
     }
 
     Stream.prototype = {
