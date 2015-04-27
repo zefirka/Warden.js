@@ -64,8 +64,11 @@
         	<li><a href="#stream">stream</a></li>
 
           <h4>FRP</h4>
-          <h5>Side effects</h5>
+          <h5>Streams</h5>
         	<li><a href="#stream_cr">Warden.Stream</a></li>
+          <li><a href="#stream_info">Streams data</a></li>
+
+          <h5>Side effects</h5>
         	<li><a href="#listen_s">listen</a></li>
           <li><a href="#mute">mute</a></li>
           <li><a href="#clear">clear</a></li>
@@ -312,7 +315,7 @@ Warden.Stream(function(){
 // -> ERROR!
 // Coincidence: property: 'some_value' is already defined in stream context! Object {some_value: ""}
 </code></pre>
-<h3>State and values:</h3>
+<h3 id="streams_info">State and values:</h3>
 <p>When streams transmiting values then they collect recieved value to the temporary storage of values <code>stream.data.takes</code>.</p>
 <pre><code class='javascript'>var a = Warden(0);
 // a - is a stream with 0 as last taken value:
