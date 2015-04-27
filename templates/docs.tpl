@@ -15,7 +15,7 @@
           <h4>FRP</h4>
           <h5>Streams</h5>
         	<li><a href="#stream_cr">Warden.Stream</a></li>
-          <li><a href="#stream_info">Streams data</a></li>
+          <li><a href="#streams_info">Streams data</a></li>
 
           <h5>Side effects</h5>
         	<li><a href="#listen_s">listen</a></li>
@@ -83,7 +83,7 @@
     </div>
     <div class="col-md-9 col-sm-9 col-xs-12 col-lg-9" id='docs'>
     	
-<h2 id="extend">Warden.extend / Warden</h2>
+<h2 id="extend" class="stable">Warden.extend / Warden</h2>
 <p class='d-synopsis'>Synopsis: <code>Warden([inheritor], [config])</code> or <code>Warden.extend([inheritor], [config])</code></p>
 <p class='d-description'>Description: Extends <code>inheritor</code> with <code>emit</code>, <code>listen</code>, <code>unlisten</code> and <code>stream</code> methods. And returns extented object. If inheritor is empty then returns extended empty JS object. Inheritor can be function, object or array. If inheritor is an atomic value (e.g. boolean, string and number type) <code>Warden</code> returns <a href="#stream_cr">stream</a> that contains given value.</p> 
 <h3>Usage</h3>
@@ -99,7 +99,7 @@
 </ul>
 
 <hr>
-<h2 id="listen">.listen</h2>
+<h2 id="listen" class="stable">.listen</h2>
 <p class='d-synopsis'>Synopsis: <code>object.listen(eventType, callback)</code></p>
 <p class='d-description'>Description: Adds to the <code>object</code> handler of events with type of <code>eventType</code>.</p>
 <h3>Usage:</h3>
@@ -136,7 +136,7 @@ document.listen('mousemove, mousedown, mouseup, mouseenter, mouseleave', functio
 <!-- ================================================================== -->
 
 <hr>
-<h2 id="unlisten">.unlisten</h2>
+<h2 id="unlisten" class="stable">.unlisten</h2>
 <p class='d-synopsis'>Synopsis: <code>object.unlisten(eventType, callback)</code></p>
 <p class='d-description'>Description: Removes from <code>object</code> handler of events with type of <code>eventType</code> with name <code>callback</code>.</p>
 <h3>Usage:</h3>
@@ -161,7 +161,7 @@ object.emit('x', 1);
 <!-- ================================================================== -->
 
 <hr>
-<h2 id="emit">.emit</h2>
+<h2 id="emit" class="stable">.emit</h2>
 <p class='d-synopsis'>Synopsis: <code>object.emit(eventType, eventData)</code> or <code>object.emit(event)</code></p>
 <p class='d-description'>Description: Fires event on <code>object</code>.</p>
 <h3>Usage:</h3>
@@ -185,7 +185,7 @@ object.emit({
 <!-- ================================================================== -->
 
 <hr>
-<h2 id="stream">.stream</h2>
+<h2 id="stream" class="stable">.stream</h2>
 <p class='d-synopsis'>Synopsis: <code>object.stream(eventType, [context])</code></p>
 <p class='d-description'>Description: Creates a stream of events by given type.</p>
 <h3>Usage:</h3>
@@ -201,7 +201,7 @@ clicks.listen(function(event){
 <!-- ==================     WARDEN.STREAM     ========================= -->
 <!-- ================================================================== -->
 <hr class='bhr'>
-<h2 id="stream_cr">Warden.Stream</h2>
+<h2 id="stream_cr" class="stable">Warden.Stream</h2>
 <p class='d-synopsis'>Synopsis: <code>Warden.Stream([creator], [context], [isStrict])</code>.</p>
 <p class='d-description'>Description: Creates stream of data.</p>
 <h3>Usage:</h3>
@@ -288,15 +288,18 @@ stream.value;
 -> 10
 </code></pre>
 
+<h3 class="deprecated">Warden.makeStream</h3>
+<p>This method is deprecated and currently is an alias for Warden.Stream</p>
+
 <!-- ================================================================== -->
 
 <hr>
-<h2 id="fire">.fire</h2>
+<h2 id="fire" class="warnings">.fire</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.fire(value, [context])</code>.</p>
 <p class='d-description'>Description: Pushes value to the stream. It doesn't fire all conjuncted and children streams, just given. The fastest method.</p>
 
 <hr>
-<h2 id="listen_s">.listen</h2>
+<h2 id="listen_s" class="stable">.listen</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.listen(callback)</code>.</p>
 <p class='d-description'>Description: Subsribes callback to the stream.</p>
 <h3>Usage:</h3>
@@ -320,7 +323,7 @@ object.emit('tick', {value : '*_*'})
 <!-- ================================================================== -->
 
 <hr>
-<h2 id="mute">.mute</h2>
+<h2 id="mute" class="stable">.mute</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.mute([callback])</code>.</p>
 <p class='d-description'>Description: Unsubsribes callback to the stream. <code>callback</code> can be string or function.</p>
 <h3>Usage:</h3>
@@ -352,12 +355,13 @@ stream.mute(function callback(){});
 </pre></code>
 
 <hr>
-<h2 id="clear">.clear</h2>
+<h2 id="clear" class="unstable">.clear</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.clear()</code>.</p>
 <p class='d-description'>Description: Unsubsribes all handlers from stream.</p>
+<p><strong>Warning: it can brokes all inheritance and logical conjunctions between streams. Use it onlu when you sure that it will not break you code.</strong></p>
 
 <hr>
-<h2 id="log">.log</h2>
+<h2 id="log" class="stable">.log</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.log([string])</code>.</p>
 <p class='d-description'>Description: Alias for logging function with <code>.listen</code>. Logs to console transmitted data or <code>string</code>(if it given).</p>
 <pre><code class='javascript'>//.log equals to
@@ -374,7 +378,7 @@ stream.listen(function log(){
 <p>You can "unlog" with <code>stream.mute('log')</code>.</p>
 
 <hr>
-<h2 id="toggle">.toggle</h2>
+<h2 id="toggle" class="stable">.toggle</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.toggle(fn1, fn2)</code>.</p>
 <p class='d-description'>Description: Unsubsribes to stream two handlers which calls after each other.</p>
 <h3>Usage:</h3>
@@ -398,7 +402,7 @@ stream.fire()
 
 <hr>
 
-<h2 id="bindto">.bindTo</h2>
+<h2 id="bindto" class="warning">.bindTo</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.bindTo(object, [property])</code>.</p>
 <p class='d-description'>Description: Binds stream's value to the object with a given signature.</p>
 <h3>Usage:</h3>
@@ -442,9 +446,10 @@ stream.fire('WUT');
 console.log(o);
 // -> Object : { a: 'WUT', b : 'WUT' }
 </pre></code>
+<p><strong>Note: when you use object/string signature Warden uses <code>eval</code></strong></p>
 
 <hr class='bhr'>
-<h2 id="map">.map</h2>
+<h2 id="map" class="warnings">.map</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.map(mapper)</code>.</p>
 <p class='d-description'>Description: Returns new stream mapped by <code>mapper</code> signature.</p>
 <h3>Usage:</h3>
@@ -516,9 +521,10 @@ stream.map(function(data){
 });
 
 </pre></code>
+<p><strong>When you use short-syntax mapper as value (as example <code>stream.map("@x + @y")</code>) Warden uses <code>eval</code> to map your stream.</strong></p>
 
 <hr>
-<h2 id="get">.get</h2>
+<h2 id="get" class="deprecated">.get</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.get(route)</code>.</p>
 <p class='d-description'>Description: Returns stream mapped with function which get's recieved data's property with access route equals to <code>route</code></p>
 <h3>Usage:</h3>
@@ -532,7 +538,7 @@ stream.map(function(object){
 <p><strong>Note: arrays should derive with object properties also with <code>/</code> symbol</strong></p>
 
 <hr>
-<h2 id="nth">.nth</h2>
+<h2 id="nth" class="stable">.nth</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.nth(integer)</code>.</p>
 <p class='d-description'>Description: Alias for <code>strem.map</code> with function which takes recived objects (which must be iterable) n-th element.</p>
 <pre><code class='javascript'>stream.nth(0); // is same to

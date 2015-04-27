@@ -118,6 +118,36 @@ h3 {
 #docs hr.bhr {
   margin: 40px 0;
 }
+#docs .warnings:after,
+#docs .unstable:after,
+#docs .stable:after,
+#docs .deprecated:after {
+  display: inline-block;
+  position: absolute;
+  font-family: arial;
+  font-size: 10px;
+  color: white;
+  padding: 2px;
+  border-radius: 4px;
+  top: 0px;
+  right: 15px;
+}
+#docs .deprecated:after {
+  content: "deprecated";
+  color: #1981c0;
+}
+#docs .stable:after {
+  content: "stable";
+  color: #0a7e02;
+}
+#docs .warnings:after {
+  content: "warning";
+  color: #ff7e00;
+}
+#docs .unstable:after {
+  content: "unstable";
+  background: red;
+}
 .methods {
   overflow-y: scroll;
   overflow-x: hidden;

@@ -141,6 +141,41 @@ h3{
 		margin: 40px 0;
 	}
 
+	.warnings:after,
+	.unstable:after,
+	.stable:after,
+	.deprecated:after{
+		display: inline-block;
+		position: absolute;
+		font-family: arial;
+		font-size: 10px;
+		color: white;
+		padding: 2px;
+		border-radius: 4px;
+		top: 0px;
+		right: 15px;
+	}
+
+	.deprecated:after{
+		content: "deprecated";
+		color: rgb(25, 129, 192);
+	}
+
+	.stable:after{
+		content: "stable";
+		color: rgb(10, 126, 2);
+	}
+
+	.warnings:after{
+		content: "warning";
+		color: rgb(255, 126, 0);
+	}
+
+	.unstable:after{
+		content: "unstable";
+		background: red;
+	}
+
 }
 
 .methods{
