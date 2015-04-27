@@ -135,15 +135,15 @@ h3 {
 }
 #docs .deprecated:after {
   content: "deprecated";
-  color: #1981c0;
+  background: #1981c0;
 }
 #docs .stable:after {
   content: "stable";
-  color: #0a7e02;
+  background: #0a7e02;
 }
 #docs .warnings:after {
   content: "warning";
-  color: #ff7e00;
+  background: #ff7e00;
 }
 #docs .unstable:after {
   content: "unstable";
