@@ -82,11 +82,11 @@
     	
 <h2 id="extend">Warden.extend / Warden</h2>
 <p class='d-synopsis'>Synopsis: <code>Warden([inheritor], [config])</code> or <code>Warden.extend([inheritor], [config])</code></p>
-<p class='d-description'>Description: Extends <code>inheritor</code> with <code>emit</code>, <code>listen</code>, <code>unlisten</code> and <code>stream</code> methods. And returns extented object. If inheritor is empty then returns extended empty JS object. Inheritor can be function, object or array. If inheritor is an atomic value (e.g. boolean, string and number type) <code>Warden</code> returns stream with given value.</p>
+<p class='d-description'>Description: Extends <code>inheritor</code> with <code>emit</code>, <code>listen</code>, <code>unlisten</code> and <code>stream</code> methods. And returns extented object. If inheritor is empty then returns extended empty JS object. Inheritor can be function, object or array. If inheritor is an atomic value (e.g. boolean, string and number type) <code>Warden</code> returns <a href="#stream_cr">stream</a> that contains given value.</p> 
 <h3>Usage</h3>
-<p>Extension method is the base method of Warden, that takes objects/constructors/arrays and returns them extended by methods that implements Pub/Sub pattern. After extension you can use methods <a href="#listen"><code>listen</code></a>, <a href="#unlisten"><code>unlisten</code></a>, <a href="#emit"><code>emit</code></a>, <a href="#stream"><code>stream</code></a>.</p> 
-<p>If extending object already has Pub/Sub methods then Warden uses them. By default event emitting/triggering objects detects by methods <code>addEventListener</code> or <code>on</code>, but you can configure them too.</p>
-<p>You can configure names of methods by property <code>names</code>.</p>
+<p>Extension method is the base method of Warden, it takes objects/constructors/arrays and returns them extended by methods that implements Pub/Sub pattern. After extension you can use methods <a href="#listen"><code>listen</code></a>, <a href="#unlisten"><code>unlisten</code></a>, <a href="#emit"><code>emit</code></a>, <a href="#stream"><code>stream</code></a>.</p> 
+<p>If extending object already has Pub/Sub methods then Warden uses them. By default event emitting/triggering objects detects by methods <code>addEventListener</code>, <code>attachListener</code> and <code>on</code>, but you can configure them too.</p>
+<p>Names looks weird, but it's make to decrease namespace conflict situations, if you sure that there will no be any conflicts you can configure names of methods by property <code>names</code>.</p>
 <h3>Configuration</h3>
 <p>You can configure next terms:</p>
 <ul>
@@ -122,7 +122,13 @@ object.emit('get:one', 'foo');
 object.emit('get:two', 'bar');
 //--> bar
 </code></pre>
-<p>Also you can subscribe to the different types of events by separating types by comma</p>
+<p><strong>Note:</strong> you can't use RegEx notation to subscribe to the events emitted from native event emittind system (e.g. DOM, Node Event Emitter, ...).</p>
+<p>It means you cant do: <code>window.listen('mouse*', handler)</code> to subsribe all mouse events. But, you can subscribe to the different types of events by separating types by comma:</p>
+<pre><code class='javascript'>Warden(document);
+document.listen('mousemove, mousedown, mouseup, mouseenter, mouseleave', function(){
+  console.log('Hey! I detected mouse events!');
+});
+</pre></code>
 
 <!-- ================================================================== -->
 
@@ -188,7 +194,9 @@ clicks.listen(function(event){
 </pre></code>
 <p>By default context of evaluation is object self. Bus you can set context as second argument. Also you can use RegEx notation to set the types of stream.</p>
 
-
+<!-- ================================================================== -->
+<!-- ==================     WARDEN.STREAM     ========================= -->
+<!-- ================================================================== -->
 <hr class='bhr'>
 <h2 id="stream_cr">Warden.Stream</h2>
 <p class='d-synopsis'>Synopsis: <code>Warden.Stream([creator], [context], [isStrict])</code>.</p>
@@ -200,7 +208,7 @@ clicks.listen(function(event){
 <pre><code class='javascript'>var clicks = Warden.Stream(function(fire){
   $(document).on('click', fire);
 }, $(document))</pre></code>
-<p>Obsious that nobody will do that, but this example shows how to use <code>Warden.Stream</code></p>
+<p>Obvious, nobody will do that, but this example shows how to use <code>Warden.Stream</code></p>
 <p>More common example:</p>
 <pre><code class='javascript'>var seconds = Warden.Stream(function(fire){
   setInterval(fire, 1000);
@@ -253,6 +261,29 @@ Warden.Stream(function(){
 // -> ERROR!
 // Coincidence: property: 'some_value' is already defined in stream context! Object {some_value: ""}
 </code></pre>
+<h3>State and values:</h3>
+<p>When streams transmiting values then they collect recieved value to the temporary storage of values <code>stream.data.takes</code>.</p>
+<pre><code class='javascript'>var a = Warden(0);
+// a - is a stream with 0 as last taken value:
+a.data.last;
+-> 0
+a.value;
+-> a
+</code></pre>
+<p>When you changes value of stream by <code>stream.value</code> you makes stream evaluate with new value.</p>
+<pre><code class='javascript'>var stream = Warden.Stream().filter(10).watch(); 
+// stream that can transmit only value equals to 10
+stream.value;
+-> null
+stream.value = 20;
+
+stream.value;
+-> null
+stream.value = 10;
+
+stream.value;
+-> 10
+</code></pre>
 
 <!-- ================================================================== -->
 
@@ -283,7 +314,7 @@ object.emit('tick', {value : '*_*'})
 // -> Context is: Object { x: 100 }
 </pre></code>
 
-
+<!-- ================================================================== -->
 
 <hr>
 <h2 id="mute">.mute</h2>
@@ -1003,6 +1034,47 @@ console.log(c.value);
 // -> 40
 </code></pre>
 
+<hr class='bhr'>
+<h2 id='pipeline'>Warden.Pipeline</h2>
+<p class='d-synopsis'>Synopsis: <code>Warden.Pipeline([processors], [context])</code>.</p>
+<p class='d-description'>Description: Implementation of pipline model.</p> 
+<h3>Usaeg:</h3>
+<p>Pipeline provides the simple way to compose sync or async functions in one stream. Functionas can be binded to the context by second argument.</p>
+<pre><code class="javascript">var pipeline = Warden.Pipeline();
+
+var twiceAndDelay = pipieline.pipe(function(value, pipe){
+  return pipe.next(value * 2);
+}).pipe(function(value, pipe){
+  setTimeout(function(){
+    pipe.next(value);
+  }, 1000);
+});
+
+twiceAndDelay(100, null, function callback(value){
+  console.log(value);
+});
+
+//after second
+// -> 200
+</code></pre>
+
+<h3>Methods:</h3>
+
+<h3>.pipe</h3>
+<p>Synopsis: <code>pipeline.pipe(processor)</code></p>
+<p><code>pipe</code> method takes function which takes arguments: first is a recieved value, second is a pipe object.</p>
+<p>Pipe object has 5 methods:</p>
+<ul>
+  <li><code>next</code> - transmits given value through the pipeline</li>
+  <li><code>stop</code> - breaks the pipeline evaluation loop.</li>
+  <li><code>pause</code> - pauses the pipeline evaluation loop. It means, that calls will come to this point and stops evaluation after it, but state will be remembered.</li>
+  <li><code>play</code> - runs the pipeline evaluation loop from last remembered point.</li>
+  <li><code>host</code> - returns hosting object of pipe.</li>
+</ul>
+
+<h3>.start</h3>
+<p>Synopsis: <code>pipeline.start(value, context, handler)</code></p>
+<p>Runs pipeline with given context and handler.</p>
 
     </div>
   </div>

@@ -24,7 +24,7 @@ module.exports = {
 		},
 		'about' : {
 			title: common.title,
-			dependencies: ['concept']
+			dependencies: ['concept', 'articles']
 		},
 		'habr' : {
 			title: common.title,
