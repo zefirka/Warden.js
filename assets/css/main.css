@@ -110,6 +110,12 @@ h3 {
 #docs h1,
 #docs h2 {
   font-weight: bold;
+}
+#docs h1,
+#docs h2,
+#docs h3,
+#docs h4,
+#docs h5 {
   position: relative;
 }
 #docs hr {
@@ -128,7 +134,7 @@ h3 {
   font-family: arial;
   font-size: 10px;
   color: white;
-  padding: 2px;
+  padding: 2px 4px;
   border-radius: 4px;
   top: 0px;
   right: 15px;
