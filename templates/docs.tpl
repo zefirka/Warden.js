@@ -548,7 +548,7 @@ stream.map(function(object){
 });
 </code></pre>
 
-<h2 id="filter">.filter</h2>
+<h2 id="filter" class='stable'>.filter</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.filter([filterFn])</code> or <code>stream.filter([value])</code>.</p>
 <p class='d-description'>Description: Returns new filtered stream.</p>
 <h3>Usage:</h3>
@@ -594,7 +594,7 @@ stream.filter(function(e){
 });
 </pre></code>
 
-<h2 id="reduce">.reduce</h2>
+<h2 id="reduce" class='stable'>.reduce</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.reduce([init], fn)</code>.</p>
 <p class='d-description'>Description: Scan stream and calls <code>fn</code> with arguments of reduced value and current value.</p>
 <h3>Usage:</h3>
@@ -632,17 +632,17 @@ var retweeters = retweets.reduce('', function(authors, author){
 });</code></pre>
 
 <hr>
-<h2 id="take">.take</h2>
+<h2 id="take" class='stable'>.take</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.take(integer)</code>.</p>
 <p class='d-description'>Description: Takes only <code>integer</code> values on stream (after last once unsubscribe all handlers).</p>
 
 <hr>
-<h2 id="skip">.skip</h2>
+<h2 id="skip" class='stable'>.skip</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.skip(integer)</code>.</p>
 <p class='d-description'>Description: Skips first <code>integer</code>  values on stream.</p>
 
 <hr>
-<h2 id="diff">.diff</h2>
+<h2 id="diff" class='stable'>.diff</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.diff([compareFn])</code>.</p>
 <p class='d-description'>Description: Takes only different values. Values compares with <code>Warden.configure.cmp</code> if <code>compareFn</code> don't set.</p>
 <pre><code class='javascript'>var diffed = stream.diff(function(a, b){
@@ -663,7 +663,7 @@ diffed.fire(280);
 // nothing happens</pre></code>
 
 <hr>
-<h2 id="interpolate">.interpolate</h2>
+<h2 id="interpolate" class='stable'>.interpolate</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.interpolate(string)</code>.</p>
 <p class='d-description'>Description: Takes given string and interpolate to it recived value. Interpolations are simple atom data in mustache-style.</p>
 <h3>Usage:</h3>
@@ -680,7 +680,7 @@ stream.fire({
 </pre></code>
 
 <hr>
-<h2 id="mask">.mask</h2>
+<h2 id="mask" class='stable'>.mask</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.mask(data)</code>.</p>
 <p class='d-description'>Description: Takes data and interpolate it to the string recieved from stream.</p>
 <h3>Usage:</h3>
@@ -697,7 +697,7 @@ stream.fire("Hello, my name is {{user_name}}, I'm from {{user_city}}");
 </pre></code>
 
 <hr class='bhr'>
-<h2 id="debounce">.debounce</h2>
+<h2 id="debounce" class='stable'>.debounce</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.debounce(ms)</code>.</p>
 <p class='d-description'>Description: Debouncing stream propagation in given <code>ms</code> miliseconds.</p>
 <h3>Usage:</h3>
@@ -713,7 +713,7 @@ stream.fire(3)
 </code></pre>
 
 <hr>
-<h2 id="collect">.collect</h2>
+<h2 id="collect" class='stable'>.collect</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.collect(ms)</code>.</p>
 <p class='d-description'>Description: Collecting all values of stream for given <code>ms</code> miliseconds to array.</p>
 <h3>Usage:</h3>
@@ -741,7 +741,7 @@ setTimeout(function(){
 </code></pre>
 
 <hr>
-<h2 id="delay">.delay</h2>
+<h2 id="delay" class='stable'>.delay</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.delay(ms)</code>.</p>
 <p class='d-description'>Description: Delay's stream propagation for given <code>ms</code> miliseconds to array.</p>
 <h3>Usage:</h3>
@@ -754,7 +754,7 @@ strea.fire('Hi!');
 </code></pre>
 
 <hr>
-<h2 id="repeat">.repeat</h2>
+<h2 id="repeat" class='stable'>.repeat</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.repeat(times, [delay])</code>.</p>
 <p class='d-description'>Description: Repeats stream evaluation with every value given times with <code>delay</code>. Note: repeats are async, even if you set delay to zero.</p>
 <h3>Usage:</h3>
@@ -771,7 +771,7 @@ strea.fire('Hi!');
 </code></pre>
 
 <hr class='bhr'>
-<h2 id="merge">.merge</h2>
+<h2 id="merge" class='stable'>.merge</h2>
 <p class='d-synopsis'>Synopsis: <code>stream1.merge(stream2, [stream3, stream4, ...])</code>.</p>
 <p class='d-description'>Description: Merges two or more streams to one. Return new stream.</p>
 <h3>Usage:</h3>
@@ -783,7 +783,7 @@ var clicksOrKeydowns = clicks.merge(keydowns);
 </code></pre>
 
 <hr>
-<h2 id="combine">.combine</h2>
+<h2 id="combine" class='stable'>.combine</h2>
 <p class='d-synopsis'>Synopsis: <code>stream1.combine(stream2, combinerFn)</code>.</p>
 <p class='d-description'>Description: Combines two streams with givetn function <code>combineFn</code>.</p>
 <h3>Usage:</h3>
@@ -797,7 +797,7 @@ var maxStream =  stream1.combine(stream2, function (first, second){
 </code></pre>
 
 <hr>
-<h2 id="resolve">.resolve</h2>
+<h2 id="resolve" class='stable'>.resolve</h2>
 <p class='d-synopsis'>Synopsis: <code>stream1.combine(stream2, resolver, [seed])</code>.</p>
 <p class='d-description'>Description: Takes two streams and resolver function. Returns stream which gives value as a result of resolver function applyied to values of given streams.</p>
 <h3>Usage:</h3>
@@ -811,7 +811,7 @@ var maxStream =  stream1.combine(stream2, function (first, second){
 </code></pre>
 
 <hr class='bhr'>
-<h2 id="collectfor">.collectFor</h2>
+<h2 id="collectfor" class='stable'>.collectFor</h2>
 <p class='d-synopsis'>Synopsis: <code>stream1.collectFor(stream2)</code>.</p>
 <p class='d-description'>Description: Returns streams which collects all recieved values and transmit all of them as array when <code>stream2</code> evaluetes. </p>
 <h3>Usage:</h3>
@@ -822,7 +822,7 @@ keydowns.collectFor(clicks).log(); // will log array of keydowns after every cli
 </code></pre>
 
 <hr>
-<h2 id="filterfor">.filterFor</h2>
+<h2 id="filterfor" class='warnings'>.filterFor</h2>
 <p class='d-synopsis'>Synopsis: <code>stream1.filterFor(fn)</code>.</p>
 <p class='d-description'>Description: Takes function which takes CGE Signature to filtrate values of stream.</p>
 <h3>Usage:</h3>
@@ -843,9 +843,10 @@ keydowns.collectFor(clicks).log(); // will log array of keydowns after every cli
    }
 });
 </code></pre>
+<p>Note: don't try to compose streams by <code>filterFor</code>.</p>
 
 <hr>
-<h2 id="alternately">.alternately</h2>
+<h2 id="alternately" class="stable">.alternately</h2>
 <p class='d-synopsis'>Synopsis: <code>stream1.alternately(stream2)</code>.</p>
 <p class='d-description'>Description: Takes two streams and returns stream which evaluates when evaluetes first stream alternately second.</p>
 <h3>Usage:</h3>
@@ -854,28 +855,28 @@ keydowns.collectFor(clicks).log(); // will log array of keydowns after every cli
 </code></pre>
 
 <hr>
-<h2 id="wait">.waitFor</h2>
+<h2 id="wait" class="stable">.waitFor</h2>
 <p class='d-synopsis'>Synopsis: <code>stream1.waitFor(stream2)</code>.</p>
 <p class='d-description'>Description: Return stream which will evaluate only if <code>stream2</code> has been already evaluated strongly before <code>stream1</code>.</p>
 
 <hr>
-<h2 id="after">.after</h2>
+<h2 id="after" class="stable">.after</h2>
 <p class='d-synopsis'>Synopsis: <code>stream1.after(stream2)</code>.</p>
 <p class='d-description'>Description: Return stream which evaluates only after <code>stream2</code> (if it has been evaluated at least once).</p>
 
 <hr>
-<h2 id="sync">.sync</h2>
+<h2 id="sync" class="stable">.sync</h2>
 <p class='d-synopsis'>Synopsis: <code>stream1.sync(stream2, [stream3, stream4, ... streamN])</code>.</p>
 <p class='d-description'>Description: synchronizes streams. Returns stream which will be evalueted only if all <code>stream1, strem2, ... stremN</code> have been evaluated.</p>
 
 
 <hr class='bhr'>
-<h2 id="swap">.swap</h2>
+<h2 id="swap" class="warnings">.swap</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.swap(state)</code>.</p>
 <p class='d-description'>Description: Swaps stream's state.</p>
 
 <hr>
-<h2 id="toggleon">.toggleOn</h2>
+<h2 id="toggleon" class="warnings">.toggleOn</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.toggleOn(stream2)</code>.</p>
 <p class='d-description'>Description: Toggles streams state when <code>stream2</code> is firing.</p>
 
@@ -897,12 +898,12 @@ keydowns.collectFor(clicks).log(); // will log array of keydowns after every cli
 <p class='d-description'>Description: Locks only given stream.</p>
 
 <hr>
-<h2 id="watch">.watch</h2>
+<h2 id="watch" class="stable">.watch</h2>
 <p class='d-synopsis'>Synopsis: <code>stream.watch()</code>.</p>
 <p class='d-description'>Description: Pushes stream to the host's active streams. It means that stream can be evaluated by host's <code>eval</code> method.</p>
 
 <hr class='bhr'>
-<h2 id="extarr">Extending arrays</h2>
+<h2 id="extarr" class="warnings">Extending arrays</h2>
 <p class='d-synopsis'>Synopsis: <code>Warden(array);</code>.</p>
 <p>Extends array with Pub/Sub methods, so you can subsribe to destructing changes of array such a <code>push</code> or <code>splice</code>.</p>
 <p><strong>Note: if you change array by array literal notation <code>arr[arr.length] = val</code> instead of <code>arr.push(val)</code> it's not work azazaza</strong></p>
@@ -1015,7 +1016,7 @@ host.eval('Value');
 <p class='d-description'>Description: return new stream assigned with given host. </p> 
 
 <hr class='bhr'>
-<h2 id='formula'>Warden.Formula</h2>
+<h2 id='formula' class="warnings">Warden.Formula</h2>
 <p class='d-synopsis'>Synopsis: <code>Warden.Formula(dependencies, formula)</code>.</p>
 <p class='d-description'>Description: Creates a stream which depends on streams in <code>dependencies</code> array of streams with given function (<code>formula</code>). </p> 
 <h3>Usage:</h3>
