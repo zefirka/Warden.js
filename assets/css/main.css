@@ -110,6 +110,7 @@ h3 {
 #docs h1,
 #docs h2 {
   font-weight: bold;
+  position: relative;
 }
 #docs hr {
   margin: 30px 0;
