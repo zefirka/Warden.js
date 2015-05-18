@@ -16,7 +16,7 @@
   }
   var jQueryInited = typeof jQuery != "undefined";
 
-  Warden.version = "0.3.5";
+  Warden.version = "0.4.0";
   Warden.configure = {
     history : 3,
     cmp : function(x,y){ return x === y; }
@@ -1412,27 +1412,24 @@
   }
 
   Warden.Formula = function(deps, formula, ctx){
-    
     var formulaStream = Warden.Stream(formula.toString(), ctx || {});
 
     each(deps, function(stream){
       stream.listen(function(data){
-        var formulaValue = formula.apply(ctx, map(deps, function(s){ 
-          return s.value; 
-        }));
+        var formulaValue = formula.apply(ctx || this, deps);
 
         formulaStream.fire(formulaValue);
       });
     });
     
     formulaStream.watch();
-    
-    formulaStream.value = formula.apply(this, map(deps, function(s){ 
-      return s.value; 
-    }));
+
+    formulaStream.value = formula.apply(ctx, deps);
     
     return formulaStream
   }
+
+
   
 
   if(jQueryInited){

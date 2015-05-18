@@ -70,7 +70,7 @@ describe('Reactive Programming', function(){
 			b = Warden(1);
 
 		var bigger = Warden.Formula([a, b], function(x, y){
-			return x > y ? x : y;
+			return x.value > y.value ? x.value : y.value;
 		});
 
 		
@@ -86,5 +86,74 @@ describe('Reactive Programming', function(){
 
 	});
 
+
+	it('-- formula: (bigger: object)', function(done){
+		function Player(name, team, score){
+			this.name = name;
+			this.team = team;
+			this.score = Warden(score || 0);
+			this.score.$$context = this;
+		}
+
+		Player.prototype.setScore = function(sc) {
+			this.score.value = sc;
+		};
+
+		var players = [
+			new Player("Jane", 'E', 0),
+			new Player("Doug", 'E', 0),
+			new Player("Johny", 'E', 0),
+			new Player("Joel", 'D', 0),
+			new Player("Hanz", 'D', 0) ];
+
+
+		function Team (players, name) {
+			this.score = Warden.Formula(players.map(function (p) {
+				return p.score;
+			}), function() {
+				return Warden.Utils.reduce(arguments, function(a, b){
+					return a + b;
+				});
+			});
+			this.name = name;
+			this.score.$$context = this;
+		}
+
+
+		function takeTeam(teamName) {
+			return new Team(Warden.Utils.filter(players, function(e){ 
+				return e.team == teamName;
+			}), teamName)	
+		}
+
+		var eTeam = takeTeam('E');
+		var dTeam = takeTeam('D');
+
+		var winnigScore = Warden.Formula([eTeam.score, dTeam.score], function (a, b) {
+			return a > b ? { score : a.value, name : a.$$context.name } : { score : b.value, name : b.$$context.name };
+		});
+
+		var wteam = winnigScore.map('.name').watch()
+		var wscore = winnigScore.map('.score').watch();
+
+		players[0].setScore(10);
+
+		expect(wteam.value).toBe('E');
+		expect(wscore.value).toBe(10);
+
+		players[1].setScore(20);
+
+		expect(wteam.value).toBe('E');
+		expect(wscore.value).toBe(30);
+
+		players[4].setScore(120);
+
+		expect(wteam.value).toBe('D');
+		expect(wscore.value).toBe(120);
+
+		done();
+	});
+
 });
+
 
