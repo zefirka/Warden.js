@@ -29,8 +29,6 @@
 
   include "Pipeline.js"
 
-  include "Host.js"
-
   include "Stream.js"
 
   include "Watcher.js"

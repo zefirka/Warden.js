@@ -20,13 +20,15 @@ var Stream = (function(){
     newPipe.push(p);
 
     nbus = new Stream(newPipe);
-    nbus.host = this.host;
     return inheritFrom(nbus, this);
   }
 
-  function Stream(line){
+  function Stream(line, context){
     var max = Warden.configure.history;
-    this.$$id = Utils.$hash.set('d')
+    this.$$id = Utils.$hash.set('d');
+    this.$$context = context || {};
+
+    this.observable = false;
     this.parent = null;
     this.children = [];
     handlers[this.$$id] = [];
@@ -56,6 +58,15 @@ var Stream = (function(){
     fire : function(data, context) {
       if(this.locked){
         return;
+      } 
+
+      context = context || this.$$context;
+
+      if(!this.observable){
+        each(this.children, function(child){
+          child.fire(data, context);
+        })
+        return;
       }
 
       var id = this.$$id, self = this;
@@ -68,8 +79,11 @@ var Stream = (function(){
         /* Executing all handlers of this Stream */
         each(handlers[id], function(handler){
           handler.call(context, result);
-        });
+        });        
 
+        each(self.children, function(child){
+          child.fire(data, context);
+        });
       });
     },
 
@@ -80,19 +94,13 @@ var Stream = (function(){
       object's handlers list new handler and push it's to the executable pipe of hoster stream
     */
     listen : function(x){
-      var self = this,
-          handlersList = handlers[this.$$id];
-
-      handlersList.push(x);
-      
-      if(handlersList.length<=1){
-        self.host.push(self);
-      }
+      this.observable = true;
+      handlers[this.$$id].push(x);      
       return this;
     },
 
     watch : function(){    
-      this.host.push(this);
+      this.observable = true;
       return this;
     },
       
@@ -119,7 +127,7 @@ var Stream = (function(){
     /* Logging recieved data to console or logger */
     log : function(x){
       return this.listen(function log(data){
-        console.log(x || data);
+        console.log(x ? x.replace(/\$/g, data) : data);
       });
     },
 
@@ -494,17 +502,17 @@ var Stream = (function(){
       Merges @bus with buses from arguments
     */
     merge : function(){
-      var host = Warden.Host(this.host.$$context),
+      var stream = Warden.Stream(this.$$id, this.$$context),
           argv = toArray(arguments);
           argv.push(this);
 
-      each(argv, function(bus){
-        bus.listen(function(data){
-          host.eval(data);
+      each(argv, function(toMerge){
+        toMerge.listen(function(data){
+          stream.fire(data);
         });
       });      
 
-      return inheritFrom(host.newStream(), this);
+      return stream;
     },
 
     alternately : function(bus){
@@ -528,23 +536,22 @@ var Stream = (function(){
 
     },
 
-    resolve : function(bus, fn, ctx) {
-      var self = this,
-          ctx = ctx || this.host.$$context
+    resolve : function(stream, fn, ctx) {
+      var self = this;
       return Warden.Stream(function(emit){
-        self.sync(bus).listen(function(data){
+        self.sync(stream).listen(function(data){
           emit(fn.call(ctx, data[0], data[1]));
         });
-      }, ctx);
+      }, ctx || this.$$context);
     },
 
     /* Combines two bises with given function @fn*/
     combine : function(bus, fn, seed){
-      var self = this, ctx = this.host.$$context;
+      var self = this;
 
       return Warden.Stream(function(emit){
         function e(a,b){
-          emit(fn.call(ctx, a,b));
+          emit(fn.call(self.$$context, a,b));
         }
 
         self.listen(function(data){
@@ -554,7 +561,7 @@ var Stream = (function(){
           e(self.data.last || seed, data);
         });
 
-      }, ctx);
+      }, this.$$context);
     },
 
     /* Synchronizes  buses */
@@ -599,19 +606,13 @@ var Stream = (function(){
         });
       });
       
-      return inheritFrom(nbus, this);
-    },
-
-    bus: function(){
-      var bus = new Stream();
-      bus.host = this.host;
-      return bus;
-    },
-
-    stream: function(){
-      return this.host();
+      return nbus;
     },
     
+    stream : function(){
+      return inheritFrom(new Stream(), this);
+    },
+
     swap : function(state){
       var self = this;
 
@@ -690,3 +691,39 @@ var Stream = (function(){
 
   return Stream;
 })();
+
+
+Warden.Stream = function(x, context, strict){
+  var stream, xstr, reserved = [], i, bus;    
+      context = context || {};  
+      stream = new Stream([], context);
+
+  if(is.fn(x)){
+    /* If we strict in context */
+    if(strict===true){
+      xstr = x.toString();
+
+      for(i in context){
+        if(context.hasOwnProperty(i))
+          reserved.push(i);
+      }
+
+      if(reserved.length){
+        each(reserved, function(prop){
+          if(xstr.indexOf("this."+prop)>=0){
+            /* If there is a coincidence, we warn about it */
+            console.error("Coincidence: property: '" + prop + "' is already defined in stream context!", context);
+          }
+        });    
+      }
+    }
+
+    x.call(context, function(result, ctx){
+      stream.fire(result, ctx);
+    });  
+  }
+
+  return stream;
+}
+
+Warden.makeStream = Warden.Stream

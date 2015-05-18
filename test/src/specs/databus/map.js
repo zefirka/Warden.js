@@ -25,15 +25,13 @@ describe('.map()', function () {
 	})
 
 	var total = {};
-	var totalHost = Warden.Host({ 
+	var totalBus = Warden.Stream("name", { 
 		ctxString : "STR",
 		ctxInt : 21,
 		ctxMethod: function(t) {
 			return t*2
 		}
 	});
-
-	var totalBus = totalHost.newStream();
 
 	totalBus.map({
 		string: 'string',
@@ -50,8 +48,8 @@ describe('.map()', function () {
 	}).listen(function(res){
 		total = res;
 	});
-
-	totalHost.eval({
+	
+	totalBus.fire({
 		str : 'string',
 		i : 123,
 		method : function(i){

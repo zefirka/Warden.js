@@ -24,13 +24,24 @@ Warden.Observe = function(obj){
 }
 
 Warden.Formula = function(deps, formula, ctx){
-  var stream =  Warden.Stream(function(fire){
-    each(deps, function(stream){
-      stream.listen(function(data){
-        fire.call(this, formula.apply(this, map(deps, function(s){ return s.value; }), this));
-      });
+  
+  var formulaStream = Warden.Stream(formula.toString(), ctx || {});
+
+  each(deps, function(stream){
+    stream.listen(function(data){
+      var formulaValue = formula.apply(ctx, map(deps, function(s){ 
+        return s.value; 
+      }));
+
+      formulaStream.fire(formulaValue);
     });
   });
-  stream.value = formula.apply(this, map(deps, function(s){ return s.value; }), this);
-  return stream.watch();
+  
+  formulaStream.watch();
+  
+  formulaStream.value = formula.apply(this, map(deps, function(s){ 
+    return s.value; 
+  }));
+  
+  return formulaStream
 }

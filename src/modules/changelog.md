@@ -1,18 +1,22 @@
 #### Global major changes
-`version v.0.3.5`
+`version v0.4.0`
+  - Removed Host module
+
+
+`version v0.3.5`
   - Fixed array extension
   - Added `pop` method to Host module
   - Added stream's `toString` method
   - Added source maps
   - Fixed `skip` method
 
-`version v.0.3.4`
+`version v0.3.4`
   - Pretty stable version
 
-`version v.0.3.3`
+`version v0.3.3`
   - Fixed `toggleOn` and `swap` methods
 
-`version v.0.3.2`
+`version v0.3.2`
   - Fixed `filterFor`
   - Added tests
   - Added `valueOf` for DataBus which refers to the last taken data
@@ -23,7 +27,7 @@
   - Fixed reduce method
   - Fixed `Stream.data.last` reference
    
-`version: v.0.3.0`
+`version: v0.3.0`
 
   - Removed datatype analyze
   - Changed terminology of modules.
@@ -53,7 +57,7 @@
 
 `version: v3.0.0`
 
- - v.3.0.0
+ - v3.0.0
     - Fixed regexp unlistening method
     - Changed array observation method. Now inheriting native array's prototype into observing array. (Issue: observing array returns false for `Array.isArray(arr)`)
     - Fixed `stream` method, now don't generate new DataBus object
@@ -89,13 +93,13 @@
 
 `version: 2.0.0`
 
- - v.2.0.0
+ - v2.0.0
   - Fully refactored
   - Removed analyzer
   - Made common functions global for Warden modules namespace
 
 
- - v.1.3.0
+ - v1.3.0
   - Added reduce
   - Make global optiomization
 
