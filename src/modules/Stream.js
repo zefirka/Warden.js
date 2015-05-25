@@ -25,12 +25,14 @@ var Stream = (function(){
 
   function Stream(line, context){
     var max = Warden.configure.history;
+
     this.$$id = Utils.$hash.set('d');
     this.$$context = context || {};
+    this.$$obs = false;
 
-    this.observable = false;
     this.parent = null;
     this.children = [];
+
     handlers[this.$$id] = [];
     pipes[this.$$id] = Pipeline(line || [], this);
 
@@ -55,17 +57,8 @@ var Stream = (function(){
       return binding;
     },
 
-    fire : function(data, context) {
-      if(this.locked){
-        return;
-      } 
-
-      context = context || this.$$context;
-
-      if(!this.observable){
-        each(this.children, function(child){
-          child.fire(data, context);
-        })
+    exec : function(data, context) {
+      if(!this.$$obs){
         return;
       }
 
@@ -79,11 +72,27 @@ var Stream = (function(){
         /* Executing all handlers of this Stream */
         each(handlers[id], function(handler){
           handler.call(context, result);
-        });        
-
-        each(self.children, function(child){
-          child.fire(data, context);
         });
+      });
+    },
+
+    fire : function(data, context) {
+      if(this.locked){
+        return;
+      }
+
+      context = context || this.$$context;
+
+      if(!this.$$obs){
+        each(this.children, function(child){
+          child.fire(data, context);
+        })
+        return;
+      }
+
+      this.exec(data, context);
+      each(this.children, function(child){
+        child.fire(data, context);
       });
     },
 
@@ -94,13 +103,13 @@ var Stream = (function(){
       object's handlers list new handler and push it's to the executable pipe of hoster stream
     */
     listen : function(x){
-      this.observable = true;
+      this.$$obs = true;
       handlers[this.$$id].push(x);      
       return this;
     },
 
     watch : function(){    
-      this.observable = true;
+      this.$$obs = true;
       return this;
     },
       
@@ -227,28 +236,11 @@ var Stream = (function(){
       return process.call(this, fn);
     },
 
-    /* Takes nth element of event */
-    nth : function(n) {
-      return process.call(this, function(e, pipe){
-        return pipe.next(e[n+1]);
-      });
-    },
-
-    /*
-      Takes element of event by given path:
-        bus.get('propname/childpropname/arraypropname[2]/child') takes the child from:
-        {
-          propname: {
-            childpropname: {
-              arraypropname : [0, 1, {child: "THIS!"}]
-            }
-          }
-        }
-    */
-    get : function(s) {
-      return process.call(this, function(data, pipe){
-        return pipe.next(Utils.getObject(data, s));
-      });
+    mapf: function(x) {
+      var f = function (e, p) {
+        return p.next(x.call(this, e));
+      }
+      return process.call(this, f);
     },
 
     /*

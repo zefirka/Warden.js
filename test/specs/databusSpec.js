@@ -334,68 +334,6 @@ describe('Warden Stream methods', function () {
 		    done();
 	    }); 
 	});
-
-	describe('.get()', function () {  
-		var data = {
-			root : {
-				parent: {
-					object : {
-						prop: 'value'
-					},
-					child: {
-						prop: 'name',
-						array: ['alpha', 'betta']
-					}
-				}
-			},
-			simple: 'simple'
-		}
-
-		bus.map('root/parent/child/prop').listen(function(e){
-			mapped.getFMap = e;
-		});
-
-		bus.get('root/parent/child/prop').listen(function(e){
-			mapped.getF = e;
-		});
-
-		bus.get('root/parent/child/array/[0]').listen(function(e){
-			mapped.getFArray = e;
-		});
-
-		bus.get('simple').listen(function(e){
-			mapped.getFSimple = e;
-		});
-
-		bus.get('root/parent/object').listen(function(e){
-			mapped.getFObject = e;
-		});
-
-	    it('-- from .get()', function (done) {     
-			sync.transmit(data);
-		    expect(mapped.getF).toEqual('name');
-		    done();
-	    }); 
-
-	    it('-- get from array', function (done) {     
-			sync.transmit(data);
-		    expect(mapped.getFArray).toEqual('alpha');
-		    done();
-	    }); 
-
-	    it('-- get simple', function (done) {     
-			sync.transmit(data);
-		    expect(mapped.getFSimple).toEqual('simple');
-		    done();
-	    }); 
-
-	    it('-- get object', function (done) {     
-			sync.transmit(data);
-		    expect(mapped.getFObject).toEqual({prop: "value"});
-		    done();
-	    }); 
-
-	});
 	describe('.filter()', function () {  
 		var equals = {
 			i: 0,
