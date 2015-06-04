@@ -158,6 +158,9 @@
       },
       set : function(i){
         return hash[i] = ((parseInt(hash[i], 16) || 0 )+1) . toString(16);
+      },
+      clean: function(i){
+        delete hash[i];
       }
     }
   })();
@@ -205,17 +208,6 @@
         });
       }, 
 
-      flatten : function(arr) {
-        var r = [];
-        each(arr, function(v){
-          if(is.array(v)){
-            r = r.concat(Utils.flatten(v));
-          } else {
-            r.push(v);
-          }
-        });
-        return r;
-      },
       extend: extend,
       trim: trim,
 
@@ -617,16 +609,11 @@
     /* Clones Stream */
     function process(p){
       var pipe = pipes[this.$$id],
-          newPipe = [],
-          nbus;       
+          newPipe = pipe.pipe().slice();
       
-      each(pipe.pipe(), function(i){
-        newPipe.push(i);
-      });
       newPipe.push(p);
 
-      nbus = new Stream(newPipe);
-      return inheritFrom(nbus, this);
+      return inheritFrom(new Stream(newPipe), this);
     }
 
     function Stream(line, context){
@@ -765,9 +752,9 @@
         Mapping recieved data and transmit mapped to the next processor
       */
       map : function(x) {
+
         function parseEval(string){
           var res = "";
-
 
           if(string.indexOf('@')>=0){
             if(string=='@'){
@@ -1377,31 +1364,6 @@
   		}
   	}
   };
-
-  Warden.Worker = function(adr){
-    adr = adr.slice(-3) == '.js' ? adr : adr + '.js';
-    var worker = new Worker(adr); 
-    var host = Warden.Host();
-    worker.onmessage = function(){
-      stream.eval(arguments)
-    }
-    var stream = host.newStream();
-    stream.post = worker.postMessage;
-    stream.onmessage = worker.onmessage
-    return stream;
-  }
-
-  Warden.Observe = function(obj){
-    if(Object.observe){
-      var stream = Warden.Host(obj);
-      Object.observe(obj, function(){
-        stream.eval.apply(obj, arguments);
-      })
-      return stream.newStream();
-    }else{
-      throw "This browser doesn't implement Object.observe"
-    }
-  }
 
   Warden.Formula = function(deps, formula, ctx){
     var formulaStream = Warden.Stream(formula.toString(), ctx || {});

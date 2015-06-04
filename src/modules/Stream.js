@@ -11,16 +11,11 @@ var Stream = (function(){
   /* Clones Stream */
   function process(p){
     var pipe = pipes[this.$$id],
-        newPipe = [],
-        nbus;       
+        newPipe = pipe.pipe().slice();
     
-    each(pipe.pipe(), function(i){
-      newPipe.push(i);
-    });
     newPipe.push(p);
 
-    nbus = new Stream(newPipe);
-    return inheritFrom(nbus, this);
+    return inheritFrom(new Stream(newPipe), this);
   }
 
   function Stream(line, context){
@@ -159,9 +154,9 @@ var Stream = (function(){
       Mapping recieved data and transmit mapped to the next processor
     */
     map : function(x) {
+
       function parseEval(string){
         var res = "";
-
 
         if(string.indexOf('@')>=0){
           if(string=='@'){

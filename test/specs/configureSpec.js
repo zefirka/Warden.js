@@ -27,6 +27,16 @@ describe('Configure', function(){
 		}
 	});
 
+	Warden.configure.addToStream('equals', function(value){
+		return function(event, pipe){
+			if(event == value){
+				pipe.next(event)
+			}else{
+				pipe.stop();
+			}
+		}
+	});
+
 	Warden.configure.addToStream('mul', function(val){
 		return function(event, pipe){
 			pipe.next(event * val);			
