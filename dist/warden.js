@@ -829,6 +829,79 @@
         return process.call(this, fn);
       },
 
+      maps: function(mapper){
+        function grep(str, event){
+          var expression = str.replace(/\$/g, event).replace(/@/g, "this");
+
+          if(str.match(/[\$\@\.]/g)){
+            return eval(expression);
+          }else{
+            return expression;
+          }
+        }
+        function functor(x){
+          if(!is.str(x)){
+            return function(){
+              return x;
+            }
+          }else
+          if(is.fn(x)){
+            return function(event){
+              return x.call(ctx, event);
+            }
+          }else{
+            return function(event){
+              return grep.call(this, x, event);
+            }
+          }
+        }
+
+        function decide(expr){
+          var res = null;
+
+          if(is.array(expr)){
+            res = map(expr, function(subExpr){
+              return decide(subExpr);
+            });
+          }else
+          if(is.obj(expr)){
+            res = {};
+            for(var i in expr){
+              res[i] = decide(expr[i]);
+            }
+          }else{
+            res = functor(expr);
+          }
+
+          return res;
+        }
+
+        function apply(event, getter, ctx){
+          if(is.array(getter)){
+            return getter.map(function(getF){
+              return apply(event, getF, ctx);
+            });
+          }
+
+          if(is.obj(getter)){
+            var res = {};
+            for(var prop in getter){
+              res[prop] = apply(event, getter[prop], ctx)
+            }
+            return res;
+          }
+
+          return getter.call(ctx, event);
+        }
+
+        var getter = decide(mapper);
+
+        return process.call(this, function(event, pipe){
+          pipe.next(apply.call(this, event, getter, this));
+        })
+
+      },
+
       mapf: function(x) {
         var f = function (e, p) {
           return p.next(x.call(this, e));
@@ -1364,6 +1437,31 @@
   		}
   	}
   };
+
+  Warden.Worker = function(adr){
+    adr = adr.slice(-3) == '.js' ? adr : adr + '.js';
+    var worker = new Worker(adr); 
+    var host = Warden.Host();
+    worker.onmessage = function(){
+      stream.eval(arguments)
+    }
+    var stream = host.newStream();
+    stream.post = worker.postMessage;
+    stream.onmessage = worker.onmessage
+    return stream;
+  }
+
+  Warden.Observe = function(obj){
+    if(Object.observe){
+      var stream = Warden.Host(obj);
+      Object.observe(obj, function(){
+        stream.eval.apply(obj, arguments);
+      })
+      return stream.newStream();
+    }else{
+      throw "This browser doesn't implement Object.observe"
+    }
+  }
 
   Warden.Formula = function(deps, formula, ctx){
     var formulaStream = Warden.Stream(formula.toString(), ctx || {});
