@@ -1,6 +1,5 @@
 /* Globals */
 var Utils,
-
     _FUN = 'function',
     _NUM = 'number',
     _STR = 'string',

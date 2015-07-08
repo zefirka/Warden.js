@@ -25,7 +25,6 @@
 
   /* Globals */
   var Utils,
-
       _FUN = 'function',
       _NUM = 'number',
       _STR = 'string',
@@ -752,86 +751,22 @@
         Mapping recieved data and transmit mapped to the next processor
       */
       map : function(x) {
-
-        function parseEval(string){
-          var res = "";
-
-          if(string.indexOf('@')>=0){
-            if(string=='@'){
-              res += 'this'
-            }else{
-              res += string.replace('@', 'this.');
-            }
-          }else
-          if(string.indexOf('.')>=0){
-            if(string=='.'){
-              res += 'event'
-            }else{
-              res += string.replace('.', 'event.');
-            }
+        return process.call(this, function(event, pipe){
+          if(is.fn(x)){
+            pipe.next(x.call(this, event));
           }else{
-            res += "'" + string + "'";
+            pipe.next(x);
           }
-          
-          if(string.indexOf('$')>=0){
-            res = string.replace(/\$/g, 'event');
-          }
-
-          if(res.match(/\(.+\)/)){
-            res = res.replace(/\(.+\)/, function(args){
-              return "(" + eval(args.slice(1,-1)) + ")"
-            })
-          }
-
-          return res;
-        }
-
-        function map(i, event){
-          if(is.fn(i)){
-            return i.call(this, event);
-          }else
-          if(is.str(i)){
-            return eval(parseEval(i))
-          }else{
-            return i;
-          }
-        }
-
-        var fn = function(eev, pipes){
-          return pipes.next(x);
-        }
-
-
-        if(typeof x == "object"){
-            if(is.array(x)){
-              fn = function(e, pipe){
-                var res = [], self = this;
-                each(x, function(i){
-                  res.push(map.call(self, i, e));
-                });
-                return pipe.next(res);
-              }
-            }else{
-              fn = function(e, pipe){
-                var res = {};
-                for(var prop in x){
-                  res[prop] = map.call(this, x[prop],e)
-                }
-                return pipe.next(res);
-              }
-            }
-        }else{
-          fn = function(event, pipe){
-            return pipe.next(map.call(this, x, event));
-          }
-        }
-
-        return process.call(this, fn);
+        });
       },
 
-      maps: function(mapper){
+      grep: function(mapper){
         function grep(str, event){
-          var expression = str.replace(/\$/g, event).replace(/@/g, "this");
+          if(str[0] == '.'){
+            str = "$" + str;
+          }
+
+          var expression = str.replace(/\$/g, 'event').replace(/^@$/g, "this").replace(/^@/g, 'this.').replace(/@/g, 'this');
 
           if(str.match(/[\$\@\.]/g)){
             return eval(expression);
@@ -900,13 +835,6 @@
           pipe.next(apply.call(this, event, getter, this));
         })
 
-      },
-
-      mapf: function(x) {
-        var f = function (e, p) {
-          return p.next(x.call(this, e));
-        }
-        return process.call(this, f);
       },
 
       /*
@@ -991,6 +919,12 @@
           var data = pipe.host().data, fires = data.fires, takes = data.takes,
               cons = (fires.length > 1 || takes.length > 0) && (compractor(event, fires[fires.length-2]) || compractor(event, takes.last()));
             return cons ? pipe.stop() : pipe.next(event);
+        });
+      },
+
+      produce : function(fn){
+        return process.call(this, function(event, pipe){
+          fn(event, pipe.next.bind(pipe));
         });
       },
 
@@ -1438,31 +1372,6 @@
   	}
   };
 
-  Warden.Worker = function(adr){
-    adr = adr.slice(-3) == '.js' ? adr : adr + '.js';
-    var worker = new Worker(adr); 
-    var host = Warden.Host();
-    worker.onmessage = function(){
-      stream.eval(arguments)
-    }
-    var stream = host.newStream();
-    stream.post = worker.postMessage;
-    stream.onmessage = worker.onmessage
-    return stream;
-  }
-
-  Warden.Observe = function(obj){
-    if(Object.observe){
-      var stream = Warden.Host(obj);
-      Object.observe(obj, function(){
-        stream.eval.apply(obj, arguments);
-      })
-      return stream.newStream();
-    }else{
-      throw "This browser doesn't implement Object.observe"
-    }
-  }
-
   Warden.Formula = function(deps, formula, ctx){
     var formulaStream = Warden.Stream(formula.toString(), ctx || {});
 
@@ -1482,6 +1391,15 @@
   }
 
 
+  Warden.From = function(el, e){
+    var val = el.value || ( el.val && el.val() );
+
+    var s = Warden.Stream().watch();
+
+    s.value = val;
+
+    return s
+  }
   
 
   if(jQueryInited){

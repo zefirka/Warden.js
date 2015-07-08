@@ -5,7 +5,7 @@ describe('.reduce()', function () {
 		return d.reduce ? true : false;			
 	}
 
-	var asReduce = bus.filter(isInReduce).map('.val')
+	var asReduce = bus.filter(isInReduce).grep('.val')
 
 	asReduce
 	.reduce(0, function(a,b){

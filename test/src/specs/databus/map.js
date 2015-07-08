@@ -12,15 +12,15 @@ describe('.map()', function () {
 	});
 
 	/* Mappings: Prop */
-	bus.map('.prop').listen(function(e){
+	bus.grep('$.prop').listen(function(e){
 		mapped.prop = e;
 	});
 
-	bus.map('@contextItem').listen(function(e){
+	bus.grep('@contextItem').listen(function(e){
 		mapped.ctxi = e;
 	});
 
-	bus.map('@contextMethod()').listen(function(e){
+	bus.grep('@contextMethod()').listen(function(e){
 		mapped.ctxm = e;
 	})
 
@@ -33,14 +33,14 @@ describe('.map()', function () {
 		}
 	});
 
-	totalBus.map({
+	totalBus.grep({
 		string: 'string',
 		Int : 12,
 		ctx : '@',
 		ctxS : '@ctxString',
 		ctxI : '@ctxInt',
 		ctxMC : '@ctxMethod(123)',
-		obj : '.',
+		obj : '$',
 		objS : '.str',
 		objI : '.i',
 		objMC : '.method(666)',
@@ -110,12 +110,12 @@ describe('.map()', function () {
 	});
 
 	/* Mappings: Array of Props*/
-	bus.map(['test', '.prop']).listen(function(e){
+	bus.grep(['test', '.prop']).listen(function(e){
 		mapped.arrProp = e;
 	});
 
 	/* Mappings: Object*/
-	bus.map({
+	bus.grep({
 		name: '.value'
 	}).listen(function(e){
 		mapped.obj = e;

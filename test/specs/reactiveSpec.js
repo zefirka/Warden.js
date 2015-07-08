@@ -133,8 +133,8 @@ describe('Reactive Programming', function(){
 			return a > b ? { score : a.value, name : a.$$context.name } : { score : b.value, name : b.$$context.name };
 		});
 
-		var wteam = winnigScore.map('.name').watch()
-		var wscore = winnigScore.map('.score').watch();
+		var wteam = winnigScore.grep('.name').watch()
+		var wscore = winnigScore.grep('.score').watch();
 
 		players[0].setScore(10);
 

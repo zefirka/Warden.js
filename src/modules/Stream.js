@@ -154,87 +154,23 @@ var Stream = (function(){
       Mapping recieved data and transmit mapped to the next processor
     */
     map : function(x) {
-
-      function parseEval(string){
-        var res = "";
-
-        if(string.indexOf('@')>=0){
-          if(string=='@'){
-            res += 'this'
-          }else{
-            res += string.replace('@', 'this.');
-          }
-        }else
-        if(string.indexOf('.')>=0){
-          if(string=='.'){
-            res += 'event'
-          }else{
-            res += string.replace('.', 'event.');
-          }
+      return process.call(this, function(event, pipe){
+        if(is.fn(x)){
+          pipe.next(x.call(this, event));
         }else{
-          res += "'" + string + "'";
+          pipe.next(x);
         }
-        
-        if(string.indexOf('$')>=0){
-          res = string.replace(/\$/g, 'event');
-        }
-
-        if(res.match(/\(.+\)/)){
-          res = res.replace(/\(.+\)/, function(args){
-            return "(" + eval(args.slice(1,-1)) + ")"
-          })
-        }
-
-        return res;
-      }
-
-      function map(i, event){
-        if(is.fn(i)){
-          return i.call(this, event);
-        }else
-        if(is.str(i)){
-          return eval(parseEval(i))
-        }else{
-          return i;
-        }
-      }
-
-      var fn = function(eev, pipes){
-        return pipes.next(x);
-      }
-
-
-      if(typeof x == "object"){
-          if(is.array(x)){
-            fn = function(e, pipe){
-              var res = [], self = this;
-              each(x, function(i){
-                res.push(map.call(self, i, e));
-              });
-              return pipe.next(res);
-            }
-          }else{
-            fn = function(e, pipe){
-              var res = {};
-              for(var prop in x){
-                res[prop] = map.call(this, x[prop],e)
-              }
-              return pipe.next(res);
-            }
-          }
-      }else{
-        fn = function(event, pipe){
-          return pipe.next(map.call(this, x, event));
-        }
-      }
-
-      return process.call(this, fn);
+      });
     },
 
-    maps: function(mapper){
+    grep: function(mapper){
       // 
       function grep(str, event){
-        var expression = str.replace(/\$/g, event).replace(/@/g, "this");
+        if(str[0] == '.'){
+          str = "$" + str;
+        }
+
+        var expression = str.replace(/\$/g, 'event').replace(/^@$/g, "this").replace(/^@/g, 'this.').replace(/@/g, 'this');
 
         if(str.match(/[\$\@\.]/g)){
           return eval(expression);
@@ -305,13 +241,6 @@ var Stream = (function(){
         pipe.next(apply.call(this, event, getter, this));
       })
 
-    },
-
-    mapf: function(x) {
-      var f = function (e, p) {
-        return p.next(x.call(this, e));
-      }
-      return process.call(this, f);
     },
 
     /*
@@ -396,6 +325,12 @@ var Stream = (function(){
         var data = pipe.host().data, fires = data.fires, takes = data.takes,
             cons = (fires.length > 1 || takes.length > 0) && (compractor(event, fires[fires.length-2]) || compractor(event, takes.last()));
           return cons ? pipe.stop() : pipe.next(event);
+      });
+    },
+
+    produce : function(fn){
+      return process.call(this, function(event, pipe){
+        fn(event, pipe.next.bind(pipe));
       });
     },
 
