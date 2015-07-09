@@ -22,7 +22,6 @@
     cmp : function(x,y){ return x === y; }
   };
 
-
   include "Utils.js"
   
   include "Extend.js"

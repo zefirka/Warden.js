@@ -15,14 +15,3 @@ Warden.Formula = function(deps, formula, ctx){
   
   return formulaStream
 }
-
-
-Warden.From = function(el, e){
-  var val = el.value || ( el.val && el.val() );
-
-  var s = Warden.Stream().watch();
-
-  s.value = val;
-
-  return s
-}

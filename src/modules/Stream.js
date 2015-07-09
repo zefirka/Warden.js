@@ -328,7 +328,7 @@ var Stream = (function(){
       });
     },
 
-    produce : function(fn){
+    pipe : function(fn){
       return process.call(this, function(event, pipe){
         fn(event, pipe.next.bind(pipe));
       });
@@ -723,5 +723,3 @@ Warden.Stream = function(x, context, strict){
 
   return stream;
 }
-
-Warden.makeStream = Warden.Stream

@@ -22,7 +22,6 @@
     cmp : function(x,y){ return x === y; }
   };
 
-
   /* Globals */
   var Utils,
       _FUN = 'function',
@@ -922,7 +921,7 @@
         });
       },
 
-      produce : function(fn){
+      pipe : function(fn){
         return process.call(this, function(event, pipe){
           fn(event, pipe.next.bind(pipe));
         });
@@ -1318,8 +1317,6 @@
     return stream;
   }
 
-  Warden.makeStream = Warden.Stream
-
   Warden.Watcher = function(){
   	var argv = Utils.toArray(arguments).slice(1,arguments.length),
   		argc = argv.length,
@@ -1388,17 +1385,6 @@
     formulaStream.value = formula.apply(ctx, deps);
     
     return formulaStream
-  }
-
-
-  Warden.From = function(el, e){
-    var val = el.value || ( el.val && el.val() );
-
-    var s = Warden.Stream().watch();
-
-    s.value = val;
-
-    return s
   }
   
 
