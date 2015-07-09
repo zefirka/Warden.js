@@ -80,11 +80,12 @@ You can see result just logging these buses with [`.log()`](#log-fn) method.
       `.map(f)` - mapping stream
       If `f` is function - then stream will transmit `f(value)` else will transmit `f`
 
-      ```
+      ```js
         ticks.map(10).log(); // logs 10
         ticks.map(function(e){
           return e.toLowerCase();
         }).log(); // logs: tick! (instead of TICK!)
+      ```
 
   - #### grep
       `.grep(proc)` - taking data from stream with given pattern. It's more complex and flexible variant of `.map()`.
@@ -196,8 +197,9 @@ You can see result just logging these buses with [`.log()`](#log-fn) method.
 
 ## Filtering
 
-  - `filter(f)` - if `f` is function then transmits only events which `f(event) === true`, else transmits only events equals to `f`:
-  - 
+  - `filter(f)` 
+    if `f` is function then transmits only events which `f(event) === true`, else transmits only events equals to `f`:
+   
     ```js
       // will transmit only clicks with clientX more than 512
       clicks.filter(function(event){
