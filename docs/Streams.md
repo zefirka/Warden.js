@@ -2,13 +2,12 @@ Streams
 =========
 
 Source at: 
-  - `./src/module/Host.js` : Host module
   - `./src/module/Stream.js` : Stream module
 
 Usage :
  - `object.stream(type, [context])` - Create stream from events of given type,
  - `Warden.Stream(creator, [context], [strictCheck])` - Create custom stream by creator function in given context and checks name overwriting if you need (look at strict name checking);
- - `Waden.Host([context]).newStream();` - Create Host and associate with it new stream. Returns stream.
+ - `Warden([nonObjectValue])` - creates stream which already contains given value
 
 Streams in Warden.js are simple pipelines which associated with some Host. Every data can be transmitted through the stream, so streams are data which can be changed. Stream has context of evaluation and stack of memory (3 last taken data by default, but you can configure it by `Warden.configure.history`).
 
@@ -183,28 +182,4 @@ Warden.Stream(function(f){
 
 // -> ERROR: 
 // -> Coincidence: property: 'x' is already defined in stream context! Object {x: 10}
-```
-
-##### Difference between streams and hosts:
-While stream's firing method fires only given stream, hosts' `eval` method firing all active streams of host. It pretty optimizing and allows to prevent situation when we creating a lots' of event listeners from DOM. Actually you can have only one listener of definitive type per node.
-
-```js
-var simpleStream = Warden.Stream();
-var host = Warden.Host({x: 10});
-var streamA = host.stream(); 
-var streamB = host.stream(); 
-
-simpleStream.map('Hello!').log();
-
-simpleStream.fire(); // nothing happens
-
-streamA.map('Hello')
-streamB.map('World');
-
-streamA.merge(streamB).log();
-
-host.eval(); 
-
-// -> Hello
-// -> World
 ```

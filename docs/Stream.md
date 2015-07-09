@@ -7,7 +7,7 @@ Source of pipeline `./src/modules/Pipeline.js`
 Create :
  - `object.stream(type, [context])` - Creates an event stream
  - `Warden.Stream([creator], [context], [strict])` - creates a custom stream
- - `Warden.Host([context]).newStream()` - Creates stream associated with given host.
+ - `Warden([nonObjectValue])` - creates stream which already contains given value
 
 Usage:
  - `stream[methodName]([params])[methodName]([params])...` - Chain of methods
@@ -44,7 +44,10 @@ This functions
     ```js
       ticks.log(); // -> TICK! (every second)
       ticks.log('Hello World!'); // -> Hello World! (every second)
+      ticks.log('Get: $'); // -> Get: TICK! 
     ```
+
+    Notation of `log` allows you use `$` symbol as given data in text (will use `.toString` to convert value to string in `log`).
 
   - <a href="#listen-fn"></a>`listen(callback)` - handled `callback` to stream
 
@@ -73,49 +76,63 @@ This functions
 
 You can see result just logging these buses with [`.log()`](#log-fn) method.
 
+  - #### map 
+      `.map(f)` - mapping stream
+      If `f` is function - then stream will transmit `f(value)` else will transmit `f`
 
-  - #### map
-      `.map(proc)` - mapping stream
+      ```
+        ticks.map(10).log(); // logs 10
+        ticks.map(function(e){
+          return e.toLowerCase();
+        }).log(); // logs: tick! (instead of TICK!)
 
-      - With functions:
+  - #### grep
+      `.grep(proc)` - taking data from stream with given pattern. It's more complex and flexible variant of `.map()`.
+
+      - With functions (same as `map`):
 
         ```js
-          clicks.map(function(event){
+          clicks.grep(function(event){
             return event.clientX + event.clientY;
           }) // -> will transmit event's coordinates sum
         ```
 
-      - With simple values:
+      - With simple values (same as `map`):
 
         ```js
-          clicks.map(12) // -> will transmit 12
-          clicks.map('Hello!') // -> will transmit 'Hello'
+          clicks.grep(12) // -> will transmit 12
+          clicks.grep('Hello!') // -> will transmit 'Hello'
         ```
 
       - With properties of event or context:
 
         ```js
-          clicks.map('.clientX') // equals to:
+          clicks.grep('.clientX') // equals to:
+
           clicks.map(function(event){
             return event.clientX;
           })
 
-          clicks.map('.handle()') // equals to:
+          clicks.grep('.handle()') // equals to:
+
           clicks.map(function(event){
             return event.handle();
           })
 
-          clicks.map('@prop') //equals to:
+          clicks.grep('@prop') //equals to:
+
           clicks.map(function(){
             return this.prop;
           })
 
-          clicks.map('@method()') //equals to
+          clicks.grep('@method()') //equals to
+
           clicks.map(function(){
             return this.method();
           })
 
-          clicks.map('@') //equals to
+          clicks.grep('@') //equals to
+
           clicks.map(function(){
             return this;
           })
@@ -123,15 +140,16 @@ You can see result just logging these buses with [`.log()`](#log-fn) method.
 
       - With multiple values:
         ```js
-          clicks.map(['.clientX', '.clientY']) //equals to
+          clicks.grep(['.clientX', '.clientY']) //equals to
+          
           clicks.map(function(event){
             return [event.clientX, event.clientY];
           })
         ```
 
-      - With object of aliases. Usage: `.map({ alias: 'value' })`
+      - With object of aliases. Usage: `.grep({ alias: 'value' })`
         ```js
-          clicks.map({
+          clicks.grep({
             x: '.clientX',
             y: '.clientY',
             ctx: '@',
@@ -153,20 +171,16 @@ You can see result just logging these buses with [`.log()`](#log-fn) method.
             }
           })
         ```
-  - #### get
-      `get(route)` transmits event's property in "path/to" notatation
 
-      ```js
-        clicks.get('path/[0]') // equals to:
-        clicks.map(function(event){
-          return event.path[0];
-        })
+      - With expressions where `$` symbol replaces with transmitting data:
+        ```js
+          clicks.grep(' ($.clientX * 2) + $.clientY ') //equals to
 
-        clicks.get('path/to/object/[3]/or/[0]') // equals to
-        clicks.map(function(event){
-          return event.path.to.object[3].or[0];
-        })
-      ```
+          clicks.map(function(e){
+            return ( e.clientX * 2) + e.clientY;
+          });
+        ```
+
       
   - #### reduce
     `reduce([initial], fn)` -if `initial` skiped, then initial value will be first taken value of stream
@@ -179,11 +193,6 @@ You can see result just logging these buses with [`.log()`](#log-fn) method.
           return a + ":" + b;
         }).log() // -> Start:TICK!:TICK!:TICK ...
     ```
-  - #### nth
-    `nth(number)` - transmits array's (n+1)-th element.
-      ```js
-        ticks.map(['alpha', 'betta', 'gamma']).nth(1).log() // -> 'alpha'
-      ```
 
 ## Filtering
 
@@ -258,6 +267,17 @@ You can see result just logging these buses with [`.log()`](#log-fn) method.
   - `delay(ms)` - delays every transmission for given time in ms
 
   - `repeat(count, ms)` - repeats transmission `count` times with given interval in ms (it's always async)
+
+  - `pipe(fn)` - takes pipe function which takes 2 arguments: data and `next` function:
+    ```
+      ticks.pipe(function(data, next){
+        setTimeout(function(){
+          next("DELAYED: " + next);
+        }, 1000)
+      }).log();
+
+      // will log "DELAYED: TICK!" with one second delay
+    ```
 
 ## Composing
   - #### merge

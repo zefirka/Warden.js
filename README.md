@@ -6,23 +6,22 @@ Small declarative library for event-driven development in functional reactive st
 
 ## Concept
 
-Warden.js provides instruments to make development of event-driven applications easy. General idea of Warden.js that to make composing, combining and resolving concurrent events simpler. In mathematical sense, idea that to change your app's events representation from tree of states to the partially ordered set in time (or other) priority relation.
+Warden.js provides instruments to make development of event-driven applications easy and declarative. General idea of Warden.js that to make composing, combining and resolving concurrent events simpler. In mathematical sense, idea that to change your app's events representation from tree of states to the partially ordered set in time (or other) priority relation.
 
 Warden.js is not pure functional library. It's trade-off between pure FRP and traditional event-driven development. It's good solution for ready event-driven applications. If you don't want to think how to construct app with true functional practices from start or/and you already have partially ready app then you can try Warden to make you life easy.
 
-#### Warning! Breaking changes from 0.3.5. Documentation deprecated for 0.4.*
+#### Warning! Breaking changes from 0.3.*. Documentation deprecated for 0.4.*
 
 ## Documentation [![GitHub version](https://badge.fury.io/gh/zefirka%2Fwarden.js.svg)](http://badge.fury.io/gh/zefirka%2Fwarden.js)
   - [Pub/Sub](https://github.com/zefirka/Warden.js/blob/master/docs/Extend.md)
   - [Creating streams](https://github.com/zefirka/Warden.js/blob/master/docs/Streams.md)
   - [Using streams](https://github.com/zefirka/Warden.js/blob/master/docs/Stream.md)
-  - [Hosting streams](https://github.com/zefirka/Warden.js/blob/master/docs/Host.md)
   - [Binding data](https://github.com/zefirka/Warden.js/blob/master/docs/Bind.md)
   - [Reactive calculations](https://github.com/zefirka/Warden.js/blob/master/docs/Formulas.md)
 
 ## Why Warden.js?
 
- - There are no dependencies with DOM, jQuery or other libraries or event emitting system in the Warden.js. You can use it on the front and on the back. With jQuery or with Node's Event Emiter or without anything.
+ - There are no dependencies with DOM, jQuery or other libraries or event emitting system in the Warden.js. You can use it on the front and on the back. With jQuery or with Node's Event Emiter or without anything. It's flexible.
  - Simple declarative methods to combine, conjuncte and resolve concpetually connected events. Like `sync` or `resolve`. If your application turns to tangled web of simple events and you spoiling time to resolve synchronization, combining events in time and resolving problems - then Warden.js is for you.
  - Pretty flexible API. There are no much of ready solutions, but there is way to add your own data stream processing method, combine methods and construct application in your way.
  - It's not pure functional, but stay simple. In Warden you can create modules with dirty state, but if you're sure that these modules are simple and state is predictable. So after you can combine and reuse modules in more declarative way. It's not required to use pure functional programming technics from start to end while develop with Warden.
