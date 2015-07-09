@@ -1,6 +1,5 @@
 /* Globals */
 var Utils,
-
     _FUN = 'function',
     _NUM = 'number',
     _STR = 'string',
@@ -133,6 +132,9 @@ var hashc = (function(){
     },
     set : function(i){
       return hash[i] = ((parseInt(hash[i], 16) || 0 )+1) . toString(16);
+    },
+    clean: function(i){
+      delete hash[i];
     }
   }
 })();
@@ -180,17 +182,6 @@ Utils = {
       });
     }, 
 
-    flatten : function(arr) {
-      var r = [];
-      each(arr, function(v){
-        if(is.array(v)){
-          r = r.concat(Utils.flatten(v));
-        } else {
-          r.push(v);
-        }
-      });
-      return r;
-    },
     extend: extend,
     trim: trim,
 

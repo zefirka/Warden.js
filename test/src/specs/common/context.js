@@ -33,6 +33,8 @@ describe('Context saving', function () {
       var bus = module.stream('sync', Context); 
       
       var executed = {};
+
+      //console.log(bus.$$context.test);
       
       function sil(){
         executed[Math.random()] = this.test;
@@ -42,8 +44,7 @@ describe('Context saving', function () {
       bus.map(sil).listen(sil);
       bus.filter(sil).listen(sil);
       bus.reduce(0, sil).listen(sil);
-      bus.resolve(bus, sil).listen(sil);
-      bus.combine(bus, sil).listen(sil);
+
       
       module.emit('sync');
       
@@ -56,7 +57,7 @@ describe('Context saving', function () {
   
     it('-- Stream Context', function (done) { 
 	  var context = {x:10};
-      var stream = Warden.makeStream(function(trigger){
+      var stream = Warden.Stream(function(trigger){
         this.y = 10;
         this.sync = function(x){
           trigger()

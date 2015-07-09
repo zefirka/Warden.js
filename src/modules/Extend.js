@@ -233,9 +233,9 @@ Warden.extend = (function(){
     /* Creates stream of @type type events*/
     setval(inheritor, names.stream, function(types, cnt){
       var self = this,
-          stream = Warden.makeStream(types, cnt || this),
+          stream = Warden.Stream(null, cnt || this),
           seval = function(event){
-            stream.host.eval(event)
+            stream.fire(event, cnt || this)
           },
           reactor = binder(seval, getHandlers(this['$$id'] = this['$$id'] || hashc.set('o')), seval);
       

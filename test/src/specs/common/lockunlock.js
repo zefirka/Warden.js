@@ -16,8 +16,9 @@ describe('Lock/Unlock methods ', function () {
 	}, Context);
 
 	it('-- locking and unlocking simple listened bus', function (done) { 
-		var bus = Stream.bus();
-		bus.listen(function(x){
+		
+
+		Stream.listen(function(x){
 			Context.syncemitted++
 			Context.syncLastValue = x;
 		});
@@ -26,7 +27,7 @@ describe('Lock/Unlock methods ', function () {
 		Context.sync(10);
 		Context.sync(20);
 
-		bus.lock();
+		Stream.lock();
 
 		Context.sync(10);
 		Context.sync(10);
@@ -35,7 +36,7 @@ describe('Lock/Unlock methods ', function () {
 		expect(Context.syncemitted).toBe(3);
 		expect(Context.syncLastValue).toBe(20);
 
-		bus.unlock();
+		Stream.unlock();
 
 		Context.sync(10);
 		Context.sync(10);
@@ -43,13 +44,12 @@ describe('Lock/Unlock methods ', function () {
 		expect(Context.syncemitted).toBe(6);
 		expect(Context.syncLastValue).toBe(10);
 
-		bus.lock();
 		done();
 	});
 
 	it('-- locking and unlocking difference buses', function (done) { 
-		var bus1 = Stream.bus(),
-			bus2 = Stream.bus();
+		var bus1 = Stream.stream(),
+			bus2 = Stream.stream();
 
 		var b1 = {t: 0,v: 0},
 			b2 = {t: 0,v: 0}

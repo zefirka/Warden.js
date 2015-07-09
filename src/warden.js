@@ -16,20 +16,17 @@
   }
   var jQueryInited = typeof jQuery != "undefined";
 
-  Warden.version = "0.3.5";
+  Warden.version = "0.4.0";
   Warden.configure = {
     history : 3,
     cmp : function(x,y){ return x === y; }
   };
-
 
   include "Utils.js"
   
   include "Extend.js"
 
   include "Pipeline.js"
-
-  include "Host.js"
 
   include "Stream.js"
 

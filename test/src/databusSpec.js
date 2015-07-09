@@ -17,11 +17,11 @@ describe('Warden Stream methods', function () {
 			reduced = {};
 			taken = 0;
 		},
-		bus = Warden.makeStream(function(trigger){
+		bus = Warden.Stream(function(trigger){
 			this.transmit = function(val){
 				trigger(val);
 			}
-		}, sync).bus();
+		}, sync);
 
 	/* Simple */
 	bus.listen(function(data){

@@ -1,20 +1,15 @@
 describe('Combining methods ', function () {  		
 	it('-- merge', function (done) { 
-		var cl;
+		var cl = [];
 
-		var bus1 = bus.filter(function(x){return x==1}).map('One'),
-			bus2 = bus.filter(function(x){return x==0}).map('Two'),
+		var bus1 = Warden.Stream().map('One'),
+			bus2 = Warden.Stream().map('Two'),
 			merged = bus1.merge(bus2);
 
-		merged.reduce([],function(a,b){
-			a.push(b);
-			return a;
-		}).listen(function(x){
-			cl = x;
-		});
-
-		sync.transmit(1);
-		sync.transmit(0);
+		merged.listen(cl.push.bind(cl));
+		
+		bus1.fire();
+		bus2.fire();
 
 		expect(cl).toEqual(['One', 'Two']);
 		merged.lock();
@@ -143,23 +138,23 @@ describe('Combining methods ', function () {
 	it('-- combine (+)' ,function (done){
 		var sum = 0;
 
-		var host1 = Warden.Host(),
-			host2 = Warden.Host();
+		var host1 = Warden.Stream(),
+			host2 = Warden.Stream();
 
-		var bus1 = host1.newStream().map(10),
-			bus2 = host2.newStream().map(20),
+		var bus1 = host1.map(10),
+			bus2 = host2.map(20),
 			combined = bus1.combine(bus2, function(a,b){
 				return a + b;
 			}, 0).listen(function(res){
 				sum = res;
 			});
 
-			host1.eval();
+			host1.fire();
 			expect(sum).toBe(10);
-			host2.eval();
+			host2.fire();
 			expect(sum).toBe(30);
-			host2.eval();
-			host1.eval();
+			host2.fire();
+			host1.fire();
 			expect(sum).toBe(30);
 
 			done();

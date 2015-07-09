@@ -11,24 +11,23 @@ var Stream = (function(){
   /* Clones Stream */
   function process(p){
     var pipe = pipes[this.$$id],
-        newPipe = [],
-        nbus;       
+        newPipe = pipe.pipe().slice();
     
-    each(pipe.pipe(), function(i){
-      newPipe.push(i);
-    });
     newPipe.push(p);
 
-    nbus = new Stream(newPipe);
-    nbus.host = this.host;
-    return inheritFrom(nbus, this);
+    return inheritFrom(new Stream(newPipe), this);
   }
 
-  function Stream(line){
+  function Stream(line, context){
     var max = Warden.configure.history;
-    this.$$id = Utils.$hash.set('d')
+
+    this.$$id = Utils.$hash.set('d');
+    this.$$context = context || {};
+    this.$$obs = false;
+
     this.parent = null;
     this.children = [];
+
     handlers[this.$$id] = [];
     pipes[this.$$id] = Pipeline(line || [], this);
 
@@ -53,8 +52,8 @@ var Stream = (function(){
       return binding;
     },
 
-    fire : function(data, context) {
-      if(this.locked){
+    exec : function(data, context) {
+      if(!this.$$obs){
         return;
       }
 
@@ -69,7 +68,26 @@ var Stream = (function(){
         each(handlers[id], function(handler){
           handler.call(context, result);
         });
+      });
+    },
 
+    fire : function(data, context) {
+      if(this.locked){
+        return;
+      }
+
+      context = context || this.$$context;
+
+      if(!this.$$obs){
+        each(this.children, function(child){
+          child.fire(data, context);
+        })
+        return;
+      }
+
+      this.exec(data, context);
+      each(this.children, function(child){
+        child.fire(data, context);
       });
     },
 
@@ -80,19 +98,13 @@ var Stream = (function(){
       object's handlers list new handler and push it's to the executable pipe of hoster stream
     */
     listen : function(x){
-      var self = this,
-          handlersList = handlers[this.$$id];
-
-      handlersList.push(x);
-      
-      if(handlersList.length<=1){
-        self.host.push(self);
-      }
+      this.$$obs = true;
+      handlers[this.$$id].push(x);      
       return this;
     },
 
     watch : function(){    
-      this.host.push(this);
+      this.$$obs = true;
       return this;
     },
       
@@ -119,7 +131,7 @@ var Stream = (function(){
     /* Logging recieved data to console or logger */
     log : function(x){
       return this.listen(function log(data){
-        console.log(x || data);
+        console.log(x ? x.replace(/\$/g, data) : data);
       });
     },
 
@@ -142,105 +154,93 @@ var Stream = (function(){
       Mapping recieved data and transmit mapped to the next processor
     */
     map : function(x) {
-      function parseEval(string){
-        var res = "";
+      return process.call(this, function(event, pipe){
+        if(is.fn(x)){
+          pipe.next(x.call(this, event));
+        }else{
+          pipe.next(x);
+        }
+      });
+    },
 
+    grep: function(mapper){
+      // 
+      function grep(str, event){
+        if(str[0] == '.'){
+          str = "$" + str;
+        }
 
-        if(string.indexOf('@')>=0){
-          if(string=='@'){
-            res += 'this'
-          }else{
-            res += string.replace('@', 'this.');
+        var expression = str.replace(/\$/g, 'event').replace(/^@$/g, "this").replace(/^@/g, 'this.').replace(/@/g, 'this');
+
+        if(str.match(/[\$\@\.]/g)){
+          return eval(expression);
+        }else{
+          return expression;
+        }
+      }
+
+      // functior of simple types
+      function functor(x){
+        if(!is.str(x)){
+          return function(){
+            return x;
           }
         }else
-        if(string.indexOf('.')>=0){
-          if(string=='.'){
-            res += 'event'
-          }else{
-            res += string.replace('.', 'event.');
+        if(is.fn(x)){
+          return function(event){
+            return x.call(ctx, event);
           }
         }else{
-          res += "'" + string + "'";
+          return function(event){
+            return grep.call(this, x, event);
+          }
         }
-        
-        if(string.indexOf('$')>=0){
-          res = string.replace(/\$/g, 'event');
-        }
+      }
 
-        if(res.match(/\(.+\)/)){
-          res = res.replace(/\(.+\)/, function(args){
-            return "(" + eval(args.slice(1,-1)) + ")"
-          })
+      function decide(expr){
+        var res = null;
+
+        if(is.array(expr)){
+          res = map(expr, function(subExpr){
+            return decide(subExpr);
+          });
+        }else
+        if(is.obj(expr)){
+          res = {};
+          for(var i in expr){
+            res[i] = decide(expr[i]);
+          }
+        }else{
+          res = functor(expr);
         }
 
         return res;
       }
 
-      function map(i, event){
-        if(is.fn(i)){
-          return i.call(this, event);
-        }else
-        if(is.str(i)){
-          return eval(parseEval(i))
-        }else{
-          return i;
+      function apply(event, getter, ctx){
+        if(is.array(getter)){
+          return getter.map(function(getF){
+            return apply(event, getF, ctx);
+          });
         }
-      }
 
-      var fn = function(eev, pipes){
-        return pipes.next(x);
-      }
-
-
-      if(typeof x == "object"){
-          if(is.array(x)){
-            fn = function(e, pipe){
-              var res = [], self = this;
-              each(x, function(i){
-                res.push(map.call(self, i, e));
-              });
-              return pipe.next(res);
-            }
-          }else{
-            fn = function(e, pipe){
-              var res = {};
-              for(var prop in x){
-                res[prop] = map.call(this, x[prop],e)
-              }
-              return pipe.next(res);
-            }
+        if(is.obj(getter)){
+          var res = {};
+          for(var prop in getter){
+            res[prop] = apply(event, getter[prop], ctx)
           }
-      }else{
-        fn = function(event, pipe){
-          return pipe.next(map.call(this, x, event));
+          return res;
         }
+
+        return getter.call(ctx, event);
       }
 
-      return process.call(this, fn);
-    },
+      var getter = decide(mapper);
 
-    /* Takes nth element of event */
-    nth : function(n) {
-      return process.call(this, function(e, pipe){
-        return pipe.next(e[n+1]);
-      });
-    },
+      return process.call(this, function(event, pipe){
+        pipe.next(apply.call(this, event, getter, this));
+      })
 
-    /*
-      Takes element of event by given path:
-        bus.get('propname/childpropname/arraypropname[2]/child') takes the child from:
-        {
-          propname: {
-            childpropname: {
-              arraypropname : [0, 1, {child: "THIS!"}]
-            }
-          }
-        }
-    */
-    get : function(s) {
-      return process.call(this, function(data, pipe){
-        return pipe.next(Utils.getObject(data, s));
-      });
     },
 
     /*
@@ -325,6 +325,12 @@ var Stream = (function(){
         var data = pipe.host().data, fires = data.fires, takes = data.takes,
             cons = (fires.length > 1 || takes.length > 0) && (compractor(event, fires[fires.length-2]) || compractor(event, takes.last()));
           return cons ? pipe.stop() : pipe.next(event);
+      });
+    },
+
+    pipe : function(fn){
+      return process.call(this, function(event, pipe){
+        fn(event, pipe.next.bind(pipe));
       });
     },
 
@@ -494,17 +500,17 @@ var Stream = (function(){
       Merges @bus with buses from arguments
     */
     merge : function(){
-      var host = Warden.Host(this.host.$$context),
+      var stream = Warden.Stream(this.$$id, this.$$context),
           argv = toArray(arguments);
           argv.push(this);
 
-      each(argv, function(bus){
-        bus.listen(function(data){
-          host.eval(data);
+      each(argv, function(toMerge){
+        toMerge.listen(function(data){
+          stream.fire(data);
         });
       });      
 
-      return inheritFrom(host.newStream(), this);
+      return stream;
     },
 
     alternately : function(bus){
@@ -528,23 +534,22 @@ var Stream = (function(){
 
     },
 
-    resolve : function(bus, fn, ctx) {
-      var self = this,
-          ctx = ctx || this.host.$$context
+    resolve : function(stream, fn, ctx) {
+      var self = this;
       return Warden.Stream(function(emit){
-        self.sync(bus).listen(function(data){
+        self.sync(stream).listen(function(data){
           emit(fn.call(ctx, data[0], data[1]));
         });
-      }, ctx);
+      }, ctx || this.$$context);
     },
 
     /* Combines two bises with given function @fn*/
     combine : function(bus, fn, seed){
-      var self = this, ctx = this.host.$$context;
+      var self = this;
 
       return Warden.Stream(function(emit){
         function e(a,b){
-          emit(fn.call(ctx, a,b));
+          emit(fn.call(self.$$context, a,b));
         }
 
         self.listen(function(data){
@@ -554,7 +559,7 @@ var Stream = (function(){
           e(self.data.last || seed, data);
         });
 
-      }, ctx);
+      }, this.$$context);
     },
 
     /* Synchronizes  buses */
@@ -599,19 +604,13 @@ var Stream = (function(){
         });
       });
       
-      return inheritFrom(nbus, this);
-    },
-
-    bus: function(){
-      var bus = new Stream();
-      bus.host = this.host;
-      return bus;
-    },
-
-    stream: function(){
-      return this.host();
+      return nbus;
     },
     
+    stream : function(){
+      return inheritFrom(new Stream(), this);
+    },
+
     swap : function(state){
       var self = this;
 
@@ -690,3 +689,37 @@ var Stream = (function(){
 
   return Stream;
 })();
+
+
+Warden.Stream = function(x, context, strict){
+  var stream, xstr, reserved = [], i, bus;    
+      context = context || {};  
+      stream = new Stream([], context);
+
+  if(is.fn(x)){
+    /* If we strict in context */
+    if(strict===true){
+      xstr = x.toString();
+
+      for(i in context){
+        if(context.hasOwnProperty(i))
+          reserved.push(i);
+      }
+
+      if(reserved.length){
+        each(reserved, function(prop){
+          if(xstr.indexOf("this."+prop)>=0){
+            /* If there is a coincidence, we warn about it */
+            console.error("Coincidence: property: '" + prop + "' is already defined in stream context!", context);
+          }
+        });    
+      }
+    }
+
+    x.call(context, function(result, ctx){
+      stream.fire(result, ctx);
+    });  
+  }
+
+  return stream;
+}

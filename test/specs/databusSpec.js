@@ -17,11 +17,11 @@ describe('Warden Stream methods', function () {
 			reduced = {};
 			taken = 0;
 		},
-		bus = Warden.makeStream(function(trigger){
+		bus = Warden.Stream(function(trigger){
 			this.transmit = function(val){
 				trigger(val);
 			}
-		}, sync).bus();
+		}, sync);
 
 	/* Simple */
 	bus.listen(function(data){
@@ -167,20 +167,20 @@ describe('Warden Stream methods', function () {
 		});
 
 		/* Mappings: Prop */
-		bus.map('.prop').listen(function(e){
+		bus.grep('$.prop').listen(function(e){
 			mapped.prop = e;
 		});
 
-		bus.map('@contextItem').listen(function(e){
+		bus.grep('@contextItem').listen(function(e){
 			mapped.ctxi = e;
 		});
 
-		bus.map('@contextMethod()').listen(function(e){
+		bus.grep('@contextMethod()').listen(function(e){
 			mapped.ctxm = e;
 		})
 
 		var total = {};
-		var totalHost = Warden.Host({ 
+		var totalBus = Warden.Stream("name", { 
 			ctxString : "STR",
 			ctxInt : 21,
 			ctxMethod: function(t) {
@@ -188,16 +188,14 @@ describe('Warden Stream methods', function () {
 			}
 		});
 
-		var totalBus = totalHost.newStream();
-
-		totalBus.map({
+		totalBus.grep({
 			string: 'string',
 			Int : 12,
 			ctx : '@',
 			ctxS : '@ctxString',
 			ctxI : '@ctxInt',
 			ctxMC : '@ctxMethod(123)',
-			obj : '.',
+			obj : '$',
 			objS : '.str',
 			objI : '.i',
 			objMC : '.method(666)',
@@ -205,8 +203,8 @@ describe('Warden Stream methods', function () {
 		}).listen(function(res){
 			total = res;
 		});
-
-		totalHost.eval({
+		
+		totalBus.fire({
 			str : 'string',
 			i : 123,
 			method : function(i){
@@ -267,12 +265,12 @@ describe('Warden Stream methods', function () {
 		});
 
 		/* Mappings: Array of Props*/
-		bus.map(['test', '.prop']).listen(function(e){
+		bus.grep(['test', '.prop']).listen(function(e){
 			mapped.arrProp = e;
 		});
 
 		/* Mappings: Object*/
-		bus.map({
+		bus.grep({
 			name: '.value'
 		}).listen(function(e){
 			mapped.obj = e;
@@ -335,68 +333,6 @@ describe('Warden Stream methods', function () {
 		    expect(mapped.ctxm).toEqual('hello context method');
 		    done();
 	    }); 
-	});
-
-	describe('.get()', function () {  
-		var data = {
-			root : {
-				parent: {
-					object : {
-						prop: 'value'
-					},
-					child: {
-						prop: 'name',
-						array: ['alpha', 'betta']
-					}
-				}
-			},
-			simple: 'simple'
-		}
-
-		bus.map('root/parent/child/prop').listen(function(e){
-			mapped.getFMap = e;
-		});
-
-		bus.get('root/parent/child/prop').listen(function(e){
-			mapped.getF = e;
-		});
-
-		bus.get('root/parent/child/array/[0]').listen(function(e){
-			mapped.getFArray = e;
-		});
-
-		bus.get('simple').listen(function(e){
-			mapped.getFSimple = e;
-		});
-
-		bus.get('root/parent/object').listen(function(e){
-			mapped.getFObject = e;
-		});
-
-	    it('-- from .get()', function (done) {     
-			sync.transmit(data);
-		    expect(mapped.getF).toEqual('name');
-		    done();
-	    }); 
-
-	    it('-- get from array', function (done) {     
-			sync.transmit(data);
-		    expect(mapped.getFArray).toEqual('alpha');
-		    done();
-	    }); 
-
-	    it('-- get simple', function (done) {     
-			sync.transmit(data);
-		    expect(mapped.getFSimple).toEqual('simple');
-		    done();
-	    }); 
-
-	    it('-- get object', function (done) {     
-			sync.transmit(data);
-		    expect(mapped.getFObject).toEqual({prop: "value"});
-		    done();
-	    }); 
-
 	});
 	describe('.filter()', function () {  
 		var equals = {
@@ -585,7 +521,7 @@ describe('Warden Stream methods', function () {
 			return d.reduce ? true : false;			
 		}
 
-		var asReduce = bus.filter(isInReduce).map('.val')
+		var asReduce = bus.filter(isInReduce).grep('.val')
 
 		asReduce
 		.reduce(0, function(a,b){
@@ -924,21 +860,16 @@ describe('Warden Stream methods', function () {
 	});
 	describe('Combining methods ', function () {  		
 		it('-- merge', function (done) { 
-			var cl;
+			var cl = [];
 
-			var bus1 = bus.filter(function(x){return x==1}).map('One'),
-				bus2 = bus.filter(function(x){return x==0}).map('Two'),
+			var bus1 = Warden.Stream().map('One'),
+				bus2 = Warden.Stream().map('Two'),
 				merged = bus1.merge(bus2);
 
-			merged.reduce([],function(a,b){
-				a.push(b);
-				return a;
-			}).listen(function(x){
-				cl = x;
-			});
-
-			sync.transmit(1);
-			sync.transmit(0);
+			merged.listen(cl.push.bind(cl));
+			
+			bus1.fire();
+			bus2.fire();
 
 			expect(cl).toEqual(['One', 'Two']);
 			merged.lock();
@@ -1067,23 +998,23 @@ describe('Warden Stream methods', function () {
 		it('-- combine (+)' ,function (done){
 			var sum = 0;
 
-			var host1 = Warden.Host(),
-				host2 = Warden.Host();
+			var host1 = Warden.Stream(),
+				host2 = Warden.Stream();
 
-			var bus1 = host1.newStream().map(10),
-				bus2 = host2.newStream().map(20),
+			var bus1 = host1.map(10),
+				bus2 = host2.map(20),
 				combined = bus1.combine(bus2, function(a,b){
 					return a + b;
 				}, 0).listen(function(res){
 					sum = res;
 				});
 
-				host1.eval();
+				host1.fire();
 				expect(sum).toBe(10);
-				host2.eval();
+				host2.fire();
 				expect(sum).toBe(30);
-				host2.eval();
-				host1.eval();
+				host2.fire();
+				host1.fire();
 				expect(sum).toBe(30);
 
 				done();
@@ -1183,8 +1114,9 @@ describe('Warden Stream methods', function () {
 		}, Context);
 
 		it('-- locking and unlocking simple listened bus', function (done) { 
-			var bus = Stream.bus();
-			bus.listen(function(x){
+			
+
+			Stream.listen(function(x){
 				Context.syncemitted++
 				Context.syncLastValue = x;
 			});
@@ -1193,7 +1125,7 @@ describe('Warden Stream methods', function () {
 			Context.sync(10);
 			Context.sync(20);
 
-			bus.lock();
+			Stream.lock();
 
 			Context.sync(10);
 			Context.sync(10);
@@ -1202,7 +1134,7 @@ describe('Warden Stream methods', function () {
 			expect(Context.syncemitted).toBe(3);
 			expect(Context.syncLastValue).toBe(20);
 
-			bus.unlock();
+			Stream.unlock();
 
 			Context.sync(10);
 			Context.sync(10);
@@ -1210,13 +1142,12 @@ describe('Warden Stream methods', function () {
 			expect(Context.syncemitted).toBe(6);
 			expect(Context.syncLastValue).toBe(10);
 
-			bus.lock();
 			done();
 		});
 
 		it('-- locking and unlocking difference buses', function (done) { 
-			var bus1 = Stream.bus(),
-				bus2 = Stream.bus();
+			var bus1 = Stream.stream(),
+				bus2 = Stream.stream();
 
 			var b1 = {t: 0,v: 0},
 				b2 = {t: 0,v: 0}
@@ -1325,6 +1256,8 @@ describe('Warden Stream methods', function () {
           var bus = module.stream('sync', Context); 
           
           var executed = {};
+
+          //console.log(bus.$$context.test);
           
           function sil(){
             executed[Math.random()] = this.test;
@@ -1334,8 +1267,7 @@ describe('Warden Stream methods', function () {
           bus.map(sil).listen(sil);
           bus.filter(sil).listen(sil);
           bus.reduce(0, sil).listen(sil);
-          bus.resolve(bus, sil).listen(sil);
-          bus.combine(bus, sil).listen(sil);
+
           
           module.emit('sync');
           
@@ -1348,7 +1280,7 @@ describe('Warden Stream methods', function () {
       
         it('-- Stream Context', function (done) { 
     	  var context = {x:10};
-          var stream = Warden.makeStream(function(trigger){
+          var stream = Warden.Stream(function(trigger){
             this.y = 10;
             this.sync = function(x){
               trigger()

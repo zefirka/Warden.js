@@ -2,7 +2,7 @@ describe('Warden streams: synchronious', function () {
 
 	var sync = {}, value = 0, val2 = 0, mapped = 0;
 
-	var bus = Warden.makeStream(function(trigger){
+	var bus = Warden.Stream(function(trigger){
 		this.start = function(){
 			trigger(1);
 		}
@@ -11,7 +11,7 @@ describe('Warden streams: synchronious', function () {
 				data: val
 			});
 		}
-	}, sync).bus()
+	}, sync)
 
 	bus.listen(function(data){
 		value = data;
@@ -21,7 +21,7 @@ describe('Warden streams: synchronious', function () {
 		val2 = data.data;
 	});
 
-	bus.map('.data').listen(function(e){
+	bus.grep('.data').listen(function(e){
 		mapped = e;
 	});
 
@@ -44,12 +44,12 @@ describe('Warden streams: synchronious', function () {
     }); 
 });
 
-describe('Warden.makeStream: asynchronious', function () {  
+describe('Warden.Stream: asynchronious', function () {  
 
 	var async = {}, value = 0, avalue = 0;
 
 	beforeEach(function(done){
-		Warden.makeStream(function(trigger){
+		Warden.Stream(function(trigger){
 			this.start = function(){
 				setTimeout(function(){
 					trigger(1);
@@ -57,7 +57,7 @@ describe('Warden.makeStream: asynchronious', function () {
 				}, 100);
 				
 			}
-		}, async).bus().listen(function(data){
+		}, async).listen(function(data){
 			avalue = data;
 		});
 		async.start();

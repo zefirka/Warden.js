@@ -12,20 +12,20 @@ describe('.map()', function () {
 	});
 
 	/* Mappings: Prop */
-	bus.map('.prop').listen(function(e){
+	bus.grep('$.prop').listen(function(e){
 		mapped.prop = e;
 	});
 
-	bus.map('@contextItem').listen(function(e){
+	bus.grep('@contextItem').listen(function(e){
 		mapped.ctxi = e;
 	});
 
-	bus.map('@contextMethod()').listen(function(e){
+	bus.grep('@contextMethod()').listen(function(e){
 		mapped.ctxm = e;
 	})
 
 	var total = {};
-	var totalHost = Warden.Host({ 
+	var totalBus = Warden.Stream("name", { 
 		ctxString : "STR",
 		ctxInt : 21,
 		ctxMethod: function(t) {
@@ -33,16 +33,14 @@ describe('.map()', function () {
 		}
 	});
 
-	var totalBus = totalHost.newStream();
-
-	totalBus.map({
+	totalBus.grep({
 		string: 'string',
 		Int : 12,
 		ctx : '@',
 		ctxS : '@ctxString',
 		ctxI : '@ctxInt',
 		ctxMC : '@ctxMethod(123)',
-		obj : '.',
+		obj : '$',
 		objS : '.str',
 		objI : '.i',
 		objMC : '.method(666)',
@@ -50,8 +48,8 @@ describe('.map()', function () {
 	}).listen(function(res){
 		total = res;
 	});
-
-	totalHost.eval({
+	
+	totalBus.fire({
 		str : 'string',
 		i : 123,
 		method : function(i){
@@ -112,12 +110,12 @@ describe('.map()', function () {
 	});
 
 	/* Mappings: Array of Props*/
-	bus.map(['test', '.prop']).listen(function(e){
+	bus.grep(['test', '.prop']).listen(function(e){
 		mapped.arrProp = e;
 	});
 
 	/* Mappings: Object*/
-	bus.map({
+	bus.grep({
 		name: '.value'
 	}).listen(function(e){
 		mapped.obj = e;
@@ -180,66 +178,4 @@ describe('.map()', function () {
 	    expect(mapped.ctxm).toEqual('hello context method');
 	    done();
     }); 
-});
-
-describe('.get()', function () {  
-	var data = {
-		root : {
-			parent: {
-				object : {
-					prop: 'value'
-				},
-				child: {
-					prop: 'name',
-					array: ['alpha', 'betta']
-				}
-			}
-		},
-		simple: 'simple'
-	}
-
-	bus.map('root/parent/child/prop').listen(function(e){
-		mapped.getFMap = e;
-	});
-
-	bus.get('root/parent/child/prop').listen(function(e){
-		mapped.getF = e;
-	});
-
-	bus.get('root/parent/child/array/[0]').listen(function(e){
-		mapped.getFArray = e;
-	});
-
-	bus.get('simple').listen(function(e){
-		mapped.getFSimple = e;
-	});
-
-	bus.get('root/parent/object').listen(function(e){
-		mapped.getFObject = e;
-	});
-
-    it('-- from .get()', function (done) {     
-		sync.transmit(data);
-	    expect(mapped.getF).toEqual('name');
-	    done();
-    }); 
-
-    it('-- get from array', function (done) {     
-		sync.transmit(data);
-	    expect(mapped.getFArray).toEqual('alpha');
-	    done();
-    }); 
-
-    it('-- get simple', function (done) {     
-		sync.transmit(data);
-	    expect(mapped.getFSimple).toEqual('simple');
-	    done();
-    }); 
-
-    it('-- get object', function (done) {     
-		sync.transmit(data);
-	    expect(mapped.getFObject).toEqual({prop: "value"});
-	    done();
-    }); 
-
 });
