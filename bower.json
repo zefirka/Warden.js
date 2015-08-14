@@ -1,6 +1,6 @@
 {
   "name": "Warden.js",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "homepage": "https://github.com/zefirka/Warden.js",
   "authors": [
     "Trdat Mkrtchyan <wombtromb@gmail.com>"
@@ -10,7 +10,7 @@
   "keywords": [
     "FRP",
     "EDD",
-    "event-driven"
+    "event-driven",
     "functional",
     "javascript",
     "warden.js"
