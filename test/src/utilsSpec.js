@@ -1,3 +1,5 @@
+const Warden = require('../../dist/warden.min.js');
+
 describe('Utilities', function(){
 	var Utils = Warden.Utils,
 		is = Utils.is,
@@ -12,8 +14,8 @@ describe('Utilities', function(){
 		nil = null,
 		undef;
 
-	include "utils/datatypes.js"
-	include "utils/logical.js"	
+	//=require ./specs/utils/datatypes.js
+	//=require ./specs/utils/logical.js
 
 	describe('Queue', function(){
 		it('Queue', function(){

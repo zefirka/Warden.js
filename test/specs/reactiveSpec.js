@@ -1,3 +1,5 @@
+const Warden = require('../../dist/warden.min.js');
+
 describe('Reactive Programming', function(){
 	var runa, runb;
 

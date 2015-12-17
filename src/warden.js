@@ -16,24 +16,20 @@
   }
   var jQueryInited = typeof jQuery != "undefined";
 
-  Warden.version = "0.4.1";
+  Warden.version = "0.4.3-unstable";
   Warden.configure = {
     history : 3,
     cmp : function(x,y){ return x === y; }
   };
 
-  include "Utils.js"
-  
-  include "Extend.js"
-
-  include "Pipeline.js"
-
-  include "Stream.js"
-
-  include "Watcher.js"
-
-  include "Plugins.js"
-  
+  (function(){
+    //=require ./modules/Utils.js
+    //=require ./modules/Extend.js
+    //=require ./modules/Pipeline.js
+    //=require ./modules/Stream.js
+    //=require ./modules/Watcher.js
+    //=require ./modules/Plugins.js
+  })();
 
   if(jQueryInited){
     Warden(jQuery);

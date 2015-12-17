@@ -1,3 +1,5 @@
+const Warden = require('../../dist/warden.min.js');
+
 describe('Warden Stream methods', function () {  
 	var sync = {
 			contextItem: 'hello context item',
@@ -28,17 +30,17 @@ describe('Warden Stream methods', function () {
 		value = data;
 	});
 
-	include "databus/simple.js"
-	include "databus/listen.js"
-	include "databus/map.js"
-	include "databus/filter.js"
-	include "databus/reduce.js"
-	include "databus/take.js"
-	include "databus/skip.js"
-	include "databus/mask.js"
-	include "databus/unique.js"
-	include "databus/timefunc.js"
-	include "databus/combinig.js"
-	include "common/lockunlock.js"
-    include "common/context.js"
+	//=require ./specs/databus/simple.js
+	//=require ./specs/databus/listen.js
+	//=require ./specs/databus/map.js
+	//=require ./specs/databus/filter.js
+	//=require ./specs/databus/reduce.js
+	//=require ./specs/databus/take.js
+	//=require ./specs/databus/skip.js
+	//=require ./specs/databus/mask.js
+	//=require ./specs/databus/unique.js
+	//=require ./specs/databus/timefunc.js
+	//=require ./specs/databus/combinig.js
+	//=require ./specs/common/lockunlock.js
+	//=require ./specs/common/context.js
 });

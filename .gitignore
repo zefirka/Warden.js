@@ -2,6 +2,7 @@
 .old
 .bzr
 .bzrignore
+.DS_Store
 nb_projets
 *.sublime*
 

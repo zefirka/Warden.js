@@ -1,3 +1,5 @@
+const Warden = require('../../dist/warden.min.js');
+
 describe('Configure', function(){
 	var run;
 

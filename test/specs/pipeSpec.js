@@ -1,3 +1,5 @@
+const Warden = require('../../dist/warden.min.js');
+
 describe('Pipeline', function(){
 	var pipe = Warden.Pipeline(),
 		res = 0;

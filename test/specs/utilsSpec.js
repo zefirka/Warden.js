@@ -1,3 +1,5 @@
+const Warden = require('../../dist/warden.min.js');
+
 describe('Utilities', function(){
 	var Utils = Warden.Utils,
 		is = Utils.is,
@@ -21,7 +23,7 @@ describe('Utilities', function(){
 				expect(is.array(str)).toBe(false);
 				expect(is.obj(str)).toBe(false);
 			});
-
+	
 			it('::number', function(){
 				expect(is.str(num)).toBe(false);
 				expect(is.num(num)).toBe(true);
@@ -30,7 +32,7 @@ describe('Utilities', function(){
 				expect(is.array(num)).toBe(false);
 				expect(is.obj(num)).toBe(false);
 			});
-
+	
 			it('::boolean', function(){
 				expect(is.str(bool)).toBe(false);
 				expect(is.num(bool)).toBe(false);
@@ -39,7 +41,7 @@ describe('Utilities', function(){
 				expect(is.array(bool)).toBe(false);
 				expect(is.obj(bool)).toBe(false);
 			});
-
+	
 			it('::function', function(){
 				expect(is.str(fn)).toBe(false);
 				expect(is.num(fn)).toBe(false);
@@ -48,7 +50,7 @@ describe('Utilities', function(){
 				expect(is.array(fn)).toBe(false);
 				expect(is.obj(fn)).toBe(false);
 			});
-
+	
 			it('::array', function(){
 				expect(is.str(array)).toBe(false);
 				expect(is.num(array)).toBe(false);
@@ -57,7 +59,7 @@ describe('Utilities', function(){
 				expect(is.array(array)).toBe(true);
 				expect(is.obj(array)).toBe(false);
 			});
-
+	
 			it('::object', function(){
 				expect(is.str(obj)).toBe(false);
 				expect(is.num(obj)).toBe(false);
@@ -69,7 +71,7 @@ describe('Utilities', function(){
 		});
 	describe('Logical Chekings', function(){
 			var _let = Utils.$let;
-
+	
 			it('Existance', function(){
 				expect(is.exist(false)).toBe(true);
 				expect(is.exist()).toBe(false);
@@ -77,7 +79,7 @@ describe('Utilities', function(){
 				expect(is.exist(null)).toBe(false);
 				expect(is.exist(1)).toBe(true);
 			});
-
+	
 			it('.not()', function(){
 				var nexist = Utils.not(is.exist);
 				expect(nexist(false)).toBe(false);

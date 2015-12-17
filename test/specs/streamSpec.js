@@ -1,3 +1,5 @@
+
+
 describe('Warden streams: synchronious', function () {  
 
 	var sync = {}, value = 0, val2 = 0, mapped = 0;

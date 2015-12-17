@@ -1,10 +1,12 @@
+const Warden = require('../../dist/warden.min.js');
+
 describe('Warden.extend', function(){
 
-	include "extend/constructors.js"
-	include "extend/objects.js"
-	include "extend/arrays.js"
-	include "extend/workflow.js"
-	include "extend/security.js"
-	include "extend/configuration.js"
+	//=require ./specs/extend/constructors.js
+	//=require ./specs/extend/objects.js
+	//=require ./specs/extend/arrays.js
+	//=require ./specs/extend/workflow.js
+	//=require ./specs/extend/security.js
+	//=require ./specs/extend/configuration.js
 
 });
